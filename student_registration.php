@@ -4,64 +4,79 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Registration Page</title>
-    </head>
+</head>
 
-    <body>
-        <?php
+<body>
+
+    <?php
         require('database.php');
-        if (isset($_REQUEST['username'])) {
-            $username = stripslashes($_POST['username']);
-            $username = mysqli_real_escape_string($con, $username);
+        if (isset($_POST['student_name'])) {
+            $student_name = stripslashes($_POST['student_name']);
+            $student_name = mysqli_real_escape_string($con, $student_name);
             
-            $email = stripslashes($_POST['email']);
-            $email = mysqli_real_escape_string($con, $email);
+            $utar_mail = stripslashes($_POST['utar_mail']);
+            $utar_mail = mysqli_real_escape_string($con, $utar_mail);
             
             $password = stripslashes($_POST['password']);
             $password = mysqli_real_escape_string($con, $password);
             
-            $studentid = stripslashes($_POST['studentid']);
-            $studentid = mysqli_real_escape_string($con, $studentid);
+            $student_id = stripslashes($_POST['student_id']);
+            $student_id = mysqli_real_escape_string($con, $student_id);
             
-            $studentname = stripslashes($_POST['studentname']);
-            $studentname = mysqli_real_escape_string($con, $studentname);
+            $student_name = stripslashes($_POST['student_name']);
+            $student_name = mysqli_real_escape_string($con, $student_name);
+            
+            $programme_id = stripslashes($_POST['programme_id']);
+            $programme_id = mysqli_real_escape_string($con, $programme_id);
             
             $phone = stripslashes($_POST['phone']);
             $phone = mysqli_real_escape_string($con, $phone);
             
             $reg_date = date("Y-m-d H:i:s");
-            $usertype = "student";
-    
-            // Hash the password
+            $user_type = "student";
+
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-    
-            // Insert the user into the database
-            $query = "INSERT INTO `students` (studentid, studentname, utarmail, phone, user_type, password, reg_date) 
-                      VALUES ('$username', '$hashed_password', '$email', '$phone', '$reg_date', 'user')";
+
+            // Register info into users and students table
+            $users_query = "INSERT INTO `users` (user_type, password, reg_date) 
+                    VALUES ('$user_type', '$hashed_password', '$reg_date')";
             
-            $result = mysqli_query($con, $query);
-    
+            $result = mysqli_query($con, $users_query);
+            
             if ($result) {
-                echo "<div class='form'>
-                      <h3>You are registered successfully.</h3>
-                      <br/>Click here to <a href='login.php'>Login</a></div>";
+                $students_query = "INSERT INTO `students` (id, student_name, email, programme_id, phone) 
+                VALUES ('$student_id', '$student_name', '$utar_mail', '$programme_id', '$phone')";
+        
+                $result2 = mysqli_query($con, $students_query);
+    
+                if ($result2) {
+                    echo "<div class='form'>
+                          <h3>You are registered successfully.</h3>
+                          <br/>Click here to <a href='login.php'>Login</a></div>";
+                } else {
+                    echo "<div class='form'>
+                          <h3>There was an error during registration in the students table.</h3></div>";
+                }
             } else {
                 echo "<div class='form'>
-                      <h3>There was an error during registration.</h3></div>";
+                      <h3>There was an error during registration in the users table.</h3></div>";
             }
         } else {
-        ?>
+    ?>
 
-        <div class="form">
-        <h1>Student Registration Page</h1>
-        <form name="registration" action="" method="post">
-            <input type="text" name="studentid" placeholder="Student ID" required /><br>
-            <input type="text" name="studentname" placeholder="Name" required /><br>
-            <input type="email" name="utarmail" placeholder="UTAR Mail" required /><br>
-            <input type="tel" name="phone" placeholder="Phone No." required /><br>
-            <input type="password" name="password" placeholder="Password" required /><br>
-            <input type="submit" name="submit" value="Register" />
-        </form>
-        </div>
-        <?php } ?>
-    </body>
+    <div class="form">
+    <h1>Student Registration Page</h1>
+    <form name="registration" action="" method="post">
+        <input type="text" name="student_id" placeholder="Student ID" required /><br>
+        <input type="text" name="student_name" placeholder="Name" required /><br>
+        <input type="text" name="programme_id" placeholder="Programme (e.g.: IA)" required /><br>
+        <input type="email" name="utar_mail" placeholder="UTAR Mail" required /><br>
+        <input type="tel" name="phone" placeholder="Phone No." required /><br>
+        <input type="password" name="password" placeholder="Password" required /><br>
+        <input type="submit" name="submit" value="Register" />
+    </form>
+    </div>
+    <?php }?>
+</body>
 </html>
+
