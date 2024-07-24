@@ -52,7 +52,7 @@
                 if ($result2) {
                     echo "<div class='form'>
                           <h3>You are registered successfully.</h3>
-                          <br/>Click here to <a href='login.php'>Login</a></div>";
+                          <br/>Click here to <a href='student_login.php'>Login</a></div>";
                 } else {
                     echo "<div class='form'>
                           <h3>There was an error during registration in the students table.</h3></div>";
@@ -73,7 +73,8 @@
         <input type="email" name="utar_mail" placeholder="UTAR Mail" required /><br>
         <input type="tel" name="phone" placeholder="Phone No." required /><br>
         <input type="password" name="password" placeholder="Password" required /><br>
-        <input type="submit" name="submit" value="Register" />
+        <input type="submit" name="submit" value="Register" /><br><br>
+        <p>Not UTAR Student? Click <a href="lecturer_registration.php">HERE</a> to Lecturer Register Page</p>
     </form>
     </div>
     <?php }?>
