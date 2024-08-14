@@ -1,0 +1,12 @@
+function updateDateTime() {
+    const now = new Date();
+    const options = { year: 'numeric', month: 'numeric', day: 'numeric', 
+                      hour: 'numeric', minute: 'numeric', second: 'numeric' };
+    const formattedDateTime = now.toLocaleString('en-GB', { timeZone: 'Asia/Kuala_Lumpur', ...options });
+    document.getElementById('datetime').innerHTML = formattedDateTime;
+}
+
+
+updateDateTime();
+
+setInterval(updateDateTime, 2000);

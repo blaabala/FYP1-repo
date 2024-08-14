@@ -1,78 +1,75 @@
-*{
-	padding: 0;
-	margin: 0;
-	box-sizing: border-box;
-	text-decoration: none;
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+  
+.roboto-thin {
+font-family: "Roboto", sans-serif;
+font-weight: 100;
+font-style: normal;
 }
 
-footer {
-	background-color: #3D5A80;
+.roboto-light {
+font-family: "Roboto", sans-serif;
+font-weight: 300;
+font-style: normal;
 }
 
-.footer-container {
-	width: 100%;
-	padding: 70px 30px 20px;
+.roboto-regular {
+font-family: "Roboto", sans-serif;
+font-weight: 400;
+font-style: normal;
 }
 
-.footer-icons {
-	display: flex;
-	justify-content: center;
+.roboto-medium {
+font-family: "Roboto", sans-serif;
+font-weight: 500;
+font-style: normal;
 }
 
-.footer-icons a {
-	text-decoration: none;
-	padding: 10px;
-	background-color: white;
-	margin: 10px;
-	border-radius: 50%;
+.roboto-bold {
+font-family: "Roboto", sans-serif;
+font-weight: 700;
+font-style: normal;
 }
 
-.footer-icons a i{
-	font-size: 2em;
-	color: black;
-	opacity: 0.9;
+.roboto-black {
+font-family: "Roboto", sans-serif;
+font-weight: 900;
+font-style: normal;
 }
 
-.footer-icons a:hover {
-	background-color: #3D5A80;
-	transition: 0.5s;
+.roboto-thin-italic {
+font-family: "Roboto", sans-serif;
+font-weight: 100;
+font-style: italic;
 }
 
-.footer-icons a:hover i{
-	background-color: white;
-	transition: 0.5s;
+.roboto-light-italic {
+font-family: "Roboto", sans-serif;
+font-weight: 300;
+font-style: italic;
 }
 
-.footer-nav {
-	margin: 30px 0;
+.roboto-regular-italic {
+font-family: "Roboto", sans-serif;
+font-weight: 400;
+font-style: italic;
 }
 
-.footer-nav ul {
-	display: flex;
-	justify-content: center;
+.roboto-medium-italic {
+font-family: "Roboto", sans-serif;
+font-weight: 500;
+font-style: italic;
 }
 
-.footer-nav ul li a {
-	color: white;
-	margin: 20px;
-	text-decoration: none;
-	font-size: 1.3em;
-	opacity: 0.7;
-	transition: 0.5s;
+.roboto-bold-italic {
+font-family: "Roboto", sans-serif;
+font-weight: 700;
+font-style: italic;
 }
 
-.footer-nav ul li a:hover{
-	opacity: 1;
-}
-
-.footer-bottom {
-	background-color: #3D5A80;
-	padding: 20px;
-	text-align: center;
-}
-
-.footer-bottom p {
-	color: white;
+.roboto-black-italic {
+font-family: "Roboto", sans-serif;
+font-weight: 900;
+font-style: italic;
 }
 
 /* Header Color Palettes
@@ -81,24 +78,289 @@ footer {
    3. #E0FBFC
    4. #EE6C4D */
 
-.navbar{
-	background: #3D5A80; font-family: calibri; padding-right: 15px;padding-left: 15px;
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    font-family: 'Roboto', sans-serif;
 }
-.navdiv{
-	display: flex; align-items: center; justify-content: space-between;
+
+body {
+    background: #E0FBFC;
 }
-.logo a{
-	font-size: 35px; font-weight: 600; color: white;
+
+/* Container for Centering */
+.container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 90vh;
 }
-li{
-	list-style: none; display: inline-block;
+
+/* Box Styling */
+.box {
+    background: white;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 25px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
-li a{
-	color: white; font-size: 18px; font-weight: bold; margin-right: 25px;
+
+/* Form Box Styling */
+.form-box {
+    width: 500px;
+    margin: 0 10px;
 }
-button{
-	background-color: black; margin-left: 10px; border-radius: 10px; padding: 10px; width: 90px;
+
+/* Header Styling */
+.form-box header {
+    font-size: 24px;
+    font-weight: 700;
+    padding-bottom: 10px;
+    border-bottom: 1px solid white;
+    margin-bottom: 20px;
+    color: #333;
 }
-button a{
-	color: white; font-weight: bold; font-size: 15px;
+
+.form-box form .field {
+    display: flex;
+    margin-bottom: 15px;
+    flex-direction: column;
+}
+
+.form-box form .input input {
+    height: 40px;
+    width: 100%;
+    font-size: 16px;
+    padding: 0 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+
+label {
+    text-align: left;
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+}
+
+.form-box form .input input:focus {
+    border-color: #3D5A80;
+}
+
+.navdiv {
+    text-decoration: none;
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between;
+}
+
+.btn {
+    height: 40px;
+    background: #3D5A80;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    border: 2px solid #3D5A80;
+    border-radius: 5px;    
+    cursor: pointer;
+    transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    text-align: center;
+    line-height: 40px;
+}
+
+.btn:hover {
+    background: white;
+    color: #3D5A80;
+    border-color: #3D5A80;
+}
+
+.logout-btn {
+    height: 40px;
+    background-color: red;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    border: 2px solid red;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    line-height: 40px;
+    padding: 0; /* No padding */
+    margin: 0; /* No margin */
+    box-sizing: border-box; /* Include border in the button's size */
+    display: inline-block; /* Make sure it wraps the content tightly */
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.logout-btn a {
+    color: white;
+    text-decoration: none;
+    display: block;
+    padding: 0 20px; /* Padding inside the link to make the button look good */
+    height: 100%;
+    line-height: 40px; /* Align text vertically */
+}
+
+.logout-btn:hover {
+    background-color: white; /* White background on hover */
+    color: red; /* Red text on hover */
+    border-color: red; /* Red border on hover */
+}
+
+.logout-btn:hover a {
+    color: red; /* Red text for the link on hover */
+}
+
+/* Input Link Styling */
+.form-box form .input {
+    text-align: center;
+    font-size: 14px;
+    color: #333; 
+}
+
+.form-box form .input a {
+    color: #3D5A80; 
+    text-decoration: none;
+}
+
+.form-box form .input a:hover {
+    text-decoration: underline;
+}
+
+/* Footer Styling */
+footer {
+    background-color: #3D5A80;
+}
+
+.footer-container {
+    width: 100%;
+    padding: 70px 30px 20px;
+}
+
+.footer-icons {
+    display: flex;
+    justify-content: center;
+}
+
+.footer-icons a {
+    text-decoration: none;
+    padding: 10px;
+    background-color: white;
+    margin: 10px;
+    border-radius: 50%;
+}
+
+.footer-icons a i {
+    font-size: 2em;
+    color: black;
+    opacity: 0.9;
+}
+
+.footer-icons a:hover {
+    background-color: #3D5A80;
+    transition: 0.5s;
+}
+
+.footer-icons a:hover i {
+    background-color: white;
+    transition: 0.5s;
+}
+
+.footer-nav {
+    margin: 30px 0;
+}
+
+.footer-nav ul {
+    display: flex;
+    justify-content: center;
+}
+
+.footer-nav ul li a {
+    color: white;
+    margin: 20px;
+    text-decoration: none;
+    font-size: 1.3em;
+    opacity: 0.7;
+    transition: 0.5s;
+}
+
+.footer-nav ul li a:hover {
+    opacity: 1;
+}
+
+.footer-bottom {
+    background-color: #3D5A80;
+    padding: 20px;
+    text-align: center;
+}
+
+.footer-bottom p {
+    color: white;
+}
+
+/* Navbar Styling */
+.navbar {
+    background: #3D5A80; 
+    font-family: calibri; 
+    padding-right: 15px;
+    padding-left: 15px;
+}
+
+.navdiv {
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between;
+}
+
+.logo-text {
+    font-size: 35px;
+    font-weight: 600;
+    color: white;
+    text-decoration: none;
+}
+
+.image-container img {
+    width: 100px;
+    height: auto;
+    display: flex;
+    align-items: center;
+}
+
+.image-container {
+    display: flex;
+    align-items: center;
+}
+
+.nav-logo {
+    width: 100px; 
+    height: auto; 
+    margin-right: 10px;
+}
+
+li {
+    list-style: none; 
+    display: inline-block;
+}
+
+li a {
+    color: white; 
+    font-size: 18px; 
+    font-weight: bold; 
+    margin-right: 25px;
+}
+
+/* Home */
+.nav {
+    background: #FFF;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    line-height: 60px;
+    z-index: 100;
 }
