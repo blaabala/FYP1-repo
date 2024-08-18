@@ -1,13 +1,15 @@
 <?php
 
 include('database.php');
-if(isset($_POST['register'])) {
+$errors = array();
+
+if (isset($_POST['register'])) {
     $username = stripslashes($_POST['username']);
     $username = mysqli_real_escape_string($con, strtoupper($username));
-    
+
     $email = stripslashes($_POST['email']);
     $email = mysqli_real_escape_string($con, $email);
-    
+
     $password = stripslashes($_POST['password']);
     $password = mysqli_real_escape_string($con, $password);
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
@@ -23,19 +25,33 @@ if(isset($_POST['register'])) {
     $phoneno = stripslashes($_POST['phoneno']);
     $phoneno = mysqli_real_escape_string($con, $phoneno);
 
-    $verify_email = mysqli_query($con, "SELECT email FROM users WHERE email = '$email'");
-    if (mysqli_num_rows($verify_email) != 0) {
-        echo "<div class = 'message'>
-                <p>Not an unique email address!</p>
+    if (!preg_match("/^[a-zA-Z\s]+$/", $username)) { //alphabetic char and spaces only
+        $errors['username'] = "Invalid full name. Please enter a valid name.";
+    }
+
+    $emailCheckQuery = "SELECT email FROM users WHERE email = ?";
+    $statement = $con->prepare($emailCheckQuery);
+    $statement->bind_param("s", $email);
+    $statement->execute();
+    $emailCheckResult = $statement->get_result();
+    if ($emailCheckResult->num_rows > 0) {
+        $errors['email'] = "Email is already registered. Please use a different email address.";
+    }
+
+    if (empty($errors)) {
+        $query = "INSERT INTO `users` (username, email, password, reg_date, role_id, faculty, contact_number)
+        VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $statement = $con->prepare($query);
+        $statement->bind_param("ssssssi", $username, $email, $hashed_password, $reg_date, $userrole, $faculty, $phoneno);
+        $result = $statement->execute();
+        if ($result) {
+            echo "<div class='message'>
+                <h3>Registration Successfully!</h3>
+                <h3>Click <a href='index.php'>HERE</a> to login</h3>
               </div><br>";
-    } else {
-        $query = "INSERT INTO users (username, email, password, reg_date, role_id, faculty, contact_number) 
-                VALUES ('$username', '$email', '$hashed_password', '$reg_date', '$userrole', '$faculty', '$phoneno')";
-        $result = mysqli_query($con, $query) or die(mysqli_error($con));
-        echo "<div class='message'>
-                <p>Registration Successfully!</p>
-                <p>Click <a href='index.php'>HERE</a> to login</p>
-              </div><br>";
+        } else {
+            echo "Registration failed.";
+        }
     }
 }
 
@@ -43,6 +59,7 @@ if(isset($_POST['register'])) {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -55,25 +72,35 @@ if(isset($_POST['register'])) {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
 </head>
+
 <body>
+    <div>
+        <h1>Appointment Management System</h1>
+    </div>
     <div class="container">
         <div class="box form-box">
             <header class="roboto-black-italic">Lecturer Register Page</header>
-            <form action="" method="post">
+            <form id="form" action="" method="post">
                 <div class="field input">
                     <input required type="text" id="username" name="username" placeholder="Full Name">
+                    <?php if (isset($errors['username'])) {
+                        echo "<p style='color:red;'>" . $errors['username'] . "</p>";
+                    } ?>
                 </div>
                 <div class="field input">
                     <input required type="email" id="email" name="email" placeholder="Email Address">
+                    <?php if (isset($errors['email'])) {
+                        echo "<p style='color:red;'>" . $errors['email'] . "</p>";
+                    } ?>
                 </div>
                 <div class="field input">
-                    <input required type="text" id="password" name="password" placeholder="Password" autocomplete="off">
+                    <input required type="password" id="password" name="password" placeholder="Password" autocomplete="off">
                 </div>
                 <div class="field">
                     <select id="userrole" name="userrole">
                         <option value="" disabled selected>User Role</option>
                         <option value="1">Lecturer</option>
-                      </select>
+                    </select>
                 </div>
                 <div class="field">
                     <select id="faculty" name="faculty">
@@ -110,4 +137,5 @@ if(isset($_POST['register'])) {
         </div>
     </div>
 </body>
+
 </html>
