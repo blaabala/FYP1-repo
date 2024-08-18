@@ -1,7 +1,6 @@
 <?php
 include("database.php");
 
-// Fetch data from POST request
 $title = $_POST['title'];
 $requester_email = $_POST['requester_email'];
 $accepter_email = $_POST['accepter_email'];
@@ -11,7 +10,6 @@ $location = $_POST['location'];
 $description = $_POST['description'];
 $status = "Pending";
 
-// Prepare and execute query to get accepter ID
 $query = "SELECT id FROM `users` WHERE email=?";
 $statement = $con->prepare($query);
 $statement->bind_param("s", $accepter_email);
@@ -24,7 +22,6 @@ if ($result->num_rows >= 1) {
     die("Accepter email not found");
 }
 
-// Prepare and execute query to get requester ID
 $query2 = "SELECT id FROM `users` WHERE email=?";
 $statement2 = $con->prepare($query2);
 $statement2->bind_param("s", $requester_email);
@@ -37,7 +34,6 @@ if ($result2->num_rows >= 1) {
     die("Requester email not found");
 }
 
-// Insert appointment
 $query = "INSERT INTO `appointments` (accepter_id, requester_id, title, from_time, to_time, description, location, status)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 $statement = $con->prepare($query);
