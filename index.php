@@ -32,10 +32,7 @@ if (isset($_POST['login'])) {
             setcookie($cookie_name, $cookie_value, $expiration_time, "/");
         }
 
-        if ($_SESSION['role_id'] == 1) {
-            header("Location: home_lecturer.php");
-            exit();
-        } elseif ($_SESSION['role_id'] == 2) {
+        if ($_SESSION['role_id'] == 1 || $_SESSION['role_id'] == 2) {
             header("Location: home.php");
             exit();
         } else {

@@ -9,7 +9,7 @@ function updateDateTime() {
 
 updateDateTime();
 
-setInterval(updateDateTime, 2000);
+setInterval(updateDateTime, 1000);
 
 
 let input_element = document.querySelector("input");

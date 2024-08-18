@@ -128,7 +128,7 @@ if (isset($_POST['register'])) {
                     </select>
                 </div>
                 <div class="field input">
-                    <input required type="text" id="phoneno" name="phoneno" placeholder="Contact Number (i.e.: +60123456789)">
+                    <input required type="text" id="phoneno" name="phoneno" placeholder="Contact Number (i.e.: 60123456789)">
                 </div>
                 <div class="field">
                     <input required type="submit" name="register" value="Register" class="btn btn-lg btn-primary">
