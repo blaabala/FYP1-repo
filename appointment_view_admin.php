@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>View Appointment Records</title>
+    <title>AMS</title>
     <meta charset="utf-8">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -15,16 +15,15 @@
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link rel="icon" type="image/x-icon" href="images/favicon.ico">
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
-
 </head>
 
-<body style="background-color: #98C1D9;">
+<body>
     <header>
         <nav class="navbar">
             <div class="navdiv">
                 <div class="image-container">
-                    <a href="home.php"><img src="assets/images/logo.png" alt="logo" class="nav-logo" style="width: 70px; height: auto;"></a>
-                    <a href="home.php" class="logo-text">Appointment Management System</a>
+                    <a href="home_admin.php"><img src="assets/images/logo.png" alt="logo" class="nav-logo" style="width: 70px; height: auto;"></a>
+                    <a href="home_admin.php" class="logo-text">Appointment Management System</a>
 
                     <?php
                     session_start();
@@ -47,9 +46,10 @@
 
                 </div>
                 <ul>
-                    <li><a href="home.php">Home</a></li>
-                    <li><a href="appointment_view.php">Create Appointments</a></li>
-                    <li><?php echo "<a href='edit_profile.php?id=$res_id'>Edit Profile</a>"; ?></li>
+                    <li><a href="home_admin.php">Home</a></li>
+                    <li><a href="appointment_view_admin.php">View Appointments</a></li>
+                    <li><a href="user_view_admin.php">User Lists</a></li>
+                    <li><?php echo "<a href='edit_profile_admin.php?id=$res_id'>Edit Profile</a>"; ?></li>
                     <button><a href="logout.php" class="logout-btn">Logout</a></button>
                 </ul>
             </div>
@@ -88,6 +88,7 @@
                                     <tr>
                                         <th>No.</th>
                                         <th>Requester Name</th>
+                                        <th>Accepter Name</th>
                                         <th>Title</th>
                                         <th>From</th>
                                         <th>To</th>
@@ -101,17 +102,14 @@
                                     $count = 1;
                                     // Selecting all product records from the database
                                     $sel_query = "SELECT appointments.*, 
-                                                u1.username AS requester_name, 
-                                                u1.email AS requester_email, 
-                                                u2.username AS accepter_name, 
-                                                u2.email AS accepter_email 
-                                                FROM appointments 
-                                                JOIN users u1 ON appointments.requester_id = u1.id 
-                                                JOIN users u2 ON appointments.accepter_id = u2.id 
-                                                WHERE appointments.requester_id = ? OR appointments.accepter_id = ?
-                                                ORDER BY appointments.id DESC;";
+                                                    u1.username AS requester_name, 
+                                                    u2.username AS accepter_name 
+                                                    FROM appointments 
+                                                    JOIN users u1 ON appointments.requester_id = u1.id 
+                                                    JOIN users u2 ON appointments.accepter_id = u2.id 
+                                                    ORDER BY appointments.id DESC";
                                     $stmt = $con->prepare($sel_query);
-                                    $stmt->bind_param('ii', $res_id, $res_id);
+                                    // $stmt->bind_param('ii', $res_id, $res_id);
                                     $stmt->execute();
                                     $result = $stmt->get_result();
                                     while ($row = mysqli_fetch_assoc($result)) {
@@ -119,6 +117,7 @@
                                         <tr>
                                             <td><?php echo $count; ?></td>
                                             <td><?php echo $row["requester_name"]; ?></td>
+                                            <td><?php echo $row["accepter_name"]; ?></td>
                                             <td><?php echo $row["title"]; ?></td>
                                             <td><?php echo $row["from_time"]; ?></td>
                                             <td><?php echo $row["to_time"]; ?></td>
@@ -314,7 +313,6 @@
             </div>
     </main>
 
-
     <footer class="footer">
         <div class="footer-container">
             <div class="footer-icons">
@@ -325,9 +323,10 @@
             </div>
             <div class="footer-nav">
                 <ul>
-                    <li><a href="home.php">Home</a></li>
-                    <li><a href="appointment_view.php">Create Appointments</a></li>
-                    <li><a href="edit_profile.php">Edit Profile</a></li>
+                    <li><a href="home_admin.php">Home</a></li>
+                    <li><a href="appointment_view_admin.php">View Appointments</a></li>
+                    <li><a href="user_view_admin.php">User Lists</a></li>
+                    <li><a href="edit_profile_admin.php">Edit Profile</a></li>
                 </ul>
             </div>
             <div class="footer-bottom">
@@ -335,103 +334,6 @@
             </div>
         </div>
     </footer>
-
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // const updateButtons = document.querySelectorAll('button[data-bs-target="#updateModal"]');
-
-            // updateButtons.forEach(button => {
-            //     button.addEventListener('click', function() {
-            //         const appointmentId = this.getAttribute('data-id');
-            //         fetch('appointment_fetch.php?id=' + appointmentId)
-            //             .then(response => response.json())
-            //             .then(data => {
-            //                 document.getElementById('update_status').value = data.status;
-            //                 document.getElementById('update_title').value = data.title;
-            //                 document.getElementById('update_requester_email').value = data.requester_email;
-            //                 document.getElementById('update_accepter_email').value = data.accepter_email;
-            //                 document.getElementById('update_from_time').value = data.from_time;
-            //                 document.getElementById('update_to_time').value = data.to_time;
-            //                 document.getElementById('update_location').value = data.location;
-            //                 document.getElementById('update_description').value = data.description;
-            //                 document.getElementById('update_appointment_id').value = data.id;
-            //             });
-            //     });
-            // });
-            const updateButtons = document.querySelectorAll('button[data-bs-target="#updateModal"]');
-
-            updateButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const appointmentId = this.getAttribute('data-id');
-                    fetch('appointment_fetch.php?id=' + appointmentId)
-                        .then(response => response.json())
-                        .then(data => {
-                            // Populate fields as before
-                            document.getElementById('update_status').value = data.status;
-                            document.getElementById('update_title').value = data.title;
-                            document.getElementById('update_requester_email').value = data.requester_email;
-                            document.getElementById('update_accepter_email').value = data.accepter_email;
-                            document.getElementById('update_from_time').value = data.from_time;
-                            document.getElementById('update_to_time').value = data.to_time;
-                            document.getElementById('update_location').value = data.location;
-                            document.getElementById('update_description').value = data.description;
-                            document.getElementById('update_appointment_id').value = data.id;
-
-                            const isAccepter = (data.current_user_id == data.accepter_id);
-                            const isRequester = (data.current_user_id == data.requester_id);
-
-                            if (isAccepter && !isRequester) {
-                                // Disable all input fields except status
-                                document.querySelectorAll('#updateModal input:not(#update_status), #updateModal textarea').forEach(el => {
-                                    el.disabled = true;
-                                });
-                                document.getElementById('update_status').disabled = false;
-                                // Show the update button
-                                document.querySelector('#updateModal .btn-primary').style.display = 'block';
-                                // Show accepter message
-                                document.getElementById('accepterMessage').style.display = 'block';
-                                document.getElementById('viewOnlyMessage').style.display = 'none';
-                            } else if (!isRequester && data.current_user_role !== 3) { // Not requester and not admin
-                                // Disable all input fields
-                                document.querySelectorAll('#updateModal input, #updateModal select, #updateModal textarea').forEach(el => {
-                                    el.disabled = true;
-                                });
-                                // Hide the update button
-                                document.querySelector('#updateModal .btn-primary').style.display = 'none';
-                                // Show view-only message
-                                document.getElementById('viewOnlyMessage').style.display = 'block';
-                                document.getElementById('accepterMessage').style.display = 'none';
-                            } else {
-                                // Enable all input fields for requester and admin
-                                document.querySelectorAll('#updateModal input, #updateModal select, #updateModal textarea').forEach(el => {
-                                    el.disabled = false;
-                                });
-                                // Show the update button
-                                document.querySelector('#updateModal .btn-primary').style.display = 'block';
-                                // Hide messages
-                                document.getElementById('viewOnlyMessage').style.display = 'none';
-                                document.getElementById('accepterMessage').style.display = 'none';
-                            }
-                        });
-                });
-            });
-        });
-
-        function showConfirmationModal() {
-            const confirmationModal = new bootstrap.Modal(document.getElementById('confirmModalCenter'));
-            confirmationModal.show();
-        }
-
-        function submitForm() {
-            // Hide the confirmation modal
-            const confirmationModal = bootstrap.Modal.getInstance(document.getElementById('confirmModalCenter'));
-            confirmationModal.hide();
-
-            // Submit the form
-            document.querySelector('#updateModal form').submit();
-        }
-    </script>
     <script src="assets/js/script.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 01, 2024 at 06:52 PM
+-- Generation Time: Sep 11, 2024 at 02:47 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -38,6 +38,17 @@ CREATE TABLE `appointments` (
   `location` varchar(255) NOT NULL,
   `status` enum('Pending','Confirmed','Cancelled') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `appointments`
+--
+
+INSERT INTO `appointments` (`id`, `accepter_id`, `requester_id`, `title`, `from_time`, `to_time`, `description`, `location`, `status`) VALUES
+(2, 2, 1, 'FYP Discussion', '2024-09-04 12:25:00', '2024-09-04 01:25:00', 'FYP Discussion', 'PG079', 'Cancelled'),
+(3, 2, 1, 'Activity 2', '2024-09-18 13:40:00', '2024-09-18 14:40:00', 'Nothing', 'PG078', 'Confirmed'),
+(4, 1, 3, 'A Meeting with AA', '2024-09-11 10:45:00', '2024-09-11 11:00:00', 'This is a meeting with the academic advisor.', 'NF-059', 'Pending'),
+(5, 3, 1, 'Second Meeting with Dr Leong', '2024-09-20 09:45:00', '2024-09-20 10:45:00', 'This is the second meeting', 'NF-059', 'Pending'),
+(6, 2, 5, 'Admin meeting', '2024-09-18 09:00:00', '2024-09-18 10:00:00', 'Admin-lecturer meeting', 'N009', 'Pending');
 
 -- --------------------------------------------------------
 
@@ -81,7 +92,10 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `email`, `password`, `reg_date`, `role_id`, `faculty`, `contact_number`) VALUES
-(1, 'LEE JUN KHANG', 'leejunkhang56@gmail.com', '$2y$10$fSEvnHL044lVdhGaJJ0gReUbZMRHogm39v4rBKobEj74p3Y3.izFy', '2024-08-31 06:06:10', 2, 'FICT', '601110983279');
+(1, 'LEE JUN KHANG', 'leejunkhang56@gmail.com', '$2y$10$fSEvnHL044lVdhGaJJ0gReUbZMRHogm39v4rBKobEj74p3Y3.izFy', '2024-08-31 06:06:10', 2, 'FICT', '601110983279'),
+(2, 'LOH KOK MENG', 'kokmeng@gmail.com', '$2y$10$gFwOiuXzS9dtMl8kHMBfxeTkwoKxvWRaimhNulB9QxoWmZIhI0F7u', '2024-09-04 05:16:35', 1, 'FICT', '60157763167'),
+(3, 'LEONG ZI QI', 'qiqileong@gmail.com', '$2y$10$R54uYs570j/aJ/DqR5n8cO5K71szCsnGwNCHhCpCauCWBLkGdYtgS', '2024-09-09 21:47:24', 1, 'FICT', '60127223279'),
+(5, 'ADMIN', 'admin123@gmail.com', '$2y$10$cd7//lxtXO2hfVW9Pb4NAehVeL3LMYQu7uQDBI79s3wRCbPMtTWB2', '2024-09-11 01:35:09', 3, 'FICT', '60121116579');
 
 --
 -- Indexes for dumped tables
@@ -116,7 +130,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `appointments`
 --
 ALTER TABLE `appointments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `roles`
@@ -128,7 +142,7 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- Constraints for dumped tables
