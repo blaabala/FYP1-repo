@@ -45,12 +45,11 @@ if (isset($_POST['register'])) {
         $statement->bind_param("ssssssi", $username, $email, $hashed_password, $reg_date, $userrole, $faculty, $phoneno);
         $result = $statement->execute();
         if ($result) {
-            echo "<div class='message'>
-                <h3>Registration Successfully!</h3>
-                <h3>Click <a href='index.php'>HERE</a> to login</h3>
-              </div><br>";
+            header("Location: register_lecturer.php?success=1");
+            exit();
         } else {
-            echo "Registration failed.";
+            header("Location: register_lecturer.php?error=1");
+            exit();
         }
     }
 }
@@ -89,7 +88,20 @@ if (isset($_POST['register'])) {
         <!-- ✅ Form Box -->
         <div class="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
             <h2 class="text-xl font-bold mb-6 text-center">Lecturer Register Page</h2>
-            <form action="#" method="POST">
+
+            <?php if (isset($_GET['success'])): ?>
+                <div class="bg-green-100 text-green-800 px-4 py-3 rounded mb-4 text-center">
+                    Registration successful! <a href="login.php" class="text-blue-600 underline">Click here to login</a>
+                </div>
+            <?php endif; ?>
+
+            <?php if (isset($_GET['error'])): ?>
+                <div class="bg-red-100 text-red-800 px-4 py-3 rounded mb-4 text-center">
+                    Registration failed. Something went wrong. Please try again or contact support.
+                </div>
+            <?php endif; ?>
+
+            <form id="form" action="" method="POST">
                 <div>
                     <input required type="text" id="username" name="username" placeholder="Full Name"
                         class="mb-3 w-full p-2 border rounded">

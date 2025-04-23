@@ -45,12 +45,11 @@ if (isset($_POST['register'])) {
         $statement->bind_param("ssssssi", $username, $email, $hashed_password, $reg_date, $userrole, $faculty, $phoneno);
         $result = $statement->execute();
         if ($result) {
-            echo "<div class='message'>
-                <h3>Registration Successfully!</h3>
-                <h3>Click <a href='login.php'>HERE</a> to login</h3>
-              </div><br>";
+            header("Location: register.php?success=1");
+            exit();
         } else {
-            echo "Registration failed.";
+            header("Location: register.php?error=1");
+            exit();
         }
     }
 }
@@ -63,56 +62,71 @@ if (isset($_POST['register'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lecturer Register Page</title>
+    <title>Student Register Page</title>
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="stylesheet" href="css/style.css">
+    <!-- <link rel="stylesheet" href="css/style.css"> -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="css/tailwind.min.css" rel="stylesheet">
+
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap"
         rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link rel="stylesheet" type="text/css"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
-    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
+
 </head>
 
-<body style="background-color: #98C1D9;">
-    <div>
-        <h1>Appointment Management System</h1>
-    </div>
-    <div class="container">
-        <div class="box form-box">
-            <header class="roboto-black-italic">Student Register Page</header>
+<body class="bg-blue-200 min-h-screen flex items-center justify-center">
+
+    <div class="flex flex-col items-center">
+        <img src="assets/images/logo - Copy.png" alt="Logo" class="w-28 h-28 mb-4 object-contain">
+
+        <div class="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
+            <header class="text-xl font-bold mb-6 text-center">Student Register Page</header>
+
+            <?php if (isset($_GET['success'])): ?>
+                <div class="bg-green-100 text-green-800 px-4 py-3 rounded mb-4 text-center">
+                    Registration successful! <a href="login.php" class="text-blue-600 underline">Click here to login</a>
+                </div>
+            <?php endif; ?>
+
+            <?php if (isset($_GET['error'])): ?>
+                <div class="bg-red-100 text-red-800 px-4 py-3 rounded mb-4 text-center">
+                    Registration failed. Something went wrong. Please try again or contact support.
+                </div>
+            <?php endif; ?>
+
             <form id="form" action="" method="post">
-                <div class="field input">
-                    <input required type="text" id="username" name="username" placeholder="Full Name">
+                <div>
+                    <input required type="text" id="username" name="username" placeholder="Full Name"
+                        class="mb-3 w-full p-2 border rounded">
                     <?php if (isset($errors['username'])) {
                         echo "<p style='color:red;'>" . $errors['username'] . "</p>";
                     } ?>
                 </div>
-                <div class="field input">
-                    <input required type="email" id="email" name="email" placeholder="Email Address">
+                <div>
+                    <input required type="email" id="email" name="email" placeholder="Email Address"
+                        class="mb-3 w-full p-2 border rounded">
                     <?php if (isset($errors['email'])) {
                         echo "<p style='color:red;'>" . $errors['email'] . "</p>";
                     } ?>
                 </div>
-                <div class="field input">
+                <div>
                     <input required type="password" id="password" name="password" placeholder="Password"
-                        autocomplete="off">
+                        autocomplete="off" class="mb-3 w-full p-2 border rounded">
                 </div>
-                <div class="field">
-                    <select id="userrole" name="userrole">
+
+                <div>
+                    <select id="userrole" name="userrole" class="mb-3 w-full p-2 border rounded">
                         <option value="" disabled selected>User Role</option>
                         <option value="2">Student</option>
                     </select>
                 </div>
-                <div class="field">
-                    <select id="faculty" name="faculty">
+                <div>
+                    <select id="faculty" name="faculty" class="mb-3 w-full p-2 border rounded">
                         <option value="" disabled selected>Faculty</option>
                         <option value="MK-FMHS">M. Kandiah Faculty of Medicine and Health Sciences</option>
                         <option value="LKC-FES">Lee Kong Chian Faculty of Engineering and Science</option>
@@ -132,18 +146,19 @@ if (isset($_POST['register'])) {
                         <option value="CCCD">Centre for Corporate and Community Development</option>
                     </select>
                 </div>
-                <div class="field input">
+                <div>
                     <input required type="text" id="phoneno" name="phoneno"
-                        placeholder="Contact Number (i.e.: 60123456789)">
+                        placeholder="Contact Number (i.e.: 60123456789)" class="mb-3 w-full p-2 border rounded">
                 </div>
-                <div class="field">
-                    <input required type="submit" name="register" value="Register" class="btn btn-lg btn-primary">
-                </div>
-                <div class="input">
-                    Existing user? <a href="login.php">Click here to Login Page</a></br>
-                    <a href="register_lecturer.php">Continue as Lecturer?</a>
-                </div>
+
+                <button type="submit" required name="register" value="Register"
+                    class="w-full bg-blue-800 text-white py-2 rounded hover:bg-blue-900">Register</button>
             </form>
+            <p class="mt-4 text-center text-sm text-gray-600">
+                Existing user? <a href="login.php" class="text-blue-600 hover:underline">Click here to Login</a><br>
+                <a href="register_lecturer.php" class="text-blue-600 hover:underline">Continue as Lecturer?</a>
+            </p>
+
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
