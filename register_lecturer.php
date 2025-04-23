@@ -159,6 +159,9 @@ if (isset($_POST['register'])) {
                 Existing user? <a href="login.php" class="text-blue-600 hover:underline">Click here to Login</a><br>
                 <a href="register.php" class="text-blue-600 hover:underline">Continue as Student?</a>
             </p>
+
+        </div>
+    </div>
 </body>
 
 </html>
