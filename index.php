@@ -1,105 +1,297 @@
-<?php
-session_start();
-include('database.php');
-$errors = array();
+<!DOCTYPE html>
+<html lang="en">
 
-if (isset($_POST['login'])) {
-    $email = stripslashes($_POST['email']);
-    $email = mysqli_real_escape_string($con, $email);
+<head>
 
-    $password = stripslashes($_POST['password']);
-    $password = mysqli_real_escape_string($con, $password);
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
 
-    $query = "SELECT * FROM users WHERE email='$email'";
-    $result = mysqli_query($con, $query) or die(mysqli_error($con));
-    $rows = mysqli_fetch_assoc($result);
+    <title>Appointment Management System</title>
 
-    if (is_array($rows) && password_verify($password, $rows['password'])) {
-        $_SESSION['id'] = $rows['id'];
-        $_SESSION['username'] = $rows['username'];
-        $_SESSION['email'] = $rows['email'];
-        $_SESSION['role_id'] = $rows['role_id'];
+    <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
+    <!-- Bootstrap core CSS -->
+    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 
-        echo $_SESSION['id'];
-        echo $_SESSION['username'];
-        echo $_SESSION['email'];
-        echo $_SESSION['role_id'];
 
-        if (isset($_POST['remember_me'])) {
-            $cookie_name = "email";
-            $cookie_value = $email;
-            $expiration_time = time() + 60 * 60 * 24 * 30;
-            setcookie($cookie_name, $cookie_value, $expiration_time, "/");
-        }
+    <!-- Additional CSS Files -->
+    <link rel="stylesheet" href="assets/css/fontawesome.css">
+    <link rel="stylesheet" href="assets/css/templatemo-574-mexant.css">
+    <link rel="stylesheet" href="assets/css/owl.css">
+    <link rel="stylesheet" href="assets/css/animate.css">
+    <link rel="stylesheet" href="https://unpkg.com/swiper@7/swiper-bundle.min.css">
+    <!--
 
-        if ($_SESSION['role_id'] == 1 || $_SESSION['role_id'] == 2) {
-            header("Location: home.php");
-            exit();
-        } else {
-            header("Location: home_admin.php");
-            exit();
-        }
-    } else {
-        echo "<div class= 'message'>
-                <p>Wrong Username/Password!</p>
-              </div><br>";
-        echo "<a href='index.php'><button class='btn'>Go Back</button></a>";
-    }
-} else {
+    TemplateMo 574 Mexant
 
-?>
+    https://templatemo.com/tm-574-mexant
 
-    <!DOCTYPE html>
-    <html lang="en">
+    -->
+</head>
 
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Login Page</title>
-        <meta name="description" content="">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <link rel="stylesheet" href="css/style.css">
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-        <link rel="icon" type="image/x-icon" href="images/favicon.ico">
-        <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
-    </head>
+<body>
 
-    <body style="background-color: #98C1D9;">
-        <div>
-            <h1>Appointment Management System</h1>
-        </div>
+
+    <!-- ***** Header Area Start ***** -->
+    <header class="header-area header-sticky">
         <div class="container">
-            <div class="box form-box">
-                <header class="roboto-black-italic">Login Page</header>
-                <form action="" method="post">
-                    <div class="field input">
-                        <input required type="email" id="email" name="email" placeholder="Email Address">
-                    </div>
-                    <div class="field input">
-                        <input required type="password" id="password" name="password" placeholder="Password" autocomplete="off">
-                    </div>
-
-                    <p><label for="remember_me">Remember Me&emsp;</label><input type="checkbox" name="remember_me" id="remember_me"></p>
-                    <div class="field">
-                        <input required type="submit" name="login" value="Login" class="btn btn-lg btn-primary">
-                    </div>
-                    <div class="input">
-                        New user? <a href="register.php">Click here to Register Page</a>
-                    </div>
-                </form>
+            <div class="row">
+                <div class="col-12">
+                    <nav class="main-nav">
+                        <!-- ***** Logo Start ***** -->
+                        <a href="#" class="logo" style="width: 80px">
+                            <img src="assets/images/logo - Copy.png" alt="">
+                        </a>
+                        <!-- ***** Logo End ***** -->
+                        <!-- ***** Menu Start ***** -->
+                        <ul class="nav">
+                            <li class="scroll-to-section"><a href="#" class="active">Home</a></li>
+                            <li class="scroll-to-section"><a href="#about">About</a></li>
+                            <li class="scroll-to-section"><a href="#contact">Contact Us</a></li>
+                            <li><a href="login.php">Get Started</a></li>
+                        </ul>
+                        <a class='menu-trigger'>
+                            <span>Menu</span>
+                        </a>
+                        <!-- ***** Menu End ***** -->
+                    </nav>
+                </div>
             </div>
         </div>
-    <?php } ?>
+    </header>
+    <!-- ***** Header Area End ***** -->
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-    </body>
+    <!-- ***** Main Banner Area Start ***** -->
+    <div class="swiper-container" id="top">
+        <div class="swiper-wrapper">
+            <div class="swiper-slide">
+                <div class="slide-inner" style="background-image:url(assets/images/slide-01.jpg)">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-lg-8">
+                                <div class="header-text">
+                                    <h2><em>Simplify</em> Your Scheduling with <br><em>AMS System!</em></h2>
+                                    <div class="div-dec"></div>
+                                    <p>AMS System is a powerful system which offers tailored supports to UTAR students
+                                        and lecturers, streamlining your appointment management. Book, manage, and track
+                                        appointments effortlessly.</p>
+                                    <div class="buttons">
+                                        <div class="green-button">
+                                            <a href="login.php">Get Started</a>
+                                        </div>
+                                        <div class="orange-button">
+                                            <a href="{{ url('contact-us') }}">Contact Us</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    </html>
+        <!-- ***** Main Banner Area End ***** -->
+
+
+        <section class="about-us" id="about">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-6 offset-lg-3">
+                        <div class="section-heading">
+                            <h6>About Us</h6>
+                            <h4>Learn More About AMS</h4>
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="naccs">
+                            <div class="tabs">
+                                <div class="row">
+                                    <div class="col-lg-12">
+                                        <div class="menu">
+                                            <div class="active gradient-border"><span>Appointment <br>Booking</span>
+                                            </div>
+                                            <div class="gradient-border"><span>Notification <br>System</span></div>
+                                            <div class="gradient-border"><span>Data <br>Security</span></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-12">
+                                        <ul class="nacc">
+                                            <li class="active">
+                                                <div>
+                                                    <div class="main-list">
+                                                        <span class="title">Description</span>
+                                                    </div>
+                                                    <div class="list-item">
+                                                        <span class="item-title">Effortlessly schedule appointments with
+                                                            a user-friendly interface, reducing booking time and
+                                                            minimizing scheduling conflicts for businesses and
+                                                            clients.</span>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                            <li>
+                                                <div>
+                                                    <div class="main-list">
+                                                        <span class="title">Description</span>
+                                                    </div>
+                                                    <div class="list-item">
+                                                        <span class="item-title">Automatically sends email and SMS
+                                                            reminders to clients, ensuring they never miss an
+                                                            appointment while improving attendance rates for service
+                                                            providers.</span>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                            <li>
+                                                <div>
+                                                    <div class="main-list">
+                                                        <span class="title">Description</span>
+                                                    </div>
+                                                    <div class="list-item">
+                                                        <span class="item-title">Protects sensitive client data with
+                                                            robust encryption and GDPR compliance, ensuring trust and
+                                                            safety for all users of the platform.</span>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="right-content">
+                            <h4>Login/Register Now To Get More Information</h4>
+                            <p>This is the best solution to help you streamline your appointment management.</p>
+                            <div class="green-button">
+                                <a href="login.php">Get Started</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="calculator">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-7">
+                        <div class="left-image">
+                            <img src="assets/images/calculator-image.png" alt="">
+                        </div>
+                    </div>
+                    <div class="col-lg-5">
+                        <div class="section-heading" id="contact">
+                            <h6>CONTACT US</h6>
+                            <h4>Feel Free To Contact Us</h4>
+                        </div>
+                        <form id="calculate" action="" method="get">
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <fieldset>
+                                        <label for="name">Your Name</label>
+                                        <input type="name" name="name" id="name" placeholder="" autocomplete="on"
+                                            required>
+                                    </fieldset>
+                                </div>
+                                <div class="col-lg-6">
+                                    <fieldset>
+                                        <label for="email">Your Email</label>
+                                        <input type="text" name="email" id="email" pattern="[^ @]*@[^ @]*"
+                                            placeholder="" required="">
+                                    </fieldset>
+                                </div>
+                                <div class="col-lg-12">
+                                    <fieldset>
+                                        <label for="subject">Subject</label>
+                                        <input type="subject" name="subject" id="subject" placeholder=""
+                                            autocomplete="on">
+                                    </fieldset>
+                                </div>
+                                <div class="col-lg-12">
+                                </div>
+                                <div class="col-lg-12">
+                                    <fieldset>
+                                        <button type="submit" id="form-submit" class="orange-button">Submit Now</button>
+                                    </fieldset>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <p>© 2025 AMS. All rights reserved.</p>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+        <!-- Scripts -->
+        <!-- Bootstrap core JavaScript -->
+        <script src="vendor/jquery/jquery.min.js"></script>
+        <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+        <script src="assets/js/isotope.min.js"></script>
+        <script src="assets/js/owl-carousel.js"></script>
+
+        <script src="assets/js/tabs.js"></script>
+        <script src="assets/js/swiper.js"></script>
+        <script src="assets/js/custom.js"></script>
+        <script>
+        var interleaveOffset = 0.5;
+
+        var swiperOptions = {
+            loop: true,
+            speed: 1000,
+            grabCursor: true,
+            watchSlidesProgress: true,
+            mousewheelControl: true,
+            keyboardControl: true,
+            navigation: {
+                nextEl: ".swiper-button-next",
+                prevEl: ".swiper-button-prev"
+            },
+            on: {
+                progress: function() {
+                    var swiper = this;
+                    for (var i = 0; i < swiper.slides.length; i++) {
+                        var slideProgress = swiper.slides[i].progress;
+                        var innerOffset = swiper.width * interleaveOffset;
+                        var innerTranslate = slideProgress * innerOffset;
+                        swiper.slides[i].querySelector(".slide-inner").style.transform =
+                            "translate3d(" + innerTranslate + "px, 0, 0)";
+                    }
+                },
+                touchStart: function() {
+                    var swiper = this;
+                    for (var i = 0; i < swiper.slides.length; i++) {
+                        swiper.slides[i].style.transition = "";
+                    }
+                },
+                setTransition: function(speed) {
+                    var swiper = this;
+                    for (var i = 0; i < swiper.slides.length; i++) {
+                        swiper.slides[i].style.transition = speed + "ms";
+                        swiper.slides[i].querySelector(".slide-inner").style.transition =
+                            speed + "ms";
+                    }
+                }
+            }
+        };
+
+        var swiper = new Swiper(".swiper-container", swiperOptions);
+        </script>
+</body>
+
+</html>

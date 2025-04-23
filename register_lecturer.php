@@ -67,43 +67,56 @@ if (isset($_POST['register'])) {
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="stylesheet" href="css/style.css">
+    <!-- <link rel="stylesheet" href="css/style.css"> -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="css/tailwind.min.css" rel="stylesheet">
+
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap"
+        rel="stylesheet">
 </head>
 
-<body>
-    <div>
+<body class="bg-blue-200 min-h-screen flex items-center justify-center">
+    <!-- <div>
         <h1>Appointment Management System</h1>
-    </div>
-    <div class="container">
-        <div class="box form-box">
-            <header class="roboto-black-italic">Lecturer Register Page</header>
-            <form id="form" action="" method="post">
-                <div class="field input">
-                    <input required type="text" id="username" name="username" placeholder="Full Name">
+    </div> -->
+    <div class="flex flex-col items-center">
+        <img src="assets/images/logo - Copy.png" alt="Logo" class="w-28 h-28 mb-4 object-contain">
+
+        <!-- ✅ Form Box -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
+            <h2 class="text-xl font-bold mb-6 text-center">Lecturer Register Page</h2>
+            <form action="#" method="POST">
+                <div>
+                    <input required type="text" id="username" name="username" placeholder="Full Name"
+                        class="mb-3 w-full p-2 border rounded">
                     <?php if (isset($errors['username'])) {
                         echo "<p style='color:red;'>" . $errors['username'] . "</p>";
                     } ?>
                 </div>
-                <div class="field input">
-                    <input required type="email" id="email" name="email" placeholder="Email Address">
+                <div>
+                    <input required type="email" id="email" name="email" placeholder="Email Address"
+                        class="mb-3 w-full p-2 border rounded">
                     <?php if (isset($errors['email'])) {
                         echo "<p style='color:red;'>" . $errors['email'] . "</p>";
                     } ?>
                 </div>
-                <div class="field input">
-                    <input required type="password" id="password" name="password" placeholder="Password" autocomplete="off">
+                <div>
+                    <input required type="password" id="password" name="password" placeholder="Password"
+                        class="mb-3 w-full p-2 border rounded" autocomplete="off">
                 </div>
-                <div class="field">
-                    <select id="userrole" name="userrole">
+
+                <div>
+                    <select id="userrole" name="userrole" class="mb-3 w-full p-2 border rounded">
                         <option value="" disabled selected>User Role</option>
                         <option value="1">Lecturer</option>
                     </select>
                 </div>
-                <div class="field">
-                    <select id="faculty" name="faculty">
+                <div>
+                    <select id="faculty" name="faculty" class="mb-3 w-full p-2 border rounded">
                         <option value="" disabled selected>Faculty</option>
                         <option value="MK-FMHS">M. Kandiah Faculty of Medicine and Health Sciences</option>
                         <option value="LKC-FES">Lee Kong Chian Faculty of Engineering and Science</option>
@@ -123,19 +136,17 @@ if (isset($_POST['register'])) {
                         <option value="CCCD">Centre for Corporate and Community Development</option>
                     </select>
                 </div>
-                <div class="field input">
-                    <input required type="text" id="phoneno" name="phoneno" placeholder="Contact Number (i.e.: 60123456789)">
-                </div>
-                <div class="field">
-                    <input required type="submit" name="register" value="Register" class="btn">
-                </div>
-                <div class="input">
-                    Existing user? <a href="index.php">Click here to Login Page</a></br>
-                    <a href="register.php">Continue as Student?</a>
-                </div>
+                <input required type="text" id="phoneno" name="phoneno" class="mb-3 w-full p-2 border rounded"
+                    placeholder="Contact Number (i.e.: 60123456789)">
+
+
+                <button type="submit" required name="register" value="Register"
+                    class="w-full bg-blue-800 text-white py-2 rounded hover:bg-blue-900">Register</button>
             </form>
-        </div>
-    </div>
+            <p class="mt-4 text-center text-sm text-gray-600">
+                Existing user? <a href="login.php" class="text-blue-600 hover:underline">Click here to Login</a><br>
+                <a href="register.php" class="text-blue-600 hover:underline">Continue as Student?</a>
+            </p>
 </body>
 
 </html>
