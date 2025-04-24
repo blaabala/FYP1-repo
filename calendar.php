@@ -17,9 +17,9 @@ if (!$lecturer) {
     die("Lecturer not found.");
 }
 
-// Fetch availability
+// Fetch availability (both one-time and recurring)
 $availabilities = [];
-$query = "SELECT start_datetime, end_datetime FROM lecturer_availability WHERE lecturer_id = ?";
+$query = "SELECT * FROM lecturer_availability WHERE lecturer_id = ?";
 $statement = $con->prepare($query);
 $statement->bind_param("i", $lecturer_id);
 $statement->execute();
@@ -30,13 +30,31 @@ while ($row = $result->fetch_assoc()) {
 
 // Fetch booked appointments to exclude them
 $booked_slots = [];
-$query = "SELECT start_datetime, end_datetime FROM appointments WHERE lecturer_id = ? AND status NOT IN ('Confirmed', 'Pending')";
+$query = "SELECT start_datetime, end_datetime FROM appointments WHERE lecturer_id = ? AND status IN ('Confirmed', 'Pending')";
 $statement = $con->prepare($query);
 $statement->bind_param("i", $lecturer_id);
 $statement->execute();
 $result = $statement->get_result();
 while ($row = $result->fetch_assoc()) {
     $booked_slots[] = $row;
+}
+
+$lecturer_id = $_GET['lecturer_id'];
+$query = "SELECT * FROM appointments WHERE lecturer_id = ?";
+$stmt = $con->prepare($query);
+$stmt->bind_param("i", $lecturer_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+$appointments = [];
+while ($row = $result->fetch_assoc()) {
+    $appointments[] = [
+        'id' => $row['id'],
+        'name' => 'Booked',
+        'startDate' => $row['start_datetime'],
+        'endDate' => $row['end_datetime'],
+        'color' => '#FF0000'
+    ];
 }
 ?>
 
@@ -64,7 +82,7 @@ while ($row = $result->fetch_assoc()) {
         }
 
         .available-slot {
-            background-color: #d4f4dd !important;
+            background-color: rgb(49, 241, 103) !important;
             border: none !important;
             opacity: 0.5 !important;
             pointer-events: none !important;
@@ -119,87 +137,89 @@ while ($row = $result->fetch_assoc()) {
 
             const events = [
                 <?php foreach ($availabilities as $availability): ?>
-                    <?php
-                    $start = new DateTime($availability['start_datetime']);
-                    $end = new DateTime($availability['end_datetime']);
-                    $availabilitySlots = [];
-                    while ($start < $end) {
-                        $slotEnd = clone $start;
-                        $slotEnd->modify('+30 minutes');
-                        $availabilitySlots[] = [
-                            'start' => $start->format('Y-m-d\TH:i:s'),
-                            'end' => $slotEnd->format('Y-m-d\TH:i:s')
-                        ];
-                        $start->modify('+30 minutes');
-                    }
-
-                    $isFullyBooked = true;
-                    foreach ($availabilitySlots as $slot) {
-                        $slotStart = new DateTime($slot['start']);
-                        $slotEnd = new DateTime($slot['end']);
-                        $slotIsBooked = false;
-                        foreach ($booked_slots as $booked) {
-                            $bookedStart = new DateTime($booked['start_datetime']);
-                            $bookedEnd = new DateTime($booked['end_datetime']);
-                            if ($slotStart < $bookedEnd && $slotEnd > $bookedStart) {
-                                $slotIsBooked = true;
-                                break;
-                            }
-                        }
-                        if (!$slotIsBooked) {
-                            $isFullyBooked = false;
-                            break;
-                        }
-                    }
-
-                    foreach ($availabilitySlots as $slot) {
-                        $slotStart = new DateTime($slot['start']);
-                        $slotEnd = new DateTime($slot['end']);
-                        $slotIsBooked = false;
-                        foreach ($booked_slots as $booked) {
-                            $bookedStart = new DateTime($booked['start_datetime']);
-                            $bookedEnd = new DateTime($booked['end_datetime']);
-                            if ($slotStart < $bookedEnd && $slotEnd > $bookedStart) {
-                                $slotIsBooked = true;
-                                break;
-                            }
-                        }
-
-                        if ($isFullyBooked) {
-                    ?> {
-                                title: '',
-                                start: '<?php echo $slot['start']; ?>',
-                                end: '<?php echo $slot['end']; ?>',
-                                backgroundColor: '#ff3b30',
-                                borderColor: '#ff3b30',
-                                classNames: ['fully-booked-slot'],
-                                editable: false,
-                                selectable: false,
-                                eventOverlap: false,
-                                eventAllow: function() {
-                                    return false;
-                                }
-                            },
+                    <?php if (!$availability['is_recurring']): ?>
                         <?php
-                        } elseif (!$slotIsBooked) {
-                        ?> {
-                                title: '',
-                                start: '<?php echo $slot['start']; ?>',
-                                end: '<?php echo $slot['end']; ?>',
-                                backgroundColor: '#d4f4dd',
-                                borderColor: '#d4f4dd',
-                                classNames: ['available-slot'],
-                                editable: false,
-                                selectable: false,
-                                eventOverlap: false,
-                                eventAllow: function() {
-                                    return false;
-                                }
-                            },
-                    <?php
+                        $start = new DateTime($availability['start_datetime']);
+                        $end = new DateTime($availability['end_datetime']);
+                        $availabilitySlots = [];
+                        while ($start < $end) {
+                            $slotEnd = clone $start;
+                            $slotEnd->modify('+30 minutes');
+                            $availabilitySlots[] = [
+                                'start' => $start->format('Y-m-d\TH:i:s'),
+                                'end' => $slotEnd->format('Y-m-d\TH:i:s')
+                            ];
+                            $start->modify('+30 minutes');
                         }
-                    }
-                    ?>
+
+                        $isFullyBooked = true;
+                        foreach ($availabilitySlots as $slot) {
+                            $slotStart = new DateTime($slot['start']);
+                            $slotEnd = new DateTime($slot['end']);
+                            $slotIsBooked = false;
+                            foreach ($booked_slots as $booked) {
+                                $bookedStart = new DateTime($booked['start_datetime']);
+                                $bookedEnd = new DateTime($booked['end_datetime']);
+                                if ($slotStart < $bookedEnd && $slotEnd > $bookedStart) {
+                                    $slotIsBooked = true;
+                                    break;
+                                }
+                            }
+                            if (!$slotIsBooked) {
+                                $isFullyBooked = false;
+                                break;
+                            }
+                        }
+
+                        foreach ($availabilitySlots as $slot) {
+                            $slotStart = new DateTime($slot['start']);
+                            $slotEnd = new DateTime($slot['end']);
+                            $slotIsBooked = false;
+                            foreach ($booked_slots as $booked) {
+                                $bookedStart = new DateTime($booked['start_datetime']);
+                                $bookedEnd = new DateTime($booked['end_datetime']);
+                                if ($slotStart < $bookedEnd && $slotEnd > $bookedStart) {
+                                    $slotIsBooked = true;
+                                    break;
+                                }
+                            }
+
+                            if ($isFullyBooked) {
+                        ?> {
+                                    title: '',
+                                    start: '<?php echo $slot['start']; ?>',
+                                    end: '<?php echo $slot['end']; ?>',
+                                    backgroundColor: '#ff3b30',
+                                    borderColor: '#ff3b30',
+                                    classNames: ['fully-booked-slot'],
+                                    editable: false,
+                                    selectable: false,
+                                    eventOverlap: false,
+                                    eventAllow: function() {
+                                        return false;
+                                    }
+                                },
+                            <?php
+                            } elseif (!$slotIsBooked) {
+                            ?> {
+                                    title: '',
+                                    start: '<?php echo $slot['start']; ?>',
+                                    end: '<?php echo $slot['end']; ?>',
+                                    backgroundColor: '#d4f4dd',
+                                    borderColor: '#d4f4dd',
+                                    classNames: ['available-slot'],
+                                    editable: false,
+                                    selectable: false,
+                                    eventOverlap: false,
+                                    eventAllow: function() {
+                                        return false;
+                                    }
+                                },
+                        <?php
+                            }
+                        }
+                        ?>
+                    <?php endif; ?>
                 <?php endforeach; ?>
 
                 <?php foreach ($booked_slots as $slot): ?> {
@@ -213,6 +233,11 @@ while ($row = $result->fetch_assoc()) {
                 <?php endforeach; ?>
             ];
 
+            const recurringAvailabilities =
+                <?php echo json_encode(array_filter($availabilities, function ($a) {
+                    return $a['is_recurring'];
+                })); ?>;
+
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'timeGridWeek',
                 slotDuration: '00:30:00',
@@ -224,7 +249,8 @@ while ($row = $result->fetch_assoc()) {
                 selectable: true,
                 datesSet: function(dateInfo) {
                     calendar.getEvents().forEach(event => {
-                        if (event.classNames.includes('disabled-day-slot')) {
+                        if (event.classNames.includes('disabled-day-slot') || event.classNames
+                            .includes('recurring-availability-slot')) {
                             event.remove();
                         }
                     });
@@ -266,6 +292,59 @@ while ($row = $result->fetch_assoc()) {
                         }
                         currentDate.setDate(currentDate.getDate() + 1);
                     }
+
+                    currentDate.setTime(startDate.getTime());
+                    recurringAvailabilities.forEach(availability => {
+                        const dayOfWeek = parseInt(availability.day_of_week);
+                        const startTime = availability.start_time.split(':');
+                        const endTime = availability.end_time.split(':');
+                        const recurringStartDate = availability.start_date ? new Date(
+                            availability.start_date) : null;
+                        const recurringEndDate = availability.end_date ? new Date(availability
+                            .end_date) : null;
+
+                        while (currentDate < endDate) {
+                            if (currentDate.getDay() === dayOfWeek) {
+                                if ((recurringStartDate && currentDate < recurringStartDate) ||
+                                    (recurringEndDate && currentDate > recurringEndDate)) {
+                                    currentDate.setDate(currentDate.getDate() + 1);
+                                    continue;
+                                }
+
+                                const slotStart = new Date(currentDate);
+                                slotStart.setHours(startTime[0], startTime[1], 0, 0);
+                                const slotEnd = new Date(currentDate);
+                                slotEnd.setHours(endTime[0], endTime[1], 0, 0);
+
+                                let currentSlot = new Date(slotStart);
+                                while (currentSlot < slotEnd) {
+                                    const slotEndTime = new Date(currentSlot);
+                                    slotEndTime.setMinutes(currentSlot.getMinutes() + 30);
+
+                                    calendar.addEvent({
+                                        title: '',
+                                        start: currentSlot,
+                                        end: slotEndTime,
+                                        backgroundColor: '#d4f4dd',
+                                        borderColor: '#d4f4dd',
+                                        classNames: ['available-slot',
+                                            'recurring-availability-slot'
+                                        ],
+                                        editable: false,
+                                        selectable: false,
+                                        eventOverlap: false,
+                                        eventAllow: function() {
+                                            return false;
+                                        }
+                                    });
+
+                                    currentSlot.setMinutes(currentSlot.getMinutes() + 30);
+                                }
+                            }
+                            currentDate.setDate(currentDate.getDate() + 1);
+                        }
+                        currentDate.setTime(startDate.getTime());
+                    });
                 },
                 select: function(info) {
                     const selectedStart = new Date(info.startStr);
@@ -288,16 +367,47 @@ while ($row = $result->fetch_assoc()) {
 
                     let selectedAvailability = null;
                     let isAvailable = availabilities.some(a => {
-                        const availStart = new Date(a.start_datetime);
-                        const availEnd = new Date(a.end_datetime);
-                        const isWithin = selectedStart >= availStart && selectedEnd <= availEnd;
-                        if (isWithin) {
-                            selectedAvailability = {
-                                start: availStart,
-                                end: availEnd
-                            };
+                        if (a.is_recurring) {
+                            const dayOfWeek = parseInt(a.day_of_week);
+                            const startTime = a.start_time.split(':');
+                            const endTime = a.end_time.split(':');
+                            const recurringStartDate = a.start_date ? new Date(a.start_date) :
+                                null;
+                            const recurringEndDate = a.end_date ? new Date(a.end_date) : null;
+
+                            if (selectedStart.getDay() !== dayOfWeek) return false;
+                            if (recurringStartDate && selectedStart < recurringStartDate)
+                                return false;
+                            if (recurringEndDate && selectedStart > recurringEndDate)
+                                return false;
+
+                            const slotStart = new Date(selectedStart);
+                            slotStart.setHours(startTime[0], startTime[1], 0, 0);
+                            const slotEnd = new Date(selectedStart);
+                            slotEnd.setHours(endTime[0], endTime[1], 0, 0);
+
+                            const isWithin = selectedStart >= slotStart && selectedEnd <=
+                                slotEnd;
+                            if (isWithin) {
+                                selectedAvailability = {
+                                    start: slotStart,
+                                    end: slotEnd
+                                };
+                            }
+                            return isWithin;
+                        } else {
+                            const availStart = new Date(a.start_datetime);
+                            const availEnd = new Date(a.end_datetime);
+                            const isWithin = selectedStart >= availStart && selectedEnd <=
+                                availEnd;
+                            if (isWithin) {
+                                selectedAvailability = {
+                                    start: availStart,
+                                    end: availEnd
+                                };
+                            }
+                            return isWithin;
                         }
-                        return isWithin;
                     });
 
                     let isBooked = bookedSlots.some(b => {

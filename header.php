@@ -1,4 +1,6 @@
-<?php session_start();
+<?php
+date_default_timezone_set('Asia/Kuala_Lumpur');
+session_start();
 include("database.php");
 $student_id = $_SESSION['id'] ?? null;
 
