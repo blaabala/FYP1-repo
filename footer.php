@@ -24,15 +24,21 @@
 						</a>
 					</li>
 					<li>
-						<a href="appointment_view.php"
+						<a href="lecturer_list.php"
 							class="text-base md:text-lg font-medium hover:text-blue-200 transition-colors duration-300">
 							Create Appointments
 						</a>
 					</li>
 					<li>
-						<a href="edit_profile.php"
+						<a href="appointment_view.php"
 							class="text-base md:text-lg font-medium hover:text-blue-200 transition-colors duration-300">
-							Edit Profile
+							Appointments
+						</a>
+					</li>
+					<li>
+						<?php echo "<a href='edit_profile.php?id=$res_id'" ?>
+						class="text-base md:text-lg font-medium hover:text-blue-200 transition-colors duration-300">
+						Edit Profile
 						</a>
 					</li>
 				</ul>

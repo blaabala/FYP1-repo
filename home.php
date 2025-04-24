@@ -19,29 +19,29 @@ include("header.php");
             <div class="flex justify-end">
                 <button
                     class="bg-white px-6 py-3 rounded-lg shadow-md text-blue-600 text-2xl font-bold hover:bg-blue-50 transition-colors duration-300">
-                    <a href="lecturer_list.php">Make Appointment</a>
+                    <a href="lecturer_list.php">Create Appointment</a>
                 </button>
             </div>
         </div>
 
         <!-- Box 3 -->
         <div class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-2xl font-bold mb-4">Function2</h2>
+            <h2 class="text-2xl font-bold mb-4">Appointments</h2>
             <div class="flex justify-end">
                 <button
                     class="bg-white px-6 py-3 rounded-lg shadow-md text-blue-600 text-2xl font-bold hover:bg-blue-50 transition-colors duration-300">
-                    Button 2
+                    <a href="appointment_view.php">More...</a>
                 </button>
             </div>
         </div>
 
         <!-- Box 4 -->
         <div class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-2xl font-bold mb-4">Function3</h2>
+            <h2 class="text-2xl font-bold mb-4">Edit Profile</h2>
             <div class="flex justify-end">
                 <button
                     class="bg-white px-6 py-3 rounded-lg shadow-md text-blue-600 text-2xl font-bold hover:bg-blue-50 transition-colors duration-300">
-                    <a href="appointment_view.php">Button 3</a>
+                    <?php echo "<a href='edit_profile.php?id=$res_id'>" ?>Click to Edit</a>
                 </button>
             </div>
         </div>

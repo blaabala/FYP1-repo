@@ -8,7 +8,7 @@ $lecturer_id = $_SESSION['id'] ?? null;
 if (!$lecturer_id) {
     echo "<script>
         alert('Please login to continue.');
-        window.location.href = 'login.php';
+        window.location.href = 'login_lecturer.php';
     </script>";
     exit(); // Prevent further code execution
 }
@@ -16,6 +16,7 @@ $email = $_SESSION['email'];
 
 $query = mysqli_query($con, "SELECT users.*, roles.role_name 
 FROM users JOIN roles ON users.role_id=roles.id WHERE users.email='$email'");
+
 while ($result = mysqli_fetch_assoc($query)) {
     $res_id = $result['id'];
     $res_username = $result['username'];
@@ -65,24 +66,28 @@ while ($result = mysqli_fetch_assoc($query)) {
                         <img src="assets/images/logo.png" alt="logo"
                             class="w-16 h-auto transition-transform transform hover:scale-110">
                     </a>
-                    <a href="home.php" class="text-2xl font-bold tracking-wide hover:text-blue-200 transition-colors">
+                    <a href="home_lecturer.php"
+                        class="text-2xl font-bold tracking-wide hover:text-blue-200 transition-colors">
                         Appointment Management System
                     </a>
                 </div>
                 <div>
                     <ul class="flex space-x-6 items-center">
                         <li>
-                            <a href="home.php"
+                            <a href="home_lecturer.php"
                                 class="text-lg font-medium hover:text-blue-200 transition-colors duration-300">
                                 Home
                             </a>
                         </li>
                         <li>
-                            <a href="appointment_view.php"
+                            <a href="appointment_view_lecturer.php"
                                 class="text-lg font-medium hover:text-blue-200 transition-colors duration-300">
-                                Create Appointments
+                                Appointments
                             </a>
                         </li>
+                        <li><a href="set_availability.php"
+                                class="text-lg font-medium hover:text-blue-200 transition-colors duration-300">Set
+                                Availability</a></li>
                         <li>
                             <?php echo "<a href='edit_profile.php?id=$res_id' class='text-lg font-medium hover:text-blue-200 transition-colors duration-300'>Edit Profile</a>"; ?>
                         </li>

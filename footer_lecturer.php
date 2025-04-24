@@ -18,21 +18,28 @@
 			<div>
 				<ul class="flex space-x-6">
 					<li>
-						<a href="home.php"
+						<a href="home_lecturer.php"
 							class="text-lg font-medium hover:text-blue-200 transition-colors duration-300">
 							Home
 						</a>
 					</li>
 					<li>
-						<a href="appointment_view.php"
+						<a href="appointment_view_lecturer.php"
 							class="text-lg font-medium hover:text-blue-200 transition-colors duration-300">
-							Create Appointments
+							Appointments
+						</a>
+					</li>
+
+					<li>
+						<a href="set_availability.php"
+							class="text-lg font-medium hover:text-blue-200 transition-colors duration-300">
+							Set Availability
 						</a>
 					</li>
 					<li>
-						<a href="edit_profile.php"
-							class="text-lg font-medium hover:text-blue-200 transition-colors duration-300">
-							Edit Profile
+						<?php echo "<a href='edit_profile.php?id=$res_id'" ?>
+						class="text-lg font-medium hover:text-blue-200 transition-colors duration-300">
+						Edit Profile
 						</a>
 					</li>
 				</ul>
