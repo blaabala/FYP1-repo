@@ -1,3 +1,31 @@
+<?php
+session_start();
+include("database.php");
+
+$lecturer_id = $_SESSION['id'] ?? null;
+
+if (!$lecturer_id) {
+    echo "<script>
+        alert('Please login to continue.');
+        window.location.href = 'login.php';
+    </script>";
+    exit(); // Prevent further code execution
+}
+$email = $_SESSION['email'];
+
+$query = mysqli_query($con, "SELECT users.*, roles.role_name 
+FROM users JOIN roles ON users.role_id=roles.id WHERE users.email='$email'");
+while ($result = mysqli_fetch_assoc($query)) {
+    $res_id = $result['id'];
+    $res_username = $result['username'];
+    $res_email = $result['email'];
+    $res_role = $result['role_id'];
+    $res_role_name = $result['role_name'];
+    $res_faculty = $result['faculty'];
+    $res_contact = $result['contact_number'];
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -18,12 +46,12 @@
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
-    /* Ensure the body takes up the full viewport height */
-    html,
-    body {
-        height: 100%;
-        margin: 0;
-    }
+        /* Ensure the body takes up the full viewport height */
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+        }
     </style>
 </head>
 
@@ -41,24 +69,6 @@
                     </a>
                 </div>
                 <div>
-                    <?php
-                    session_start();
-                    include("database.php");
-                    $email = $_SESSION['email'];
-                    $query = mysqli_query($con, "SELECT users.*, roles.role_name 
-                                            FROM users 
-                                            JOIN roles ON users.role_id = roles.id 
-                                            WHERE users.email = '$email'");
-                    while ($result = mysqli_fetch_assoc($query)) {
-                        $res_id = $result['id'];
-                        $res_username = $result['username'];
-                        $res_email = $result['email'];
-                        $res_role = $result['role_id'];
-                        $res_role_name = $result['role_name'];
-                        $res_faculty = $result['faculty'];
-                        $res_contact = $result['contact_number'];
-                    }
-                    ?>
                     <ul class="flex space-x-6 items-center">
                         <li>
                             <a href="home.php"

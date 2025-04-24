@@ -211,43 +211,6 @@ while ($row = $result->fetch_assoc()) {
                         editable: false
                     },
                 <?php endforeach; ?>
-
-                <?php
-                $calendarStart = new DateTime('2025-04-27');
-                $calendarEnd = new DateTime('2025-05-03');
-                $interval = new DateInterval('P1D');
-                $period = new DatePeriod($calendarStart, $interval, $calendarEnd->modify('+1 day'));
-
-                foreach ($period as $date) {
-                    $dayOfWeek = $date->format('w');
-                    if ($dayOfWeek == 0 || $dayOfWeek == 6) {
-                        $current = clone $date;
-                        $current->setTime(8, 0);
-                        $dayEnd = clone $date;
-                        $dayEnd->setTime(18, 0);
-                        while ($current < $dayEnd) {
-                            $slotEnd = clone $current;
-                            $slotEnd->modify('+30 minutes');
-                ?> {
-                                title: '',
-                                start: '<?php echo $current->format('Y-m-d\TH:i:s'); ?>',
-                                end: '<?php echo $slotEnd->format('Y-m-d\TH:i:s'); ?>',
-                                backgroundColor: '#d3d3d3',
-                                borderColor: '#d3d3d3',
-                                classNames: ['disabled-day-slot'],
-                                editable: false,
-                                selectable: false,
-                                eventOverlap: false,
-                                eventAllow: function() {
-                                    return false;
-                                }
-                            },
-                <?php
-                            $current->modify('+30 minutes');
-                        }
-                    }
-                }
-                ?>
             ];
 
             const calendar = new FullCalendar.Calendar(calendarEl, {
@@ -259,6 +222,51 @@ while ($row = $result->fetch_assoc()) {
                 aspectRatio: 2,
                 events: events,
                 selectable: true,
+                datesSet: function(dateInfo) {
+                    calendar.getEvents().forEach(event => {
+                        if (event.classNames.includes('disabled-day-slot')) {
+                            event.remove();
+                        }
+                    });
+
+                    const startDate = new Date(dateInfo.startStr);
+                    const endDate = new Date(dateInfo.endStr);
+                    const currentDate = new Date(startDate);
+
+                    while (currentDate < endDate) {
+                        const dayOfWeek = currentDate.getDay();
+                        if (dayOfWeek === 0 || dayOfWeek === 6) {
+                            const dayStart = new Date(currentDate);
+                            dayStart.setHours(8, 0, 0, 0);
+                            const dayEnd = new Date(currentDate);
+                            dayEnd.setHours(18, 0, 0, 0);
+
+                            let slotStart = new Date(dayStart);
+                            while (slotStart < dayEnd) {
+                                const slotEnd = new Date(slotStart);
+                                slotEnd.setMinutes(slotStart.getMinutes() + 30);
+
+                                calendar.addEvent({
+                                    title: '',
+                                    start: slotStart,
+                                    end: slotEnd,
+                                    backgroundColor: '#d3d3d3',
+                                    borderColor: '#d3d3d3',
+                                    classNames: ['disabled-day-slot'],
+                                    editable: false,
+                                    selectable: false,
+                                    eventOverlap: false,
+                                    eventAllow: function() {
+                                        return false;
+                                    }
+                                });
+
+                                slotStart.setMinutes(slotStart.getMinutes() + 30);
+                            }
+                        }
+                        currentDate.setDate(currentDate.getDate() + 1);
+                    }
+                },
                 select: function(info) {
                     const selectedStart = new Date(info.startStr);
                     const dayOfWeek = selectedStart.getDay();
