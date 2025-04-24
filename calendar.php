@@ -51,12 +51,23 @@ while ($row = $result->fetch_assoc()) {
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.css' rel='stylesheet' />
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.js'></script>
     <style>
-        .fc-bg-event {
-            opacity: 0.5 !important;
-        }
-
         .fc-highlight {
             background-color: rgba(0, 123, 255, 0.3) !important;
+        }
+
+        .fc-timegrid-slot {
+            height: 40px !important;
+        }
+
+        .fc-timegrid-slot-label {
+            vertical-align: middle !important;
+        }
+
+        .available-slot {
+            background-color: rgb(18, 229, 78) !important;
+            border: none !important;
+            opacity: 0.5 !important;
+            pointer-events: none !important;
         }
     </style>
 </head>
@@ -92,47 +103,65 @@ while ($row = $result->fetch_assoc()) {
             const bookingForm = document.getElementById('booking-form');
             const selectedDatetimeInput = document.getElementById('selected-datetime');
 
+            const events = [
+                <?php foreach ($availabilities as $availability): ?>
+                    <?php
+                    $start = new DateTime($availability['start_datetime']);
+                    $end = new DateTime($availability['end_datetime']);
+                    while ($start < $end) {
+                        $slotEnd = clone $start;
+                        $slotEnd->modify('+30 minutes');
+                    ?> {
+                            title: '',
+                            start: '<?php echo $start->format('Y-m-d\TH:i:s'); ?>',
+                            end: '<?php echo $slotEnd->format('Y-m-d\TH:i:s'); ?>',
+                            backgroundColor: '#d4f4dd',
+                            borderColor: '#d4f4dd',
+                            classNames: ['available-slot'],
+                            editable: false,
+                            selectable: false,
+                            eventOverlap: false,
+                            eventAllow: function() {
+                                return false;
+                            }
+                        },
+                    <?php
+                        $start->modify('+30 minutes');
+                    }
+                    ?>
+                <?php endforeach; ?>
+                <?php foreach ($booked_slots as $slot): ?> {
+                        title: 'Booked',
+                        start: '<?php echo $slot['start_datetime']; ?>',
+                        end: '<?php echo $slot['end_datetime']; ?>',
+                        backgroundColor: '#ff3b30',
+                        borderColor: '#ff3b30',
+                        editable: false
+                    },
+                <?php endforeach; ?>
+            ];
+
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'timeGridWeek',
-                slotDuration: '00:30:00', // 30-minute slots
+                slotDuration: '00:30:00',
                 slotMinTime: '08:00:00',
                 slotMaxTime: '18:00:00',
-                events: [
-                    <?php foreach ($availabilities as $availability): ?> {
-                            title: 'Available',
-                            start: '<?php echo $availability['start_datetime']; ?>',
-                            end: '<?php echo $availability['end_datetime']; ?>',
-                            backgroundColor: '#34c759',
-                            borderColor: '#34c759',
-                            rendering: 'background'
-                        },
-                    <?php endforeach; ?>
-                    <?php foreach ($booked_slots as $slot): ?> {
-                            title: 'Booked',
-                            start: '<?php echo $slot['start_datetime']; ?>',
-                            end: '<?php echo $slot['end_datetime']; ?>',
-                            backgroundColor: '#ff3b30',
-                            borderColor: '#ff3b30',
-                            editable: false
-                        },
-                    <?php endforeach; ?>
-                ],
+                contentHeight: 'auto',
+                aspectRatio: 2,
+                events: events,
                 selectable: true,
                 select: function(info) {
-                    // Round the selected start time to the nearest 30-minute slot
                     const selectedStart = new Date(info.startStr);
                     const minutes = selectedStart.getMinutes();
                     const roundedMinutes = minutes < 30 ? 0 : 30;
-                    selectedStart.setMinutes(roundedMinutes, 0, 0); // Set seconds and milliseconds to 0
+                    selectedStart.setMinutes(roundedMinutes, 0, 0);
 
-                    // Set the end time to 30 minutes after the start
                     const selectedEnd = new Date(selectedStart);
                     selectedEnd.setMinutes(selectedStart.getMinutes() + 30);
 
                     const availabilities = <?php echo json_encode($availabilities); ?>;
                     const bookedSlots = <?php echo json_encode($booked_slots); ?>;
 
-                    // Find the availability period that contains the selected slot
                     let selectedAvailability = null;
                     let isAvailable = availabilities.some(a => {
                         const availStart = new Date(a.start_datetime);
@@ -154,7 +183,6 @@ while ($row = $result->fetch_assoc()) {
                     });
 
                     if (isAvailable && !isBooked) {
-                        // Generate 30-minute slots within the availability period
                         const timeSlots = [];
                         const currentSlot = new Date(selectedAvailability.start);
                         while (currentSlot < selectedAvailability.end) {
@@ -162,12 +190,10 @@ while ($row = $result->fetch_assoc()) {
                             currentSlot.setMinutes(currentSlot.getMinutes() + 30);
                         }
 
-                        // Format each slot in Malaysia time and create buttons
                         const timeSlotsContainer = document.getElementById('time-slots');
-                        timeSlotsContainer.innerHTML = ''; // Clear previous buttons
+                        timeSlotsContainer.innerHTML = '';
                         const confirmButton = document.getElementById('confirm-button');
-                        confirmButton.disabled =
-                            true; // Disable confirm button until a slot is selected
+                        confirmButton.disabled = true;
 
                         const formatter = new Intl.DateTimeFormat('en-MY', {
                             hour: 'numeric',
@@ -179,14 +205,12 @@ while ($row = $result->fetch_assoc()) {
                         timeSlots.forEach(slot => {
                             const formattedTime = formatter.format(slot);
                             const button = document.createElement('button');
-                            button.type = 'button'; // Prevent form submission
+                            button.type = 'button';
                             button.className =
                                 'bg-gray-200 text-gray-800 py-1 px-3 rounded hover:bg-gray-300 focus:bg-blue-500 focus:text-white';
                             button.textContent = formattedTime;
-                            button.dataset.isoTime = slot
-                                .toISOString(); // Store ISO time for submission
+                            button.dataset.isoTime = slot.toISOString();
 
-                            // Check if this slot is booked
                             const slotEnd = new Date(slot);
                             slotEnd.setMinutes(slotEnd.getMinutes() + 30);
                             const isSlotBooked = bookedSlots.some(b => {
@@ -202,19 +226,15 @@ while ($row = $result->fetch_assoc()) {
                                 button.textContent += ' (Booked)';
                             } else {
                                 button.addEventListener('click', () => {
-                                    // Remove focus style from other buttons
                                     timeSlotsContainer.querySelectorAll('button')
                                         .forEach(btn => {
                                             btn.className =
                                                 'bg-gray-200 text-gray-800 py-1 px-3 rounded hover:bg-gray-300 focus:bg-blue-500 focus:text-white';
                                         });
-                                    // Apply focus style to the clicked button
                                     button.className =
                                         'bg-blue-500 text-white py-1 px-3 rounded';
-                                    // Update the hidden input with the selected slot's ISO time
                                     selectedDatetimeInput.value = button.dataset
                                         .isoTime;
-                                    // Enable the confirm button
                                     confirmButton.disabled = false;
                                 });
                             }
