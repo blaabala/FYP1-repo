@@ -25,6 +25,12 @@ if (isset($_POST['register'])) {
     $phoneno = stripslashes($_POST['phoneno']);
     $phoneno = mysqli_real_escape_string($con, $phoneno);
 
+    $department = stripslashes($_POST['department']);
+    $department = mysqli_real_escape_string($con, $department);
+
+    $designation = stripslashes($_POST['designation']);
+    $designation = mysqli_real_escape_string($con, $designation);
+
     if (!preg_match("/^[a-zA-Z\s]+$/", $username)) { //alphabetic char and spaces only
         $errors['username'] = "Invalid full name. Please enter a valid name.";
     }
@@ -44,6 +50,18 @@ if (isset($_POST['register'])) {
         $statement = $con->prepare($query);
         $statement->bind_param("ssssssi", $username, $email, $hashed_password, $reg_date, $userrole, $faculty, $phoneno);
         $result = $statement->execute();
+
+        //getting lecturer's user id and stores into $user_id
+        if ($result) {
+            $user_id = $statement->insert_id;
+
+            $query = "INSERT INTO `lecturers` (username, user_id, faculty, designation, department)
+            VALUES (?, ?, ?, ?, ?)";
+            $statement = $con->prepare($query);
+            $statement->bind_param("sisss", $username, $user_id, $faculty, $designation, $department);
+            $result = $statement->execute();
+        }
+
         if ($result) {
             header("Location: register_lecturer.php?success=1");
             exit();
@@ -122,32 +140,51 @@ if (isset($_POST['register'])) {
                 </div>
 
                 <div>
-                    <select id="userrole" name="userrole" class="mb-3 w-full p-2 border rounded">
+                    <select required id="userrole" name="userrole" class="mb-3 w-full p-2 border rounded">
                         <option value="" disabled selected>User Role</option>
                         <option value="1">Lecturer</option>
                     </select>
                 </div>
                 <div>
-                    <select id="faculty" name="faculty" class="mb-3 w-full p-2 border rounded">
+                    <select required id="faculty" name="faculty" class="mb-3 w-full p-2 border rounded">
                         <option value="" disabled selected>Faculty</option>
-                        <option value="MK-FMHS">M. Kandiah Faculty of Medicine and Health Sciences</option>
-                        <option value="LKC-FES">Lee Kong Chian Faculty of Engineering and Science</option>
-                        <option value="FEGT">Faculty of Engineering and Green Technology</option>
+                        <option disabled value="MK-FMHS">M. Kandiah Faculty of Medicine and Health Sciences</option>
+                        <option disabled value="LKC-FES">Lee Kong Chian Faculty of Engineering and Science</option>
+                        <option disabled value="FEGT">Faculty of Engineering and Green Technology</option>
                         <option value="FICT">Faculty of Information and Communication Technology</option>
-                        <option value="FSc">Faculty of Science</option>
-                        <option value="FAM">Faculty of Accountancy and Management (Sungai Long Campus)</option>
-                        <option value="FBF">Faculty of Business and Finance (Kampar Campus)</option>
-                        <option value="FAS">Faculty of Arts and Social Science (Kampar Campus)</option>
-                        <option value="FCI">Faculty of Creative Industries</option>
-                        <option value="Postgraduate">Institute of Postgraduate Studies & Research</option>
-                        <option value="ICS">Institute of Chinese Studies</option>
-                        <option value="IMLD">Institute of Management and Leadership Development</option>
-                        <option value="CFS-KPR">Centre for Foundation Studies (Kampar Campus)</option>
-                        <option value="CFS-SGLONG">Centre for Foundation Studies (Sungai Long Campus)</option>
-                        <option value="CEE">Centre for Extension Education</option>
-                        <option value="CCCD">Centre for Corporate and Community Development</option>
+                        <option disabled value="FSc">Faculty of Science</option>
+                        <option disabled value="FAM">Faculty of Accountancy and Management (Sungai Long Campus)</option>
+                        <option disabled value="FBF">Faculty of Business and Finance (Kampar Campus)</option>
+                        <option disabled value="FAS">Faculty of Arts and Social Science (Kampar Campus)</option>
+                        <option disabled value="FCI">Faculty of Creative Industries</option>
+                        <option disabled value="Postgraduate">Institute of Postgraduate Studies & Research</option>
+                        <option disabled value="ICS">Institute of Chinese Studies</option>
+                        <option disabled value="IMLD">Institute of Management and Leadership Development</option>
+                        <option disabled value="CFS-KPR">Centre for Foundation Studies (Kampar Campus)</option>
+                        <option disabled value="CFS-SGLONG">Centre for Foundation Studies (Sungai Long Campus)</option>
+                        <option disabled value="CEE">Centre for Extension Education</option>
+                        <option disabled value="CCCD">Centre for Corporate and Community Development</option>
                     </select>
                 </div>
+
+                <div>
+                    <select required id="department" name="department" class="mb-3 w-full p-2 border rounded">
+                        <option value="" disabled selected>Department</option>
+                        <option value="DCCT">Department of Computer and Communication Technology</option>
+                        <option value="DCS">Department of Computer Science</option>
+                        <option value="DDET">Department of Digital Economy Technology</option>
+                        <option value="DIS">Department of Information Systems</option>
+                    </select>
+                </div>
+
+                <div>
+                    <select required id="designation" name="designation" class="mb-3 w-full p-2 border rounded">
+                        <option value="" disabled selected>Designation</option>
+                        <option value="Lecturer">Lecturer</option>
+                        <option value="Senior Lecturer">Senior Lecturer</option>
+                    </select>
+                </div>
+
                 <input required type="text" id="phoneno" name="phoneno" class="mb-3 w-full p-2 border rounded"
                     placeholder="Contact Number (i.e.: 60123456789)">
 

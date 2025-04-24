@@ -15,7 +15,7 @@ include("header.php");
 
         <!-- Box 2 -->
         <div class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-2xl font-bold mb-4">List of Lecturer</h2>
+            <h2 class="text-2xl font-bold mb-4">List of Lecturers</h2>
             <div class="flex justify-end">
                 <button
                     class="bg-white px-6 py-3 rounded-lg shadow-md text-blue-600 text-2xl font-bold hover:bg-blue-50 transition-colors duration-300">

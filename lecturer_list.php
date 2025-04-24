@@ -56,7 +56,7 @@ if ($result->num_rows > 0) {
 
     <div class="container mx-auto p-4">
         <div class="flex justify-between items-center mb-4">
-            <input type="text" placeholder="Filter doctor..." class="border p-2 rounded w-1/4">
+            <input type="text" placeholder="Filter" class="border p-2 rounded w-1/4">
             <select class="border p-2 rounded">
                 <option>All Faculties</option>
                 <option>FICT</option>
