@@ -23,109 +23,60 @@ if ($result->num_rows > 0) {
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
-    .modal {
-        transition: opacity 0.3s ease, transform 0.3s ease;
-    }
+        .modal {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
 
-    .modal-hidden {
-        opacity: 0;
-        transform: scale(0.95);
-        pointer-events: none;
-    }
+        .modal-hidden {
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+        }
 
-    .modal-visible {
-        opacity: 1;
-        transform: scale(1);
-        pointer-events: auto;
-    }
+        .modal-visible {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+
+        /* Ensure the body takes up the full viewport height */
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+        }
     </style>
 </head>
 
 <body class="bg-gray-100 font-merriweather">
-    <header class="bg-gradient-to-r from-blue-600 to-indigo-800 text-white shadow-lg">
-        <nav class="container mx-auto px-6 py-4">
-            <div class="flex justify-between items-center">
-                <div class="flex items-center space-x-4">
-                    <a href="home.php">
-                        <img src="assets/images/logo.png" alt="logo"
-                            class="w-16 h-auto transition-transform transform hover:scale-110">
-                    </a>
-                    <a href="home.php" class="text-2xl font-bold tracking-wide hover:text-blue-200 transition-colors">
-                        Appointment Management System
-                    </a>
-                </div>
-                <div>
-                    <?php
-                    session_start();
-                    include("database.php");
-                    $email = $_SESSION['email'];
-                    $query = mysqli_query($con, "SELECT users.*, roles.role_name 
-                                            FROM users 
-                                            JOIN roles ON users.role_id = roles.id 
-                                            WHERE users.email = '$email'");
-                    while ($result = mysqli_fetch_assoc($query)) {
-                        $res_id = $result['id'];
-                        $res_username = $result['username'];
-                        $res_email = $result['email'];
-                        $res_role = $result['role_id'];
-                        $res_role_name = $result['role_name'];
-                        $res_faculty = $result['faculty'];
-                        $res_contact = $result['contact_number'];
-                    }
-                    ?>
-                    <ul class="flex space-x-6 items-center">
-                        <li>
-                            <a href="home.php"
-                                class="text-lg font-medium hover:text-blue-200 transition-colors duration-300">
-                                Home
-                            </a>
-                        </li>
-                        <li>
-                            <a href="appointment_view.php"
-                                class="text-lg font-medium hover:text-blue-200 transition-colors duration-300">
-                                Create Appointments
-                            </a>
-                        </li>
-                        <li>
-                            <?php echo "<a href='edit_profile.php?id=$res_id' class='text-lg font-medium hover:text-blue-200 transition-colors duration-300'>Edit Profile</a>"; ?>
-                        </li>
-                        <li>
-                            <a href="logout.php"
-                                class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors duration-300">
-                                Logout
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-    </header>
-
+    <?php
+    include("header.php");
+    ?>
 
 
     <div class="container mx-auto p-4">
         <div class="flex justify-between items-center mb-4">
             <input type="text" placeholder="Filter doctor..." class="border p-2 rounded w-1/4">
             <select class="border p-2 rounded">
-                <option>All Specialty</option>
-                <option>Traditional & Complementary Medicine - Chinese Medicine</option>
+                <option>All Faculties</option>
+                <option>FICT</option>
             </select>
         </div>
 
         <div id="lecturer-list">
             <?php foreach ($lecturers as $lecturer): ?>
-            <div class="lecturer-card bg-white p-4 mb-2 rounded shadow flex justify-between items-center cursor-pointer"
-                data-id="<?php echo $lecturer['id']; ?>">
-                <div>
-                    <h3 class="text-lg font-semibold"><?php echo htmlspecialchars($lecturer['username']); ?></h3>
-                    <p class="text-gray-600">Traditional & Complementary Medicine - Chinese Medicine</p>
-                    <p class="text-gray-500"><?php echo htmlspecialchars($lecturer['faculty']); ?></p>
+                <div class="lecturer-card bg-white p-4 mb-2 rounded shadow flex justify-between items-center cursor-pointer"
+                    data-id="<?php echo $lecturer['id']; ?>">
+                    <div>
+                        <h3 class="text-lg font-semibold"><?php echo htmlspecialchars($lecturer['username']); ?></h3>
+                        <p class="text-gray-600">Traditional & Complementary Medicine - Chinese Medicine</p>
+                        <p class="text-gray-500"><?php echo htmlspecialchars($lecturer['faculty']); ?></p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button class="text-gray-500 hover:text-blue-600"><i class="fas fa-calendar-alt"></i></button>
+                        <button class="text-gray-500 hover:text-blue-600"><i class="fas fa-phone-alt"></i></button>
+                    </div>
                 </div>
-                <div class="flex space-x-2">
-                    <button class="text-gray-500 hover:text-blue-600"><i class="fas fa-calendar-alt"></i></button>
-                    <button class="text-gray-500 hover:text-blue-600"><i class="fas fa-phone-alt"></i></button>
-                </div>
-            </div>
             <?php endforeach; ?>
         </div>
     </div>
@@ -146,51 +97,9 @@ if ($result->num_rows > 0) {
         </div>
     </div>
 
-    <footer class="bg-gradient-to-r from-blue-600 to-indigo-800 text-white py-8">
-        <div class="container mx-auto px-6">
-            <div class="flex flex-col items-center space-y-6">
-                <div class="flex space-x-6">
-                    <a href="" class="text-2xl hover:text-blue-200 transition-colors duration-300">
-                        <i class="fa-brands fa-facebook"></i>
-                    </a>
-                    <a href="" class="text-2xl hover:text-blue-200 transition-colors duration-300">
-                        <i class="fa-brands fa-instagram"></i>
-                    </a>
-                    <a href="" class="text-2xl hover:text-blue-200 transition-colors duration-300">
-                        <i class="fa-brands fa-google-plus"></i>
-                    </a>
-                    <a href="" class="text-2xl hover:text-blue-200 transition-colors duration-300">
-                        <i class="fa-brands fa-youtube"></i>
-                    </a>
-                </div>
-                <div>
-                    <ul class="flex space-x-6">
-                        <li>
-                            <a href="home.php"
-                                class="text-lg font-medium hover:text-blue-200 transition-colors duration-300">
-                                Home
-                            </a>
-                        </li>
-                        <li>
-                            <a href="appointment_view.php"
-                                class="text-lg font-medium hover:text-blue-200 transition-colors duration-300">
-                                Create Appointments
-                            </a>
-                        </li>
-                        <li>
-                            <a href="edit_profile.php"
-                                class="text-lg font-medium hover:text-blue-200 transition-colors duration-300">
-                                Edit Profile
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-                <div class="text-center">
-                    <p class="text-sm">© 2024 LEE JUN KHANG. All rights reserved.</p>
-                </div>
-            </div>
-        </div>
-    </footer>
+    <?php
+    include("footer.php");
+    ?>
 
     <script src="assets/js/script.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
@@ -198,47 +107,47 @@ if ($result->num_rows > 0) {
     </script>
 
     <script>
-    const lecturerCards = document.querySelectorAll('.lecturer-card');
-    const modal = document.getElementById('lecturer-modal');
-    const closeModalBtn = document.getElementById('close-modal');
-    const modalTitle = document.getElementById('modal-title');
-    const modalSpecialty = document.getElementById('modal-specialty');
-    const modalFaculty = document.getElementById('modal-faculty');
-    const modalAvailability = document.getElementById('modal-availability');
-    const makeAppointmentBtn = document.getElementById('make-appointment-btn');
+        const lecturerCards = document.querySelectorAll('.lecturer-card');
+        const modal = document.getElementById('lecturer-modal');
+        const closeModalBtn = document.getElementById('close-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalSpecialty = document.getElementById('modal-specialty');
+        const modalFaculty = document.getElementById('modal-faculty');
+        const modalAvailability = document.getElementById('modal-availability');
+        const makeAppointmentBtn = document.getElementById('make-appointment-btn');
 
-    lecturerCards.forEach(card => {
-        card.addEventListener('click', () => {
-            const lecturerId = card.getAttribute('data-id');
-            const lecturerName = card.querySelector('h3').textContent;
-            const specialty = card.querySelector('p:nth-child(2)').textContent;
-            const faculty = card.querySelector('p:nth-child(3)').textContent;
+        lecturerCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const lecturerId = card.getAttribute('data-id');
+                const lecturerName = card.querySelector('h3').textContent;
+                const specialty = card.querySelector('p:nth-child(2)').textContent;
+                const faculty = card.querySelector('p:nth-child(3)').textContent;
 
-            // Fetch availability (simplified for demo; in practice, make an AJAX call)
-            modalTitle.textContent = lecturerName;
-            modalSpecialty.textContent = specialty;
-            modalFaculty.textContent = faculty;
-            modalAvailability.textContent =
-                "Available: 24 Apr 2025, 9:00 AM - 12:00 PM | 25 Apr 2025, 2:00 PM - 4:00 PM";
-            makeAppointmentBtn.setAttribute('href', `calendar.php?lecturer_id=${lecturerId}`);
+                // Fetch availability (simplified for demo; in practice, make an AJAX call)
+                modalTitle.textContent = lecturerName;
+                modalSpecialty.textContent = specialty;
+                modalFaculty.textContent = faculty;
+                modalAvailability.textContent =
+                    "Available: 24 Apr 2025, 9:00 AM - 12:00 PM | 25 Apr 2025, 2:00 PM - 4:00 PM";
+                makeAppointmentBtn.setAttribute('href', `calendar.php?lecturer_id=${lecturerId}`);
 
-            modal.classList.remove('modal-hidden');
-            modal.classList.add('modal-visible');
+                modal.classList.remove('modal-hidden');
+                modal.classList.add('modal-visible');
+            });
         });
-    });
 
-    closeModalBtn.addEventListener('click', () => {
-        modal.classList.remove('modal-visible');
-        modal.classList.add('modal-hidden');
-    });
-
-    // Close modal when clicking outside
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
+        closeModalBtn.addEventListener('click', () => {
             modal.classList.remove('modal-visible');
             modal.classList.add('modal-hidden');
-        }
-    });
+        });
+
+        // Close modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('modal-visible');
+                modal.classList.add('modal-hidden');
+            }
+        });
     </script>
 </body>
 

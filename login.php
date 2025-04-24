@@ -60,7 +60,7 @@ if (isset($_POST['login'])) {
 
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="css/tailwind.min.css" rel="stylesheet">
-
+    <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

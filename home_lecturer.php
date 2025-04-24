@@ -1,5 +1,5 @@
 <?php
-include("header.php");
+include("header_lecturer.php");
 ?>
 <main class="container mx-auto px-6 py-8">
 
@@ -15,11 +15,11 @@ include("header.php");
 
         <!-- Box 2 -->
         <div class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-2xl font-bold mb-4">List of Lecturer</h2>
+            <h2 class="text-2xl font-bold mb-4">Function1</h2>
             <div class="flex justify-end">
                 <button
                     class="bg-white px-6 py-3 rounded-lg shadow-md text-blue-600 text-2xl font-bold hover:bg-blue-50 transition-colors duration-300">
-                    <a href="lecturer_list.php">Make Appointment</a>
+                    Button 1
                 </button>
             </div>
         </div>
@@ -41,7 +41,7 @@ include("header.php");
             <div class="flex justify-end">
                 <button
                     class="bg-white px-6 py-3 rounded-lg shadow-md text-blue-600 text-2xl font-bold hover:bg-blue-50 transition-colors duration-300">
-                    <a href="appointment_view.php">Button 3</a>
+                    Button 3
                 </button>
             </div>
         </div>
@@ -50,4 +50,4 @@ include("header.php");
 
 
 
-<?php include("footer.php"); ?>
+<?php include("footer_lecturer.php"); ?>
