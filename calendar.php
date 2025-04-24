@@ -64,7 +64,21 @@ while ($row = $result->fetch_assoc()) {
         }
 
         .available-slot {
-            background-color: rgb(18, 229, 78) !important;
+            background-color: #d4f4dd !important;
+            border: none !important;
+            opacity: 0.5 !important;
+            pointer-events: none !important;
+        }
+
+        .fully-booked-slot {
+            background-color: #ff3b30 !important;
+            border: none !important;
+            opacity: 0.5 !important;
+            pointer-events: none !important;
+        }
+
+        .disabled-day-slot {
+            background-color: #d3d3d3 !important;
             border: none !important;
             opacity: 0.5 !important;
             pointer-events: none !important;
@@ -108,28 +122,86 @@ while ($row = $result->fetch_assoc()) {
                     <?php
                     $start = new DateTime($availability['start_datetime']);
                     $end = new DateTime($availability['end_datetime']);
+                    $availabilitySlots = [];
                     while ($start < $end) {
                         $slotEnd = clone $start;
                         $slotEnd->modify('+30 minutes');
-                    ?> {
-                            title: '',
-                            start: '<?php echo $start->format('Y-m-d\TH:i:s'); ?>',
-                            end: '<?php echo $slotEnd->format('Y-m-d\TH:i:s'); ?>',
-                            backgroundColor: '#d4f4dd',
-                            borderColor: '#d4f4dd',
-                            classNames: ['available-slot'],
-                            editable: false,
-                            selectable: false,
-                            eventOverlap: false,
-                            eventAllow: function() {
-                                return false;
-                            }
-                        },
-                    <?php
+                        $availabilitySlots[] = [
+                            'start' => $start->format('Y-m-d\TH:i:s'),
+                            'end' => $slotEnd->format('Y-m-d\TH:i:s')
+                        ];
                         $start->modify('+30 minutes');
+                    }
+
+                    $isFullyBooked = true;
+                    foreach ($availabilitySlots as $slot) {
+                        $slotStart = new DateTime($slot['start']);
+                        $slotEnd = new DateTime($slot['end']);
+                        $slotIsBooked = false;
+                        foreach ($booked_slots as $booked) {
+                            $bookedStart = new DateTime($booked['start_datetime']);
+                            $bookedEnd = new DateTime($booked['end_datetime']);
+                            if ($slotStart < $bookedEnd && $slotEnd > $bookedStart) {
+                                $slotIsBooked = true;
+                                break;
+                            }
+                        }
+                        if (!$slotIsBooked) {
+                            $isFullyBooked = false;
+                            break;
+                        }
+                    }
+
+                    foreach ($availabilitySlots as $slot) {
+                        $slotStart = new DateTime($slot['start']);
+                        $slotEnd = new DateTime($slot['end']);
+                        $slotIsBooked = false;
+                        foreach ($booked_slots as $booked) {
+                            $bookedStart = new DateTime($booked['start_datetime']);
+                            $bookedEnd = new DateTime($booked['end_datetime']);
+                            if ($slotStart < $bookedEnd && $slotEnd > $bookedStart) {
+                                $slotIsBooked = true;
+                                break;
+                            }
+                        }
+
+                        if ($isFullyBooked) {
+                    ?> {
+                                title: '',
+                                start: '<?php echo $slot['start']; ?>',
+                                end: '<?php echo $slot['end']; ?>',
+                                backgroundColor: '#ff3b30',
+                                borderColor: '#ff3b30',
+                                classNames: ['fully-booked-slot'],
+                                editable: false,
+                                selectable: false,
+                                eventOverlap: false,
+                                eventAllow: function() {
+                                    return false;
+                                }
+                            },
+                        <?php
+                        } elseif (!$slotIsBooked) {
+                        ?> {
+                                title: '',
+                                start: '<?php echo $slot['start']; ?>',
+                                end: '<?php echo $slot['end']; ?>',
+                                backgroundColor: '#d4f4dd',
+                                borderColor: '#d4f4dd',
+                                classNames: ['available-slot'],
+                                editable: false,
+                                selectable: false,
+                                eventOverlap: false,
+                                eventAllow: function() {
+                                    return false;
+                                }
+                            },
+                    <?php
+                        }
                     }
                     ?>
                 <?php endforeach; ?>
+
                 <?php foreach ($booked_slots as $slot): ?> {
                         title: 'Booked',
                         start: '<?php echo $slot['start_datetime']; ?>',
@@ -139,6 +211,43 @@ while ($row = $result->fetch_assoc()) {
                         editable: false
                     },
                 <?php endforeach; ?>
+
+                <?php
+                $calendarStart = new DateTime('2025-04-27');
+                $calendarEnd = new DateTime('2025-05-03');
+                $interval = new DateInterval('P1D');
+                $period = new DatePeriod($calendarStart, $interval, $calendarEnd->modify('+1 day'));
+
+                foreach ($period as $date) {
+                    $dayOfWeek = $date->format('w');
+                    if ($dayOfWeek == 0 || $dayOfWeek == 6) {
+                        $current = clone $date;
+                        $current->setTime(8, 0);
+                        $dayEnd = clone $date;
+                        $dayEnd->setTime(18, 0);
+                        while ($current < $dayEnd) {
+                            $slotEnd = clone $current;
+                            $slotEnd->modify('+30 minutes');
+                ?> {
+                                title: '',
+                                start: '<?php echo $current->format('Y-m-d\TH:i:s'); ?>',
+                                end: '<?php echo $slotEnd->format('Y-m-d\TH:i:s'); ?>',
+                                backgroundColor: '#d3d3d3',
+                                borderColor: '#d3d3d3',
+                                classNames: ['disabled-day-slot'],
+                                editable: false,
+                                selectable: false,
+                                eventOverlap: false,
+                                eventAllow: function() {
+                                    return false;
+                                }
+                            },
+                <?php
+                            $current->modify('+30 minutes');
+                        }
+                    }
+                }
+                ?>
             ];
 
             const calendar = new FullCalendar.Calendar(calendarEl, {
@@ -152,6 +261,13 @@ while ($row = $result->fetch_assoc()) {
                 selectable: true,
                 select: function(info) {
                     const selectedStart = new Date(info.startStr);
+                    const dayOfWeek = selectedStart.getDay();
+                    if (dayOfWeek === 0 || dayOfWeek === 6) {
+                        alert('Appointments cannot be booked on Saturdays or Sundays.');
+                        calendar.unselect();
+                        return;
+                    }
+
                     const minutes = selectedStart.getMinutes();
                     const roundedMinutes = minutes < 30 ? 0 : 30;
                     selectedStart.setMinutes(roundedMinutes, 0, 0);
