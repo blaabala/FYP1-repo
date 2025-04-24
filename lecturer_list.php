@@ -23,28 +23,28 @@ if ($result->num_rows > 0) {
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
-    .modal {
-        transition: opacity 0.3s ease, transform 0.3s ease;
-    }
+        .modal {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
 
-    .modal-hidden {
-        opacity: 0;
-        transform: scale(0.95);
-        pointer-events: none;
-    }
+        .modal-hidden {
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+        }
 
-    .modal-visible {
-        opacity: 1;
-        transform: scale(1);
-        pointer-events: auto;
-    }
+        .modal-visible {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
 
-    /* Ensure the body takes up the full viewport height */
-    html,
-    body {
-        height: 100%;
-        margin: 0;
-    }
+        /* Ensure the body takes up the full viewport height */
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+        }
     </style>
 </head>
 
@@ -65,23 +65,23 @@ if ($result->num_rows > 0) {
 
         <div id="lecturer-list">
             <?php foreach ($lecturers as $lecturer): ?>
-            <div class="lecturer-card bg-white p-4 mb-2 rounded shadow flex justify-between items-center cursor-pointer"
-                data-id="<?php echo $lecturer['id']; ?>">
-                <div>
-                    <h3 class="text-lg font-semibold"><?php echo htmlspecialchars($lecturer['username']); ?></h3>
-                    <p class="text-gray-600"><?php echo htmlspecialchars($lecturer['faculty']); ?></p>
-                    <p class="text-gray-500"><?php echo htmlspecialchars($lecturer['department']); ?></p>
-                    <p class="text-gray-500"><?php echo htmlspecialchars($lecturer['designation']); ?></p>
+                <div class="lecturer-card bg-white p-4 mb-2 rounded shadow flex justify-between items-center cursor-pointer"
+                    data-id="<?php echo $lecturer['id']; ?>">
+                    <div>
+                        <h3 class="text-lg font-semibold"><?php echo htmlspecialchars($lecturer['username']); ?></h3>
+                        <p class="text-gray-600"><?php echo htmlspecialchars($lecturer['faculty']); ?></p>
+                        <p class="text-gray-500"><?php echo htmlspecialchars($lecturer['department']); ?></p>
+                        <p class="text-gray-500"><?php echo htmlspecialchars($lecturer['designation']); ?></p>
+                    </div>
+                    <div class="flex space-x-4">
+                        <!-- View Details Button (opens modal) -->
+                        <button
+                            class="text-gray-500 hover:text-blue-600 p-2 rounded-full hover:bg-blue-50 transition-colors duration-300"
+                            title="View Details">
+                            <i class="fas fa-info-circle"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="flex space-x-4">
-                    <!-- View Details Button (opens modal) -->
-                    <button
-                        class="text-gray-500 hover:text-blue-600 p-2 rounded-full hover:bg-blue-50 transition-colors duration-300"
-                        title="View Details">
-                        <i class="fas fa-info-circle"></i>
-                    </button>
-                </div>
-            </div>
             <?php endforeach; ?>
         </div>
     </div>
@@ -114,51 +114,51 @@ if ($result->num_rows > 0) {
     </script>
 
     <script>
-    const lecturerCards = document.querySelectorAll('.lecturer-card');
-    const modal = document.getElementById('lecturer-modal');
-    const closeModalBtn = document.getElementById('close-modal');
-    const modalTitle = document.getElementById('modal-title');
-    const modalFaculty = document.getElementById('modal-faculty');
-    const modalDepartment = document.getElementById('modal-department');
-    const modalDesignation = document.getElementById('modal-designation');
-    const modalAvailability = document.getElementById('modal-availability');
-    const makeAppointmentBtn = document.getElementById('make-appointment-btn');
+        const lecturerCards = document.querySelectorAll('.lecturer-card');
+        const modal = document.getElementById('lecturer-modal');
+        const closeModalBtn = document.getElementById('close-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalFaculty = document.getElementById('modal-faculty');
+        const modalDepartment = document.getElementById('modal-department');
+        const modalDesignation = document.getElementById('modal-designation');
+        const modalAvailability = document.getElementById('modal-availability');
+        const makeAppointmentBtn = document.getElementById('make-appointment-btn');
 
-    lecturerCards.forEach(card => {
-        card.addEventListener('click', () => {
-            const lecturerId = card.getAttribute('data-id');
-            const lecturerName = card.querySelector('h3').textContent;
-            const faculty = card.querySelector('p:nth-child(2)').textContent;
-            const department = card.querySelector('p:nth-child(3)').textContent;
-            const designation = card.querySelector('p:nth-child(4)').textContent;
+        lecturerCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const lecturerId = card.getAttribute('data-id');
+                const lecturerName = card.querySelector('h3').textContent;
+                const faculty = card.querySelector('p:nth-child(2)').textContent;
+                const department = card.querySelector('p:nth-child(3)').textContent;
+                const designation = card.querySelector('p:nth-child(4)').textContent;
 
-            // Set modal content
-            modalTitle.textContent = lecturerName;
-            modalFaculty.textContent = `Faculty: ${faculty}`;
-            modalDepartment.textContent = `Department: ${department}`;
-            modalDesignation.textContent = `Designation: ${designation}`;
-            modalAvailability.textContent =
-                "Available: 24 Apr 2025, 9:00 AM - 12:00 PM | 25 Apr 2025, 2:00 PM - 4:00 PM";
-            makeAppointmentBtn.setAttribute('href', `calendar.php?lecturer_id=${lecturerId}`);
+                // Set modal content
+                modalTitle.textContent = lecturerName;
+                modalFaculty.textContent = `Faculty: ${faculty}`;
+                modalDepartment.textContent = `Department: ${department}`;
+                modalDesignation.textContent = `Designation: ${designation}`;
+                modalAvailability.textContent =
+                    "Available: 24 Apr 2025, 9:00 AM - 12:00 PM | 25 Apr 2025, 2:00 PM - 4:00 PM";
+                makeAppointmentBtn.setAttribute('href', `calendar.php?lecturer_id=${lecturerId}`);
 
-            // Show the modal
-            modal.classList.remove('modal-hidden');
-            modal.classList.add('modal-visible');
+                // Show the modal
+                modal.classList.remove('modal-hidden');
+                modal.classList.add('modal-visible');
+            });
         });
-    });
 
-    closeModalBtn.addEventListener('click', () => {
-        modal.classList.remove('modal-visible');
-        modal.classList.add('modal-hidden');
-    });
-
-    // Close modal when clicking outside
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
+        closeModalBtn.addEventListener('click', () => {
             modal.classList.remove('modal-visible');
             modal.classList.add('modal-hidden');
-        }
-    });
+        });
+
+        // Close modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('modal-visible');
+                modal.classList.add('modal-hidden');
+            }
+        });
     </script>
 </body>
 

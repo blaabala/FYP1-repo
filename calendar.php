@@ -7,7 +7,7 @@ if ($lecturer_id === 0) {
 }
 
 // Fetch lecturer details
-$query = "SELECT username FROM users WHERE id = ? AND role_id = 1";
+$query = "SELECT username FROM lecturers WHERE id = ?";
 $statement = $con->prepare($query);
 $statement->bind_param("i", $lecturer_id);
 $statement->execute();
@@ -17,27 +17,27 @@ if (!$lecturer) {
     die("Lecturer not found.");
 }
 
-// // Fetch availability
-// $availabilities = [];
-// $query = "SELECT start_datetime, end_datetime FROM lecturer_availability WHERE lecturer_id = ?";
-// $statement = $con->prepare($query);
-// $statement->bind_param("i", $lecturer_id);
-// $statement->execute();
-// $result = $statement->get_result();
-// while ($row = $result->fetch_assoc()) {
-//     $availabilities[] = $row;
-// }
+// Fetch availability
+$availabilities = [];
+$query = "SELECT start_datetime, end_datetime FROM lecturer_availability WHERE lecturer_id = ?";
+$statement = $con->prepare($query);
+$statement->bind_param("i", $lecturer_id);
+$statement->execute();
+$result = $statement->get_result();
+while ($row = $result->fetch_assoc()) {
+    $availabilities[] = $row;
+}
 
-// // Fetch booked appointments to exclude them
-// $booked_slots = [];
-// $query = "SELECT start_datetime, end_datetime FROM appointments WHERE lecturer_id = ? AND status != 'cancelled'";
-// $statement = $con->prepare($query);
-// $statement->bind_param("i", $lecturer_id);
-// $statement->execute();
-// $result = $statement->get_result();
-// while ($row = $result->fetch_assoc()) {
-//     $booked_slots[] = $row;
-// }
+// Fetch booked appointments to exclude them
+$booked_slots = [];
+$query = "SELECT from_time, to_time FROM appointments WHERE lecturer_id = ? AND status NOT IN ('Confirmed', 'Pending')";
+$statement = $con->prepare($query);
+$statement->bind_param("i", $lecturer_id);
+$statement->execute();
+$result = $statement->get_result();
+while ($row = $result->fetch_assoc()) {
+    $booked_slots[] = $row;
+}
 ?>
 
 <!DOCTYPE html>
@@ -52,16 +52,10 @@ if (!$lecturer) {
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.js'></script>
 </head>
 
-<body class="bg-gray-100 min-h-screen">
-    <header class="bg-blue-900 text-white p-4 flex justify-between items-center">
-        <div class="flex items-center">
-            <img src="assets/images/logo.png" alt="UTAR Logo" class="w-12 h-12 mr-2">
-            <h1 class="text-xl font-bold">UTAR Hospital</h1>
-        </div>
-        <div>
-            <a href="login.php" class="text-white hover:underline">Sign In</a>
-        </div>
-    </header>
+<body class="bg-gray-100 font-merriweather">
+    <?php
+    include("header.php");
+    ?>
 
     <div class="container mx-auto p-4">
         <h2 class="text-2xl font-bold mb-4">Book Appointment with <?php echo htmlspecialchars($lecturer['username']); ?>
@@ -80,6 +74,10 @@ if (!$lecturer) {
                 Appointment</button>
         </form>
     </div>
+
+    <?php
+    include("footer.php");
+    ?>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
