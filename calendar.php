@@ -1,5 +1,5 @@
 <?php
-include('database.php');
+include("header.php");
 
 $lecturer_id = isset($_GET['lecturer_id']) ? (int)$_GET['lecturer_id'] : 0;
 if ($lecturer_id === 0) {
@@ -30,7 +30,7 @@ while ($row = $result->fetch_assoc()) {
 
 // Fetch booked appointments to exclude them
 $booked_slots = [];
-$query = "SELECT from_time, to_time FROM appointments WHERE lecturer_id = ? AND status NOT IN ('Confirmed', 'Pending')";
+$query = "SELECT start_datetime, end_datetime FROM appointments WHERE lecturer_id = ? AND status NOT IN ('Confirmed', 'Pending')";
 $statement = $con->prepare($query);
 $statement->bind_param("i", $lecturer_id);
 $statement->execute();
@@ -53,10 +53,6 @@ while ($row = $result->fetch_assoc()) {
 </head>
 
 <body class="bg-gray-100 font-merriweather">
-    <?php
-    include("header.php");
-    ?>
-
     <div class="container mx-auto p-4">
         <h2 class="text-2xl font-bold mb-4">Book Appointment with <?php echo htmlspecialchars($lecturer['username']); ?>
         </h2>
@@ -80,70 +76,66 @@ while ($row = $result->fetch_assoc()) {
     ?>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const calendarEl = document.getElementById('calendar');
-            const bookingForm = document.getElementById('booking-form');
-            const selectedDatetimeInput = document.getElementById('selected-datetime');
+    document.addEventListener('DOMContentLoaded', function() {
+        const calendarEl = document.getElementById('calendar');
+        const bookingForm = document.getElementById('booking-form');
+        const selectedDatetimeInput = document.getElementById('selected-datetime');
 
-            const calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'timeGridWeek',
-                slotDuration: '00:30:00', // 30-minute slots
-                slotMinTime: '08:00:00',
-                slotMaxTime: '18:00:00',
-                events: [
-                    <?php foreach ($availabilities as $availability): ?> {
-                            title: 'Available',
-                            start: '<?php echo $availability['start_datetime']; ?>',
-                            end: '<?php echo $availability['end_datetime']; ?>',
-                            backgroundColor: '#34c759',
-                            borderColor: '#34c759'
-                        },
-                    <?php endforeach; ?>
-                    <?php foreach ($booked_slots as $slot): ?> {
-                            title: 'Booked',
-                            start: '<?php echo $slot['start_datetime']; ?>',
-                            end: '<?php echo $slot['end_datetime']; ?>',
-                            backgroundColor: '#ff3b30',
-                            borderColor: '#ff3b30',
-                            editable: false
-                        },
-                    <?php endforeach; ?>
-                ],
-                selectable: true,
-                select: function(info) {
-                    // Ensure the selected slot is within an available period and not booked
-                    const selectedStart = new Date(info.startStr);
-                    const selectedEnd = new Date(info.endStr);
-                    let isAvailable = false;
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'timeGridWeek',
+            slotDuration: '00:30:00', // 30-minute slots
+            slotMinTime: '08:00:00',
+            slotMaxTime: '18:00:00',
+            events: [
+                <?php foreach ($availabilities as $availability): ?> {
+                    title: 'Available',
+                    start: '<?php echo $availability['start_datetime']; ?>',
+                    end: '<?php echo $availability['end_datetime']; ?>',
+                    backgroundColor: '#34c759',
+                    borderColor: '#34c759'
+                },
+                <?php endforeach; ?>
+                <?php foreach ($booked_slots as $slot): ?> {
+                    title: 'Booked',
+                    start: '<?php echo $slot['start_datetime']; ?>',
+                    end: '<?php echo $slot['end_datetime']; ?>',
+                    backgroundColor: '#ff3b30',
+                    borderColor: '#ff3b30',
+                    editable: false
+                },
+                <?php endforeach; ?>
+            ],
+            selectable: true,
+            select: function(info) {
+                // Ensure the selected slot is within an available period and not booked
+                const selectedStart = new Date(info.startStr);
+                const selectedEnd = new Date(info.endStr);
+                const availabilities = <?php echo json_encode($availabilities); ?>;
+                const bookedSlots = <?php echo json_encode($booked_slots); ?>;
 
-                    <?php foreach ($availabilities as $availability): ?>
-                        const availStart = new Date('<?php echo $availability['start_datetime']; ?>');
-                        const availEnd = new Date('<?php echo $availability['end_datetime']; ?>');
-                        if (selectedStart >= availStart && selectedEnd <= availEnd) {
-                            isAvailable = true;
-                        }
-                    <?php endforeach; ?>
+                let isAvailable = availabilities.some(a => {
+                    const availStart = new Date(a.start_datetime);
+                    const availEnd = new Date(a.end_datetime);
+                    return selectedStart >= availStart && selectedEnd <= availEnd;
+                });
 
-                    let isBooked = false;
-                    <?php foreach ($booked_slots as $slot): ?>
-                        const bookedStart = new Date('<?php echo $slot['start_datetime']; ?>');
-                        const bookedEnd = new Date('<?php echo $slot['end_datetime']; ?>');
-                        if (selectedStart < bookedEnd && selectedEnd > bookedStart) {
-                            isBooked = true;
-                        }
-                    <?php endforeach; ?>
+                let isBooked = bookedSlots.some(b => {
+                    const bookedStart = new Date(b.start_datetime);
+                    const bookedEnd = new Date(b.end_datetime);
+                    return selectedStart < bookedEnd && selectedEnd > bookedStart;
+                });
 
-                    if (isAvailable && !isBooked) {
-                        selectedDatetimeInput.value = info.startStr;
-                        bookingForm.classList.remove('hidden');
-                    } else {
-                        alert('This time slot is not available.');
-                        calendar.unselect();
-                    }
+                if (isAvailable && !isBooked) {
+                    selectedDatetimeInput.value = info.startStr;
+                    bookingForm.classList.remove('hidden');
+                } else {
+                    alert('This time slot is not available.');
+                    calendar.unselect();
                 }
-            });
-            calendar.render();
+            }
         });
+        calendar.render();
+    });
     </script>
 </body>
 

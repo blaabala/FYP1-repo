@@ -1,8 +1,9 @@
 <?php
+
 include('database.php');
 
 // Fetch lecturers
-$query = "SELECT id, username, faculty, department, designation FROM lecturers";
+$query = "SELECT id, username, user_id, faculty, department, designation FROM lecturers";
 $result = $con->query($query);
 
 $lecturers = [];
@@ -51,6 +52,11 @@ if ($result->num_rows > 0) {
 <body class="bg-gray-100 font-merriweather">
     <?php
     include("header.php");
+    $student_id = $_SESSION['id'] ?? null;
+
+    if (!$student_id) {
+        die("Student not logged in.");
+    }
     ?>
 
 

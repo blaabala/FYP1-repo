@@ -1,3 +1,30 @@
+<?php session_start();
+include("database.php");
+$student_id = $_SESSION['id'] ?? null;
+
+if (!$student_id) {
+	echo "<script>
+        alert('Please login to continue.');
+        window.location.href = 'login.php';
+    </script>";
+	exit(); // Prevent further code execution
+}
+$email = $_SESSION['email'];
+
+$query = mysqli_query($con, "SELECT users.*, roles.role_name 
+FROM users JOIN roles ON users.role_id=roles.id WHERE users.email='$email'");
+while ($result = mysqli_fetch_assoc($query)) {
+	$res_id = $result['id'];
+	$res_username = $result['username'];
+	$res_email = $result['email'];
+	$res_role = $result['role_id'];
+	$res_role_name = $result['role_name'];
+	$res_faculty = $result['faculty'];
+	$res_contact = $result['contact_number'];
+}
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -35,23 +62,8 @@
 							class="w-16 h-auto transition-transform transform hover:scale-110"></a><a href="home.php"
 						class="text-2xl font-bold tracking-wide hover:text-blue-200 transition-colors">Appointment
 						Management System </a></div>
-				<div><?php session_start();
-						include("database.php");
-						$email = $_SESSION['email'];
-
-						$query = mysqli_query($con, "SELECT users.*, roles.role_name 
-FROM users JOIN roles ON users.role_id=roles.id WHERE users.email='$email'");
-						while ($result = mysqli_fetch_assoc($query)) {
-							$res_id = $result['id'];
-							$res_username = $result['username'];
-							$res_email = $result['email'];
-							$res_role = $result['role_id'];
-							$res_role_name = $result['role_name'];
-							$res_faculty = $result['faculty'];
-							$res_contact = $result['contact_number'];
-						}
-
-						?><ul class="flex space-x-6 items-center">
+				<div>
+					<ul class="flex space-x-6 items-center">
 						<li><a href="home.php"
 								class="text-lg font-medium hover:text-blue-200 transition-colors duration-300">Home </a>
 						</li>
