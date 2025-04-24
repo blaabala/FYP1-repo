@@ -44,6 +44,11 @@ if (isset($_POST['register'])) {
         $statement = $con->prepare($query);
         $statement->bind_param("ssssssi", $username, $email, $hashed_password, $reg_date, $userrole, $faculty, $phoneno);
         $result = $statement->execute();
+        $query = "INSERT INTO `students` (username, email, password, reg_date, role_id, faculty, contact_number)
+        VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $statement = $con->prepare($query);
+        $statement->bind_param("ssssssi", $username, $email, $hashed_password, $reg_date, $userrole, $faculty, $phoneno);
+        $result = $statement->execute();
         if ($result) {
             header("Location: register.php?success=1");
             exit();
