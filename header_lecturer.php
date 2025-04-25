@@ -48,12 +48,12 @@ while ($result = mysqli_fetch_assoc($query)) {
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
-        /* Ensure the body takes up the full viewport height */
-        html,
-        body {
-            height: 100%;
-            margin: 0;
-        }
+    /* Ensure the body takes up the full viewport height */
+    html,
+    body {
+        height: 100%;
+        margin: 0;
+    }
     </style>
 </head>
 
@@ -75,14 +75,12 @@ while ($result = mysqli_fetch_assoc($query)) {
                     <ul class="flex space-x-6 items-center">
                         <li>
                             <a href="home_lecturer.php"
-                                class="text-lg font-medium hover:text-blue-200 transition-colors duration-300">
-                                Home
+                                class="text-lg font-medium hover:text-blue-200 transition-colors duration-300">Home
                             </a>
                         </li>
                         <li>
                             <a href="appointment_view_lecturer.php"
-                                class="text-lg font-medium hover:text-blue-200 transition-colors duration-300">
-                                Appointments
+                                class="text-lg font-medium hover:text-blue-200 transition-colors duration-300">Appointments
                             </a>
                         </li>
                         <li><a href="set_availability.php"

@@ -205,7 +205,7 @@ while ($row = $result->fetch_assoc()) {
         <nav class="container mx-auto px-6 py-4">
             <div class="flex justify-between items-center">
                 <div class="flex items-center space-x-4">
-                    <a href="home.php">
+                    <a href="home_lecturer.php">
                         <img src="assets/images/logo.png" alt="logo"
                             class="w-16 h-auto transition-transform transform hover:scale-110">
                     </a>
