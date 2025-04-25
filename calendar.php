@@ -131,6 +131,19 @@ while ($row = $result->fetch_assoc()) {
                 <input id="selected-datetime" name="start_datetime" type="hidden" value="">
                 <div id="time-slots" class="flex flex-wrap gap-2 mt-2"></div>
             </div>
+            <div class="mb-4">
+                <label for="title" class="block text-gray-700">Title:</label>
+                <input type="text" id="title" name="title" class="w-full p-2 border rounded" required>
+            </div>
+            <div class="mb-4">
+                <label for="description" class="block text-gray-700">Description:</label>
+                <textarea id="description" name="description" class="w-full p-2 border rounded" rows="3"
+                    required></textarea>
+            </div>
+            <div class="mb-4">
+                <label for="location" class="block text-gray-700">Location:</label>
+                <input type="text" id="location" name="location" class="w-full p-2 border rounded" required>
+            </div>
             <button type="submit" name="book" id="confirm-button"
                 class="bg-blue-800 text-white py-2 px-4 rounded hover:bg-blue-900 disabled:opacity-50" disabled>Confirm
                 Appointment</button>
@@ -147,6 +160,21 @@ while ($row = $result->fetch_assoc()) {
             const calendarEl = document.getElementById('calendar');
             const bookingForm = document.getElementById('booking-form');
             const selectedDatetimeInput = document.getElementById('selected-datetime');
+            const confirmButton = document.getElementById('confirm-button');
+            const titleInput = document.getElementById('title');
+            const descriptionInput = document.getElementById('description');
+            const locationInput = document.getElementById('location');
+
+            // Enable/disable confirm button based on form completion
+            function updateConfirmButtonState() {
+                const isFormComplete = selectedDatetimeInput.value && titleInput.value && descriptionInput.value &&
+                    locationInput.value;
+                confirmButton.disabled = !isFormComplete;
+            }
+
+            titleInput.addEventListener('input', updateConfirmButtonState);
+            descriptionInput.addEventListener('input', updateConfirmButtonState);
+            locationInput.addEventListener('input', updateConfirmButtonState);
 
             const events = [
                 <?php foreach ($availabilities as $availability): ?>
@@ -439,7 +467,6 @@ while ($row = $result->fetch_assoc()) {
 
                         const timeSlotsContainer = document.getElementById('time-slots');
                         timeSlotsContainer.innerHTML = '';
-                        const confirmButton = document.getElementById('confirm-button');
                         confirmButton.disabled = true;
 
                         const formatter = new Intl.DateTimeFormat('en-MY', {
@@ -482,7 +509,7 @@ while ($row = $result->fetch_assoc()) {
                                         'bg-blue-500 text-white py-1 px-3 rounded';
                                     selectedDatetimeInput.value = button.dataset
                                         .isoTime;
-                                    confirmButton.disabled = false;
+                                    updateConfirmButtonState();
                                 });
                             }
 

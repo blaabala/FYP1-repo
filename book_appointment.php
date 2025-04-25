@@ -18,9 +18,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['book'])) {
 
 $lecturer_id = isset($_POST['lecturer_id']) ? (int)$_POST['lecturer_id'] : 0;
 $start_datetime = isset($_POST['start_datetime']) ? $_POST['start_datetime'] : null;
+$title = isset($_POST['title']) ? trim($_POST['title']) : '';
+$description = isset($_POST['description']) ? trim($_POST['description']) : '';
+$location = isset($_POST['location']) ? trim($_POST['location']) : '';
 
-if ($lecturer_id === 0 || !$start_datetime) {
-    $_SESSION['error_message'] = "Invalid lecturer ID or start time.";
+if ($lecturer_id === 0 || !$start_datetime || !$title || !$description || !$location) {
+    $_SESSION['error_message'] = "All fields are required.";
     header("Location: calendar.php?lecturer_id=$lecturer_id");
     exit;
 }
@@ -97,10 +100,10 @@ if ($result->num_rows > 0) {
 }
 
 // Insert the appointment
-$query = "INSERT INTO appointments (lecturer_id, student_id, start_datetime, end_datetime, status) VALUES (?, ?, ?, ?, 'Pending')";
-$statement = $con->prepare($query);
-$statement->bind_param("iisss", $lecturer_id, $student_id, $start_datetime_adjusted, $end_datetime_adjusted, $status);
 $status = 'Pending';
+$query = "INSERT INTO appointments (student_id, lecturer_id, title, start_datetime, end_datetime, description, location, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+$statement = $con->prepare($query);
+$statement->bind_param("iissssss", $student_id, $lecturer_id, $title, $start_datetime_adjusted, $end_datetime_adjusted, $description, $location, $status);
 if ($statement->execute()) {
     $_SESSION['success_message'] = "Appointment booked successfully.";
 } else {
