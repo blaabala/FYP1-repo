@@ -2,42 +2,42 @@
 include("database.php");
 
 $title = $_POST['title'];
-$requester_email = $_POST['requester_email'];
-$accepter_email = $_POST['accepter_email'];
-$from_time = $_POST['from_time'];
-$to_time = $_POST['to_time'];
+$student_email = $_POST['student_email'];
+$lecturer_email = $_POST['lecturer_email'];
+$from_time = $_POST['start_datetime'];
+$to_time = $_POST['end_datetime'];
 $location = $_POST['location'];
 $description = $_POST['description'];
 $status = "Pending";
 
-$query = "SELECT id FROM `users` WHERE email=?";
+$query = "SELECT id FROM `lecturers` WHERE email= '$student_email'";
 $statement = $con->prepare($query);
-$statement->bind_param("s", $accepter_email);
+$statement->bind_param("s", $lecturer_email);
 $statement->execute();
 $result = $statement->get_result();
 if ($result->num_rows >= 1) {
     $row = $result->fetch_assoc();
-    $accepter_id = $row['id'];
+    $lecturer_id = $row['id'];
 } else {
-    die("Accepter email not found");
+    die("Lecturer email not found");
 }
 
-$query2 = "SELECT id FROM `users` WHERE email=?";
+$query2 = "SELECT id FROM `students` WHERE email= '$lecturer_email'";
 $statement2 = $con->prepare($query2);
 $statement2->bind_param("s", $requester_email);
 $statement2->execute();
 $result2 = $statement2->get_result();
 if ($result2->num_rows >= 1) {
     $row2 = $result2->fetch_assoc();
-    $requester_id = $row2['id'];
+    $student_id = $row2['id'];
 } else {
-    die("Requester email not found");
+    die("Student email not found");
 }
 
-$query = "INSERT INTO `appointments` (accepter_id, requester_id, title, from_time, to_time, description, location, status)
+$query = "INSERT INTO `appointments` (lecturer_id, student_id, title, start_datetime, end_datetime, description, location, status)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 $statement = $con->prepare($query);
-$statement->bind_param("iissssss", $accepter_id, $requester_id, $title, $from_time, $to_time, $description, $location, $status);
+$statement->bind_param("iissssss", $lecturer_id, $student_id, $title, $from_time, $to_time, $description, $location, $status);
 $statement->execute();
 
 $statement->close();

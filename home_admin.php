@@ -46,9 +46,31 @@ while ($result = mysqli_fetch_assoc($query)) {
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link rel="icon" type="image/x-icon" href="images/favicon.ico">
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        /* Ensure the layout takes up the full viewport height */
+        .main-box {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Reduce padding for the container holding the buttons, but leave a small gap */
+        .container-tight {
+            padding-top: 0.75rem;
+            /* 12px, reduced from 1rem, leaves a small gap */
+            padding-bottom: 0.75rem;
+            /* 12px, reduced from 1rem */
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+        }
+    </style>
 </head>
 
-<body>
+<body class="main-box top">
     <header>
         <nav class="navbar">
             <div class="navdiv">
@@ -60,18 +82,23 @@ while ($result = mysqli_fetch_assoc($query)) {
                 </div>
                 <ul>
                     <li>
-                        <a href="home.php">
+                        <a href="home_admin.php">
                             Home
                         </a>
                     </li>
                     <li>
-                        <a href="lecturer_list.php">
+                        <a href="lecturer_view_admin.php">
                             Lecturers
                         </a>
                     </li>
                     <li>
-                        <a href="appointment_view.php">
+                        <a href="student_view_admin.php">
                             Students
+                        </a>
+                    </li>
+                    <li>
+                        <a href="appointment_view_admin.php">
+                            Appointments
                         </a>
                     </li>
                     <li>
@@ -83,20 +110,44 @@ while ($result = mysqli_fetch_assoc($query)) {
         </nav>
     </header>
 
-    <main>
-        <div class="main-box top">
-            <div class="top">
-                <div class="box">
-                    <p>Welcome, <strong><?php echo $res_username . ' (' . $res_role_name . ')'; ?></strong></p>
-                </div>
-                <div class="box">
-                    <p>Email Address: <strong><?php echo $res_email ?></strong></p>
-                </div>
-                <div class="box">
-                    <p>Current Date & Time:<br><strong id="datetime"></strong></p>
-                </div>
+    <div class="top">
+        <div class="box">
+            <p>Welcome, <strong><?php echo $res_username . ' (' . $res_role_name . ')'; ?></strong></p>
+        </div>
+        <div class="box">
+            <p>Email Address: <strong><?php echo $res_email ?></strong></p>
+        </div>
+        <div class="box">
+            <p>Current Date & Time:<br><strong id="datetime"></strong></p>
+        </div>
+    </div>
+    <div class="container-tight mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Clickable Lecturer Box -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 text-center">
+                <a href="lecturer_view_admin.php"
+                    class="block h-full text-blue-700 text-3xl font-bold hover:text-blue-900">
+                    <i class="fa-solid fa-chalkboard-teacher"></i> Lecturers
+                </a>
+            </div>
+
+            <!-- Clickable Students Box -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 text-center">
+                <a href="student_view_admin.php"
+                    class="block h-full text-blue-700 text-3xl font-bold hover:text-blue-900">
+                    <i class="fa-solid fa-users"></i> Students
+                </a>
+            </div>
+
+            <!-- Clickable Appointments Box -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 text-center">
+                <a href="appointment_view_admin.php"
+                    class="block h-full text-blue-700 text-3xl font-bold hover:text-blue-900">
+                    <i class="fa-solid fa-calendar-check"></i> Appointments
+                </a>
             </div>
         </div>
+    </div>
     </main>
 
     <footer class="footer">
@@ -110,18 +161,23 @@ while ($result = mysqli_fetch_assoc($query)) {
             <div class="footer-nav">
                 <ul>
                     <li>
-                        <a href="home.php">
+                        <a href="home_admin.php">
                             Home
                         </a>
                     </li>
                     <li>
-                        <a href="lecturer_list.php">
+                        <a href="lecturer_view_admin.php">
                             Lecturers
                         </a>
                     </li>
                     <li>
-                        <a href="appointment_view.php">
+                        <a href="student_view_admin.php">
                             Students
+                        </a>
+                    </li>
+                    <li>
+                        <a href="appointment_view_admin.php">
+                            Appointments
                         </a>
                     </li>
                     <li>

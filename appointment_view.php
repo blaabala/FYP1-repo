@@ -39,7 +39,8 @@ include('header.php');
                             <thead>
                                 <tr>
                                     <th>No.</th>
-                                    <th>Requester Name</th>
+                                    <th>Student Name</th>
+                                    <th>Lecturer Name</th>
                                     <th>Title</th>
                                     <th>From</th>
                                     <th>To</th>
@@ -53,14 +54,14 @@ include('header.php');
                                 $count = 1;
                                 // Selecting all product records from the database
                                 $sel_query = "SELECT appointments.*, 
-                                                u1.username AS requester_name, 
-                                                u1.email AS requester_email, 
-                                                u2.username AS accepter_name, 
-                                                u2.email AS accepter_email 
+                                                u1.username AS student_name, 
+                                                u1.email AS student_email, 
+                                                u2.username AS lecturer_name, 
+                                                u2.email AS lecturer_email 
                                                 FROM appointments 
-                                                JOIN users u1 ON appointments.requester_id = u1.id 
-                                                JOIN users u2 ON appointments.accepter_id = u2.id 
-                                                WHERE appointments.requester_id = ? OR appointments.accepter_id = ?
+                                                JOIN users u1 ON appointments.student_id = u1.id 
+                                                JOIN users u2 ON appointments.lecturer_id = u2.id 
+                                                WHERE appointments.student_id = ? OR appointments.lecturer_id = ?
                                                 ORDER BY appointments.id DESC;";
                                 $stmt = $con->prepare($sel_query);
                                 $stmt->bind_param('ii', $res_id, $res_id);
@@ -70,10 +71,11 @@ include('header.php');
                                 ?>
                                     <tr>
                                         <td><?php echo $count; ?></td>
-                                        <td><?php echo $row["requester_name"]; ?></td>
+                                        <td><?php echo $row["student_name"]; ?></td>
+                                        <td><?php echo $row["lecturer_name"]; ?></td>
                                         <td><?php echo $row["title"]; ?></td>
-                                        <td><?php echo $row["from_time"]; ?></td>
-                                        <td><?php echo $row["to_time"]; ?></td>
+                                        <td><?php echo $row["start_datetime"]; ?></td>
+                                        <td><?php echo $row["end_datetime"]; ?></td>
                                         <td><?php echo $row["description"]; ?></td>
                                         <td><?php echo $row["location"]; ?></td>
 
