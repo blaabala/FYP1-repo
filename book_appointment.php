@@ -1,75 +1,53 @@
 <?php
-include("header.php");
+session_start();
+include("database.php");
 
-// Get form data
+// Set the time zone for PHP
+date_default_timezone_set('Asia/Kuala_Lumpur');
+
+// Check if the user is logged in (student)
+$student_id = isset($_SESSION['id']) ? (int)$_SESSION['id'] : 0;
+if ($student_id === 0) {
+    die("Please log in as a student to book an appointment.");
+}
+
+// Validate form submission
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['book'])) {
     die("Invalid request.");
 }
 
-$lecturer_id = (int)$_POST['lecturer_id'];
-$start_datetime = $_POST['start_datetime'];
+$lecturer_id = isset($_POST['lecturer_id']) ? (int)$_POST['lecturer_id'] : 0;
+$start_datetime = isset($_POST['start_datetime']) ? $_POST['start_datetime'] : null;
 
-// Validate input
-if (empty($lecturer_id) || empty($student_id) || empty($start_datetime)) {
-    die("Missing required fields.");
+if ($lecturer_id === 0 || !$start_datetime) {
+    $_SESSION['error_message'] = "Invalid lecturer ID or start time.";
+    header("Location: calendar.php?lecturer_id=$lecturer_id");
+    exit;
 }
 
-// Calculate end datetime (30-minute slot)
-$start = new DateTime($start_datetime);
+// Convert the start_datetime from UTC to Asia/Kuala_Lumpur
+$start = new DateTime($start_datetime, new DateTimeZone('UTC'));
+$start->setTimezone(new DateTimeZone('Asia/Kuala_Lumpur'));
+$start_datetime_adjusted = $start->format('Y-m-d H:i:s');
+
+// Calculate end_datetime (30 minutes after start)
 $end = clone $start;
 $end->modify('+30 minutes');
-$end_datetime = $end->format('Y-m-d\TH:i:s');
+$end_datetime_adjusted = $end->format('Y-m-d H:i:s');
 
-// Validate lecturer and student exist
-$query = "SELECT id FROM lecturers WHERE id = ?";
-$statement = $con->prepare($query);
-$statement->bind_param("i", $lecturer_id);
-$statement->execute();
-$result = $statement->get_result();
-if ($result->num_rows === 0) {
-    die("Invalid lecturer ID.");
-}
-
-$query = "SELECT id FROM students WHERE id = ?";
-$statement = $con->prepare($query);
-$statement->bind_param("i", $student_id);
-$statement->execute();
-$result = $statement->get_result();
-if ($result->num_rows === 0) {
-    die("Invalid student ID.");
-}
-
-// Check if the selected slot is on a weekend
-$selected_day = $start->format('w'); // 0 = Sunday, 6 = Saturday
-if ($selected_day == 0 || $selected_day == 6) {
-    die("Appointments cannot be booked on Saturdays or Sundays.");
-}
-
-$now = new DateTime();
-if ($start < $now) {
-    die("You cannot book an appointment in the past.");
-}
-
-// Fetch lecturer availability (both one-time and recurring)
-$availabilities = [];
+// Validate the time slot against lecturer availability
 $query = "SELECT * FROM lecturer_availability WHERE lecturer_id = ?";
 $statement = $con->prepare($query);
 $statement->bind_param("i", $lecturer_id);
 $statement->execute();
 $result = $statement->get_result();
+$availabilities = [];
 while ($row = $result->fetch_assoc()) {
     $availabilities[] = $row;
 }
 
-// Check if the selected slot is within availability
 $is_available = false;
 foreach ($availabilities as $a) {
-    // echo "<pre>";
-    // echo "Checking availability entry: ";
-    // print_r($a);
-    // echo "Start: " . $start->format('Y-m-d H:i:s') . "\n";
-    // echo "End: " . $end->format('Y-m-d H:i:s') . "\n";
-    // echo "</pre>";
     if ($a['is_recurring']) {
         $day_of_week = (int)$a['day_of_week'];
         $start_time = $a['start_time'];
@@ -101,27 +79,34 @@ foreach ($availabilities as $a) {
 }
 
 if (!$is_available) {
-    die("The selected time slot is not available.");
+    $_SESSION['error_message'] = "The selected time slot is not available.";
+    header("Location: calendar.php?lecturer_id=$lecturer_id");
+    exit;
 }
 
 // Check for existing bookings
 $query = "SELECT id FROM appointments WHERE lecturer_id = ? AND ((start_datetime < ? AND end_datetime > ?) OR (start_datetime < ? AND end_datetime > ?))";
 $statement = $con->prepare($query);
-$statement->bind_param("issss", $lecturer_id, $end_datetime, $start_datetime, $start_datetime, $end_datetime);
+$statement->bind_param("issss", $lecturer_id, $end_datetime_adjusted, $start_datetime_adjusted, $start_datetime_adjusted, $end_datetime_adjusted);
 $statement->execute();
 $result = $statement->get_result();
 if ($result->num_rows > 0) {
-    die("The selected time slot is already booked.");
+    $_SESSION['error_message'] = "The selected time slot is already booked.";
+    header("Location: calendar.php?lecturer_id=$lecturer_id");
+    exit;
 }
 
 // Insert the appointment
 $query = "INSERT INTO appointments (lecturer_id, student_id, start_datetime, end_datetime, status) VALUES (?, ?, ?, ?, 'Pending')";
 $statement = $con->prepare($query);
-$statement->bind_param("iiss", $lecturer_id, $student_id, $start_datetime, $end_datetime);
+$statement->bind_param("iisss", $lecturer_id, $student_id, $start_datetime_adjusted, $end_datetime_adjusted, $status);
+$status = 'Pending';
 if ($statement->execute()) {
-    $message = "Appointment booked successfully.";
-    header("Location: calendar.php?lecturer_id=$lecturer_id&message=" . urlencode($message));
-    exit;
+    $_SESSION['success_message'] = "Appointment booked successfully.";
 } else {
-    die("Error booking appointment.");
+    $_SESSION['error_message'] = "Error booking appointment.";
 }
+$statement->close();
+
+header("Location: calendar.php?lecturer_id=$lecturer_id");
+exit;

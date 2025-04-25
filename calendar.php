@@ -109,10 +109,23 @@ while ($row = $result->fetch_assoc()) {
         <h2 class="text-2xl font-bold mb-4">Book Appointment with <?php echo htmlspecialchars($lecturer['username']); ?>
         </h2>
 
+        <?php
+        if (isset($_SESSION['success_message'])) {
+            echo "<div class='bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4'>" . $_SESSION['success_message'] . "</div>";
+            unset($_SESSION['success_message']);
+        }
+
+        if (isset($_SESSION['error_message'])) {
+            echo "<div class='bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4'>" . $_SESSION['error_message'] . "</div>";
+            unset($_SESSION['error_message']);
+        }
+        ?>
+
         <!-- Form to book appointment -->
         <form id="booking-form" action="book_appointment.php" method="post" class="hidden bg-white p-4 rounded shadow">
             <input type="hidden" name="lecturer_id" value="<?php echo $lecturer_id; ?>">
-            <input type="hidden" name="student_id" value="1"> <!-- Replace with actual student ID from session -->
+            <input type="hidden" name="student_id"
+                value="<?php echo isset($_SESSION['id']) ? (int)$_SESSION['id'] : 0; ?>">
             <div class="mb-4">
                 <label class="block text-gray-700">Selected Date and Time:</label>
                 <input id="selected-datetime" name="start_datetime" type="hidden" value="">
