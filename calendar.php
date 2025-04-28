@@ -100,6 +100,12 @@ while ($row = $result->fetch_assoc()) {
         ]
     ];
 }
+
+// Define the current time and buffer period (in hours)
+$currentTime = new DateTime();
+// For testing, you can uncomment the following line to simulate May 29, 2025, 12:00 PM
+// $currentTime = new DateTime('2025-05-29 12:00:00', new DateTimeZone('Asia/Kuala_Lumpur'));
+$bufferHours = 2; // Buffer period of 2 hours
 ?>
 
 <!DOCTYPE html>
@@ -164,7 +170,8 @@ while ($row = $result->fetch_assoc()) {
         pointer-events: none !important;
     }
 
-    .disabled-day-slot {
+    .disabled-day-slot,
+    .disabled-time-slot {
         background-color: #d3d3d3 !important;
         border: none !important;
         opacity: 0.5 !important;
@@ -377,103 +384,125 @@ while ($row = $result->fetch_assoc()) {
                 return date;
             }
 
-            // Events array
-            <?php
-                $eventItems = [];
-                $debugLogs = [];
+            // Current time and buffer period
+            const currentTime = new Date('<?php echo $currentTime->format('c'); ?>');
+            const bufferHours = <?php echo $bufferHours; ?>;
+            const bufferMillis = bufferHours * 60 * 60 * 1000; // Convert hours to milliseconds
+            const bufferThreshold = new Date(currentTime.getTime() + bufferMillis);
+            console.log('Current Time:', currentTime);
+            console.log('Buffer Threshold (cannot book before this):', bufferThreshold);
 
-                // First, add booked slots to the events array
-                foreach ($booked_slots as $slot) {
-                    $eventItems[] = sprintf(
-                        "{title: 'Booked', start: %s, end: %s, backgroundColor: '#ff3b30', borderColor: '#ff3b30', editable: false, selectable: false, eventOverlap: false, eventAllow: function() { return false; }}",
-                        json_encode($slot['start_datetime']),
-                        json_encode($slot['end_datetime'])
-                    );
-                }
+            // Events array (non-recurring slots)
+            const nonRecurringEvents = [
+                <?php
+                    $eventItems = [];
+                    $debugLogs = [];
 
-                // Then, process non-recurring availability slots, skipping booked ones
-                foreach ($availabilities as $availability) {
-                    if (!$availability['is_recurring']) {
-                        $start = new DateTime($availability['start_datetime']);
-                        $end = new DateTime($availability['end_datetime']);
-                        $availabilitySlots = [];
-                        while ($start < $end) {
-                            $slotEnd = clone $start;
-                            $slotEnd->modify('+30 minutes');
-                            $availabilitySlots[] = [
-                                'start' => $start->format('Y-m-d\TH:i:s'),
-                                'end' => $slotEnd->format('Y-m-d\TH:i:s')
-                            ];
-                            $start->modify('+30 minutes');
-                        }
+                    // First, add booked slots to the events array
+                    foreach ($booked_slots as $slot) {
+                        $eventItems[] = sprintf(
+                            "{title: 'Booked', start: %s, end: %s, backgroundColor: '#ff3b30', borderColor: '#ff3b30', editable: false, selectable: false, eventOverlap: false, eventAllow: function() { return false; }}",
+                            json_encode($slot['start_datetime']),
+                            json_encode($slot['end_datetime'])
+                        );
+                    }
 
-                        $isFullyBooked = true;
-                        foreach ($availabilitySlots as $slot) {
-                            $slotStart = new DateTime($slot['start']);
-                            $slotEnd = new DateTime($slot['end']);
-                            $slotIsBooked = false;
-                            foreach ($booked_slots as $booked) {
-                                $bookedStart = new DateTime($booked['start_datetime']);
-                                $bookedEnd = new DateTime($booked['end_datetime']);
-                                if ($slotStart < $bookedEnd && $slotEnd > $bookedStart) {
-                                    $slotIsBooked = true;
-                                    break;
+                    // Then, process non-recurring availability slots, skipping booked ones
+                    foreach ($availabilities as $availability) {
+                        if (!$availability['is_recurring']) {
+                            $start = new DateTime($availability['start_datetime']);
+                            $end = new DateTime($availability['end_datetime']);
+                            $availabilitySlots = [];
+                            while ($start < $end) {
+                                $slotEnd = clone $start;
+                                $slotEnd->modify('+30 minutes');
+                                $availabilitySlots[] = [
+                                    'start' => $start->format('Y-m-d\TH:i:s'),
+                                    'end' => $slotEnd->format('Y-m-d\TH:i:s')
+                                ];
+                                $start->modify('+30 minutes');
+                            }
+
+                            $isFullyBooked = true;
+                            foreach ($availabilitySlots as $slot) {
+                                $slotStart = new DateTime($slot['start']);
+                                $slotEnd = new DateTime($slot['end']);
+                                $slotIsBooked = false;
+                                foreach ($booked_slots as $booked) {
+                                    $bookedStart = new DateTime($booked['start_datetime']);
+                                    $bookedEnd = new DateTime($booked['end_datetime']);
+                                    if ($slotStart < $bookedEnd && $slotEnd > $bookedStart) {
+                                        $slotIsBooked = true;
+                                        break;
+                                    }
                                 }
-                            }
-                            if (!$slotIsBooked) {
-                                $isFullyBooked = false;
-                                break;
-                            }
-                        }
-
-                        foreach ($availabilitySlots as $slot) {
-                            $slotStart = new DateTime($slot['start']);
-                            $slotEnd = new DateTime($slot['end']);
-                            $slotIsBooked = false;
-                            foreach ($booked_slots as $booked) {
-                                $bookedStart = new DateTime($booked['start_datetime']);
-                                $bookedEnd = new DateTime($booked['end_datetime']);
-                                if ($slotStart < $bookedEnd && $slotEnd > $bookedStart) {
-                                    $slotIsBooked = true;
+                                if (!$slotIsBooked) {
+                                    $isFullyBooked = false;
                                     break;
                                 }
                             }
 
-                            if ($isFullyBooked) {
-                                $eventItems[] = sprintf(
-                                    "{title: '', start: %s, end: %s, backgroundColor: '#ff3b30', borderColor: '#ff3b30', classNames: ['fully-booked-slot'], editable: false, selectable: false, eventOverlap: false, eventAllow: function() { return false; }}",
-                                    json_encode($slot['start']),
-                                    json_encode($slot['end'])
-                                );
-                            } elseif (!$slotIsBooked) {
-                                $eventItems[] = sprintf(
-                                    "{title: '', start: %s, end: %s, classNames: ['available-slot'], editable: false, selectable: false, eventOverlap: false, eventAllow: function() { return false; }}",
-                                    json_encode($slot['start']),
-                                    json_encode($slot['end'])
-                                );
-                                $debugLogs[] = sprintf(
-                                    "console.log('Non-recurring event - start: %s, end: %s');",
-                                    $slot['start'],
-                                    $slot['end']
-                                );
+                            foreach ($availabilitySlots as $slot) {
+                                $slotStart = new DateTime($slot['start']);
+                                $slotEnd = new DateTime($slot['end']);
+                                $slotIsBooked = false;
+                                foreach ($booked_slots as $booked) {
+                                    $bookedStart = new DateTime($booked['start_datetime']);
+                                    $bookedEnd = new DateTime($booked['end_datetime']);
+                                    if ($slotStart < $bookedEnd && $slotEnd > $bookedStart) {
+                                        $slotIsBooked = true;
+                                        break;
+                                    }
+                                }
+
+                                if ($isFullyBooked) {
+                                    $eventItems[] = sprintf(
+                                        "{title: '', start: %s, end: %s, backgroundColor: '#ff3b30', borderColor: '#ff3b30', classNames: ['fully-booked-slot'], editable: false, selectable: false, eventOverlap: false, eventAllow: function() { return false; }}",
+                                        json_encode($slot['start']),
+                                        json_encode($slot['end'])
+                                    );
+                                } elseif (!$slotIsBooked) {
+                                    // We'll check past/too-soon in JavaScript
+                                    $eventItems[] = sprintf(
+                                        "{title: '', start: %s, end: %s, classNames: ['available-slot'], editable: false, selectable: false, eventOverlap: false, eventAllow: function() { return false; }}",
+                                        json_encode($slot['start']),
+                                        json_encode($slot['end'])
+                                    );
+                                    $debugLogs[] = sprintf(
+                                        "console.log('Non-recurring event - start: %s, end: %s');",
+                                        $slot['start'],
+                                        $slot['end']
+                                    );
+                                }
                             }
                         }
                     }
+
+                    if (!empty($eventItems)) {
+                        echo implode(",\n", $eventItems);
+                    }
+                    ?>
+            ];
+
+            // Apply time constraints to non-recurring events
+            const events = nonRecurringEvents.map(event => {
+                const eventStart = parseDateInKualaLumpur(event.start);
+                const isPastOrTooSoon = eventStart < currentTime || eventStart.getTime() <
+                    bufferThreshold.getTime();
+                if (isPastOrTooSoon && !event.classNames.includes('fully-booked-slot')) {
+                    console.log('Disabling non-recurring event (past or too soon):', event.start, event
+                        .end);
+                    event.classNames = ['disabled-time-slot'];
                 }
+                return event;
+            });
 
-                // Output events array
-                echo "const events = [\n";
-                if (!empty($eventItems)) {
-                    echo implode(",\n", $eventItems);
-                }
-                echo "\n];";
+            console.log('Events array:', events);
 
-                // Debug: Log events array
-                echo "console.log('Events array:', events);";
-
-                // Output debug logs
+            // Debug logs for non-recurring events
+            <?php
                 if (!empty($debugLogs)) {
-                    echo "\n" . implode("\n", $debugLogs);
+                    echo implode("\n", $debugLogs);
                 }
                 ?>
 
@@ -507,7 +536,8 @@ while ($row = $result->fetch_assoc()) {
                             // Remove existing dynamic events
                             calendar.getEvents().forEach(event => {
                                 if (event.classNames.includes('disabled-day-slot') || event
-                                    .classNames.includes('recurring-availability-slot')) {
+                                    .classNames.includes('recurring-availability-slot') ||
+                                    event.classNames.includes('disabled-time-slot')) {
                                     event.remove();
                                 }
                             });
@@ -622,23 +652,49 @@ while ($row = $result->fetch_assoc()) {
                                             slotEndTime.setMinutes(currentSlot
                                             .getMinutes() + 30);
 
+                                            // Check if the slot is in the past or within the buffer period
+                                            const isPastOrTooSoon = currentSlot <
+                                                currentTime || currentSlot.getTime() <
+                                                bufferThreshold.getTime();
+
                                             console.log('Adding recurring event:',
                                                 currentSlot, slotEndTime);
 
-                                            calendar.addEvent({
-                                                title: '',
-                                                start: currentSlot,
-                                                end: slotEndTime,
-                                                classNames: ['available-slot',
-                                                    'recurring-availability-slot'
-                                                ],
-                                                editable: false,
-                                                selectable: false,
-                                                eventOverlap: false,
-                                                eventAllow: function() {
-                                                    return false;
-                                                }
-                                            });
+                                            if (isPastOrTooSoon) {
+                                                calendar.addEvent({
+                                                    title: '',
+                                                    start: currentSlot,
+                                                    end: slotEndTime,
+                                                    classNames: [
+                                                        'disabled-time-slot',
+                                                        'recurring-availability-slot'
+                                                    ],
+                                                    editable: false,
+                                                    selectable: false,
+                                                    eventOverlap: false,
+                                                    eventAllow: function() {
+                                                        return false;
+                                                    }
+                                                });
+                                                console.log(
+                                                    'Disabled recurring slot (past or too soon):',
+                                                    currentSlot, slotEndTime);
+                                            } else {
+                                                calendar.addEvent({
+                                                    title: '',
+                                                    start: currentSlot,
+                                                    end: slotEndTime,
+                                                    classNames: ['available-slot',
+                                                        'recurring-availability-slot'
+                                                    ],
+                                                    editable: false,
+                                                    selectable: false,
+                                                    eventOverlap: false,
+                                                    eventAllow: function() {
+                                                        return false;
+                                                    }
+                                                });
+                                            }
 
                                             currentSlot.setMinutes(currentSlot
                                             .getMinutes() + 30);
@@ -659,6 +715,19 @@ while ($row = $result->fetch_assoc()) {
                             const dayOfWeek = selectedStart.getDay();
                             if (dayOfWeek === 0 || dayOfWeek === 6) {
                                 alert('Appointments cannot be booked on Saturdays or Sundays.');
+                                calendar.unselect();
+                                return;
+                            }
+
+                            // Check if the selected slot is in the past or within the buffer period
+                            if (selectedStart < currentTime) {
+                                alert('Cannot book a time slot in the past.');
+                                calendar.unselect();
+                                return;
+                            }
+                            if (selectedStart.getTime() < bufferThreshold.getTime()) {
+                                alert(
+                                    `Cannot book a time slot within ${bufferHours} hours of the current time.`);
                                 calendar.unselect();
                                 return;
                             }
