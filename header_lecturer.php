@@ -66,6 +66,13 @@ while ($result = mysqli_fetch_assoc($query)) {
     body {
         height: 100%;
         margin: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    main {
+        flex: 1;
+        /* This makes the main content grow and push footer down */
     }
     </style>
 </head>
@@ -113,3 +120,5 @@ while ($result = mysqli_fetch_assoc($query)) {
             </div>
         </nav>
     </header>
+
+    <main class="flex-grow container mx-auto p-4">
