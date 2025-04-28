@@ -39,7 +39,6 @@ $res_username = $user['username'];
 $res_email = $user['email'];
 $res_role = $user['role_id'];
 $res_role_name = $user['role_name'];
-$res_faculty = $user['faculty'];
 $res_contact = $user['contact_number'];
 
 // Verify that the user is a lecturer (case-insensitive comparison)
@@ -274,7 +273,7 @@ while ($row = $result->fetch_assoc()) {
                 <div class="mb-4">
                     <label for="start_datetime" class="block text-gray-700">Start Date and Time:</label>
                     <input type="datetime-local" id="start_datetime" name="start_datetime"
-                        class="w-full p-2 border rounded" required>
+                        class="w-full p-2 border rounded">
                 </div>
                 <div class="mb-4">
                     <label for="end_datetime" class="block text-gray-700">End Date and Time:</label>
@@ -299,7 +298,7 @@ while ($row = $result->fetch_assoc()) {
                 </div>
                 <div class="mb-4">
                     <label for="start_time" class="block text-gray-700">Start Time (HH:MM, 24-hour format):</label>
-                    <input type="time" id="start_time" name="start_time" class="w-full p-2 border rounded" required>
+                    <input type="time" id="start_time" name="start_time" class="w-full p-2 border rounded">
                 </div>
                 <div class="mb-4">
                     <label for="end_time" class="block text-gray-700">End Time (HH:MM, 24-hour format):</label>

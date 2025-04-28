@@ -29,6 +29,11 @@ while ($row = $result->fetch_assoc()) {
     $availabilities[] = $row;
 }
 
+// Debug: Log all fetched availabilities
+echo "<pre>Fetched Availabilities:\n";
+var_dump($availabilities);
+echo "</pre>";
+
 // Fetch booked appointments to exclude them
 $booked_slots = [];
 $query = "SELECT start_datetime, end_datetime FROM appointments WHERE lecturer_id = ? AND status IN ('Confirmed', 'Pending')";
@@ -107,8 +112,10 @@ while ($row = $result->fetch_assoc()) {
 
 <body class="bg-gray-100 font-merriweather">
     <div class="container mx-auto p-4">
+        <div id="current-datetime" class="font-semibold mt-2"></div>
         <div id="selected-datetime-display" class="font-semibold mt-2"></div>
         <h2 class="text-2xl font-bold mb-4">Book Appointment with <?php echo htmlspecialchars($lecturer['username']); ?>
+        </h2>
         </h2>
 
         <?php
@@ -160,12 +167,11 @@ while ($row = $result->fetch_assoc()) {
         const calendarEl = document.getElementById('calendar');
         const bookingForm = document.getElementById('booking-form');
         const selectedDatetimeInput = document.getElementById('selected-datetime');
+        const selectedDatetimeDisplay = document.getElementById('selected-datetime-display');
         const confirmButton = document.getElementById('confirm-button');
         const titleInput = document.getElementById('title');
         const descriptionInput = document.getElementById('description');
         const locationInput = document.getElementById('location');
-
-
 
         // Enable/disable confirm button based on form completion
         function updateConfirmButtonState() {
@@ -181,31 +187,22 @@ while ($row = $result->fetch_assoc()) {
         // Helper function to parse dates in Asia/Kuala_Lumpur timezone
         function parseDateInKualaLumpur(dateStr) {
             if (!dateStr) return null;
-            // Handle date-only strings (e.g., "2025-04-02") by appending a default time
             const isDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(dateStr);
-            const adjustedDateStr = isDateOnly ? `${dateStr}T00:00:00` : dateStr;
+            let adjustedDateStr;
+            if (isDateOnly) {
+                adjustedDateStr = `${dateStr}T00:00:00+08:00`;
+            } else if (dateStr.includes('+')) {
+                // If the string already has a timezone offset, use it as-is
+                adjustedDateStr = dateStr;
+            } else {
+                adjustedDateStr = `${dateStr}+08:00`;
+            }
             const date = new Date(adjustedDateStr);
             if (isNaN(date.getTime())) {
                 console.error(`Invalid date string: ${dateStr}`);
                 return null;
             }
-            const formatter = new Intl.DateTimeFormat('en-US', {
-                timeZone: 'Asia/Kuala_Lumpur',
-                year: 'numeric',
-                month: 'numeric',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: 'numeric',
-                second: 'numeric'
-            });
-            const parts = formatter.formatToParts(date);
-            const year = parts.find(p => p.type === 'year').value;
-            const month = parts.find(p => p.type === 'month').value.padStart(2, '0');
-            const day = parts.find(p => p.type === 'day').value.padStart(2, '0');
-            const hour = parts.find(p => p.type === 'hour').value.padStart(2, '0');
-            const minute = parts.find(p => p.type === 'minute').value.padStart(2, '0');
-            const second = parts.find(p => p.type === 'second').value.padStart(2, '0');
-            return new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}+08:00`);
+            return date;
         }
 
         const events = [
@@ -348,6 +345,8 @@ while ($row = $result->fetch_assoc()) {
                         return;
                     }
 
+                    console.log('Parsed startDate:', startDate, 'endDate:', endDate);
+
                     let currentDate = new Date(startDate);
 
                     // Disable weekends
@@ -390,32 +389,43 @@ while ($row = $result->fetch_assoc()) {
                     recurringAvailabilities.forEach(availability => {
                         console.log('Processing recurring availability:', availability);
 
-                        // Adjust day_of_week to match JavaScript's getDay() (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
-                        // Assuming day_of_week in DB is 1 = Monday, ..., 7 = Sunday
-                        const dayOfWeek = (parseInt(availability.day_of_week) % 7 + 6) %
-                            7; // Convert 1-7 to 0-6
-                        const startTime = availability.start_time.split(':');
-                        const endTime = availability.end_time.split(':');
+                        const dayOfWeek = parseInt(availability.day_of_week);
+                        const startTime = availability.start_time ? availability.start_time
+                            .split(':') : null;
+                        const endTime = availability.end_time ? availability.end_time.split(
+                            ':') : null;
                         const recurringStartDate = availability.start_date ?
                             parseDateInKualaLumpur(availability.start_date) : null;
                         const recurringEndDate = availability.end_date ?
                             parseDateInKualaLumpur(availability.end_date) : null;
 
-                        console.log('Adjusted dayOfWeek:', dayOfWeek, 'recurringStartDate:',
+                        console.log('dayOfWeek:', dayOfWeek, 'recurringStartDate:',
                             recurringStartDate, 'recurringEndDate:', recurringEndDate);
 
-                        if (!recurringStartDate || !recurringEndDate) {
-                            console.error('Invalid recurring dates for availability:',
+                        if (!startTime || !endTime) {
+                            console.error('Invalid time data for availability:',
                                 availability);
                             return;
                         }
 
                         while (currentDate < endDate) {
+                            console.log('Checking date:', currentDate, 'Day of week:',
+                                currentDate.getDay());
                             if (currentDate.getDay() === dayOfWeek) {
-                                if ((recurringStartDate && currentDate <
-                                        recurringStartDate) ||
-                                    (recurringEndDate && currentDate > recurringEndDate)) {
-                                    console.log('Skipping date outside range:',
+                                console.log('Matched dayOfWeek:', dayOfWeek);
+                                console.log('Comparing dates - currentDate:', currentDate,
+                                    'recurringStartDate:', recurringStartDate,
+                                    'recurringEndDate:', recurringEndDate);
+                                // Only check date range if start_date or end_date are provided
+                                if (recurringStartDate && currentDate <
+                                    recurringStartDate) {
+                                    console.log('Skipping date before start_date:',
+                                        currentDate);
+                                    currentDate.setDate(currentDate.getDate() + 1);
+                                    continue;
+                                }
+                                if (recurringEndDate && currentDate > recurringEndDate) {
+                                    console.log('Skipping date after end_date:',
                                         currentDate);
                                     currentDate.setDate(currentDate.getDate() + 1);
                                     continue;
@@ -458,7 +468,8 @@ while ($row = $result->fetch_assoc()) {
                             }
                             currentDate.setDate(currentDate.getDate() + 1);
                         }
-                        currentDate.setTime(startDate.getTime());
+                        currentDate.setTime(startDate
+                            .getTime()); // Reset for next iteration
                     });
                 } catch (error) {
                     console.error('Error in datesSet:', error);
@@ -487,15 +498,15 @@ while ($row = $result->fetch_assoc()) {
                     let selectedAvailability = null;
                     let isAvailable = availabilities.some(a => {
                         if (a.is_recurring) {
-                            const dayOfWeek = (parseInt(a.day_of_week) % 7 + 6) %
-                                7; // Convert 1-7 to 0-6
-                            const startTime = a.start_time.split(':');
-                            const endTime = a.end_time.split(':');
+                            const dayOfWeek = parseInt(a.day_of_week);
+                            const startTime = a.start_time ? a.start_time.split(':') : null;
+                            const endTime = a.end_time ? a.end_time.split(':') : null;
                             const recurringStartDate = a.start_date ?
                                 parseDateInKualaLumpur(a.start_date) : null;
                             const recurringEndDate = a.end_date ? parseDateInKualaLumpur(a
                                 .end_date) : null;
 
+                            if (!startTime || !endTime) return false;
                             if (selectedStart.getDay() !== dayOfWeek) return false;
                             if (recurringStartDate && selectedStart < recurringStartDate)
                                 return false;
@@ -593,12 +604,16 @@ while ($row = $result->fetch_assoc()) {
                                         'bg-blue-500 text-white py-1 px-3 rounded';
                                     selectedDatetimeInput.value = button.dataset
                                         .isoTime;
+                                    selectedDatetimeDisplay.textContent =
+                                        formattedTime;
                                     updateConfirmButtonState();
                                 });
                             }
 
                             timeSlotsContainer.appendChild(button);
                         });
+
+                        bookingForm.classList.remove('hidden');
                     } else {
                         alert('This time slot is no longer available.');
                         calendar.unselect();
