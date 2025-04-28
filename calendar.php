@@ -63,26 +63,21 @@ while ($row = $result->fetch_assoc()) {
     $availabilities[] = $row;
 }
 
-// Debug: Log all fetched availabilities (commented out after testing)
-// echo "<pre>Fetched Availabilities:\n";
-// var_dump($availabilities);
-// echo "</pre>";
-
 // Fetch booked appointments to exclude them
 $booked_slots = [];
-$query = "SELECT start_datetime, end_datetime FROM appointments WHERE lecturer_id = ? AND status IN ('Confirmed', 'Pending')";
+$query = "SELECT start_datetime, end_datetime FROM appointments WHERE lecturer_id = ? AND status IN ('Confirmed', 'Pending', 'testing123')";
 $statement = $con->prepare($query);
 $statement->bind_param("i", $lecturer_id);
-$statement->execute();
+if (!$statement->execute()) {
+    echo "<script>console.error('SQL Error:', " . json_encode($statement->error) . ");</script>";
+}
 $result = $statement->get_result();
 while ($row = $result->fetch_assoc()) {
     $booked_slots[] = $row;
 }
 
-// Debug: Log booked slots (commented out after testing)
-// echo "<pre>Booked Slots:\n";
-// var_dump($booked_slots);
-// echo "</pre>";
+// Debug: Log booked slots
+echo "<script>console.log('PHP booked_slots:', " . json_encode($booked_slots) . ");</script>";
 
 // Fetch all appointments for the lecturer (for display purposes)
 $query = "SELECT * FROM appointments WHERE lecturer_id = ?";
@@ -307,6 +302,8 @@ while ($row = $result->fetch_assoc()) {
         <?php include("footer.php"); ?>
 
         <script>
+        let calendar;
+
         document.addEventListener('DOMContentLoaded', function() {
             const calendarEl = document.getElementById('calendar');
             if (!calendarEl) {
@@ -338,8 +335,9 @@ while ($row = $result->fetch_assoc()) {
             // Modal close functionality
             closeModal.onclick = function() {
                 modal.style.display = 'none';
-                calendar.unselect();
-                // Reset form
+                if (calendar) {
+                    calendar.unselect();
+                }
                 bookingForm.reset();
                 selectedDatetimeInput.value = '';
                 selectedDatetimeDisplay.textContent = '';
@@ -349,7 +347,9 @@ while ($row = $result->fetch_assoc()) {
             window.onclick = function(event) {
                 if (event.target == modal) {
                     modal.style.display = 'none';
-                    calendar.unselect();
+                    if (calendar) {
+                        calendar.unselect();
+                    }
                     bookingForm.reset();
                     selectedDatetimeInput.value = '';
                     selectedDatetimeDisplay.textContent = '';
@@ -382,7 +382,16 @@ while ($row = $result->fetch_assoc()) {
                 $eventItems = [];
                 $debugLogs = [];
 
-                // Non-recurring availability slots
+                // First, add booked slots to the events array
+                foreach ($booked_slots as $slot) {
+                    $eventItems[] = sprintf(
+                        "{title: 'Booked', start: %s, end: %s, backgroundColor: '#ff3b30', borderColor: '#ff3b30', editable: false, selectable: false, eventOverlap: false, eventAllow: function() { return false; }}",
+                        json_encode($slot['start_datetime']),
+                        json_encode($slot['end_datetime'])
+                    );
+                }
+
+                // Then, process non-recurring availability slots, skipping booked ones
                 foreach ($availabilities as $availability) {
                     if (!$availability['is_recurring']) {
                         $start = new DateTime($availability['start_datetime']);
@@ -452,15 +461,6 @@ while ($row = $result->fetch_assoc()) {
                     }
                 }
 
-                // Booked slots
-                foreach ($booked_slots as $slot) {
-                    $eventItems[] = sprintf(
-                        "{title: 'Booked', start: %s, end: %s, backgroundColor: '#ff3b30', borderColor: '#ff3b30', editable: false}",
-                        json_encode($slot['start_datetime']),
-                        json_encode($slot['end_datetime'])
-                    );
-                }
-
                 // Output events array
                 echo "const events = [\n";
                 if (!empty($eventItems)) {
@@ -468,20 +468,23 @@ while ($row = $result->fetch_assoc()) {
                 }
                 echo "\n];";
 
+                // Debug: Log events array
+                echo "console.log('Events array:', events);";
+
                 // Output debug logs
                 if (!empty($debugLogs)) {
                     echo "\n" . implode("\n", $debugLogs);
                 }
                 ?>
 
-            const recurringAvailabilities = <?php echo json_encode(array_filter($availabilities, function ($a) {
+            const recurringAvailabilities = <?php echo json_encode(array_values(array_filter($availabilities, function ($a) {
                                                     return $a['is_recurring'];
-                                                })); ?>;
+                                                }))); ?>;
             console.log('Recurring Availabilities:', recurringAvailabilities);
 
             try {
                 console.log('Initializing FullCalendar...');
-                const calendar = new FullCalendar.Calendar(calendarEl, {
+                calendar = new FullCalendar.Calendar(calendarEl, {
                     initialView: 'timeGridWeek',
                     initialDate: '2025-04-27',
                     slotDuration: '00:30:00',
@@ -669,6 +672,7 @@ while ($row = $result->fetch_assoc()) {
 
                             const availabilities = <?php echo json_encode($availabilities); ?>;
                             const bookedSlots = <?php echo json_encode($booked_slots); ?>;
+                            console.log('JavaScript bookedSlots:', bookedSlots);
 
                             let selectedAvailability = null;
                             let isAvailable = availabilities.some(a => {

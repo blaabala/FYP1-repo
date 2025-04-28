@@ -100,7 +100,7 @@ if ($result->num_rows > 0) {
 }
 
 // Insert the appointment
-$status = 'Pending';
+$status = 'Confirmed';
 $query = "INSERT INTO appointments (student_id, lecturer_id, title, start_datetime, end_datetime, description, location, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 $statement = $con->prepare($query);
 $statement->bind_param("iissssss", $student_id, $lecturer_id, $title, $start_datetime_adjusted, $end_datetime_adjusted, $description, $location, $status);

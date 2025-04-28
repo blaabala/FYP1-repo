@@ -4,7 +4,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (dateTimeDisplay) {
             dateTimeDisplay.innerHTML = new Date().toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur' });
         } else {
-            console.error('Element with ID "current-datetime" not found.');
+            console.warn('Element with ID "current-datetime" not found. Retrying in 1 second...');
+            setTimeout(updateDateTime, 1000);
         }
     }
     updateDateTime();
