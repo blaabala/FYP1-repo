@@ -2,6 +2,7 @@
 date_default_timezone_set('Asia/Kuala_Lumpur');
 session_start();
 include("database.php");
+
 $admin_id = $_SESSION['id'] ?? null;
 
 if (!$admin_id) {
@@ -13,18 +14,28 @@ if (!$admin_id) {
 }
 $email = $_SESSION['email'];
 
-$query = mysqli_query($con, "SELECT users.*, roles.role_name 
-FROM users JOIN roles ON users.role_id=roles.id WHERE users.email='$email'");
+$query = mysqli_query($con, "SELECT users.id, 
+users.username, 
+users.email, 
+users.contact_number, 
+users.role_id,
+roles.role_name, 
+admins.department
+
+FROM users
+INNER JOIN roles ON users.role_id = roles.id
+INNER JOIN admins ON admins.user_id = users.id
+WHERE users.email = '$email'");
+
 while ($result = mysqli_fetch_assoc($query)) {
     $res_id = $result['id'];
     $res_username = $result['username'];
     $res_email = $result['email'];
     $res_role = $result['role_id'];
     $res_role_name = $result['role_name'];
-    $res_faculty = $result['faculty'];
+    $res_department = $result['department'];
     $res_contact = $result['contact_number'];
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -47,12 +58,12 @@ while ($result = mysqli_fetch_assoc($query)) {
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
-        /* Ensure the body takes up the full viewport height */
-        html,
-        body {
-            height: 100%;
-            margin: 0;
-        }
+    /* Ensure the body takes up the full viewport height */
+    html,
+    body {
+        height: 100%;
+        margin: 0;
+    }
     </style>
 </head>
 

@@ -1,77 +1,69 @@
 <?php
 date_default_timezone_set('Asia/Kuala_Lumpur');
 include('database.php');
-$errors = array();
+
+$errors = [];
 
 if (isset($_POST['register'])) {
-    $username = stripslashes($_POST['username']);
-    $username = mysqli_real_escape_string($con, strtoupper($username));
+    // Sanitize and validate inputs
+    $username = strtoupper(mysqli_real_escape_string($con, stripslashes($_POST['username'])));
+    $email = mysqli_real_escape_string($con, stripslashes($_POST['email']));
+    $password = mysqli_real_escape_string($con, stripslashes($_POST['password']));
+    $userrole = mysqli_real_escape_string($con, stripslashes($_POST['userrole']));
+    $faculty = mysqli_real_escape_string($con, stripslashes($_POST['faculty']));
+    $phoneno = mysqli_real_escape_string($con, stripslashes($_POST['phoneno']));
+    $department = mysqli_real_escape_string($con, stripslashes($_POST['department']));
+    $designation = mysqli_real_escape_string($con, stripslashes($_POST['designation']));
 
-    $email = stripslashes($_POST['email']);
-    $email = mysqli_real_escape_string($con, $email);
-
-    $password = stripslashes($_POST['password']);
-    $password = mysqli_real_escape_string($con, $password);
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-
     $reg_date = date("Y-m-d H:i:s");
 
-    $userrole = stripslashes($_POST['userrole']);
-    $userrole = mysqli_real_escape_string($con, $userrole);
-
-    $faculty = stripslashes($_POST['faculty']);
-    $faculty = mysqli_real_escape_string($con, $faculty);
-
-    $phoneno = stripslashes($_POST['phoneno']);
-    $phoneno = mysqli_real_escape_string($con, $phoneno);
-
-    $department = stripslashes($_POST['department']);
-    $department = mysqli_real_escape_string($con, $department);
-
-    $designation = stripslashes($_POST['designation']);
-    $designation = mysqli_real_escape_string($con, $designation);
-
-    if (!preg_match("/^[a-zA-Z\s]+$/", $username)) { //alphabetic char and spaces only
+    // Validate username
+    if (!preg_match("/^[a-zA-Z\s]+$/", $username)) {
         $errors['username'] = "Invalid full name. Please enter a valid name.";
     }
 
+    // Check for duplicate email
     $emailCheckQuery = "SELECT email FROM users WHERE email = ?";
-    $statement = $con->prepare($emailCheckQuery);
-    $statement->bind_param("s", $email);
-    $statement->execute();
-    $emailCheckResult = $statement->get_result();
-    if ($emailCheckResult->num_rows > 0) {
+    $stmt = $con->prepare($emailCheckQuery);
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result->num_rows > 0) {
         $errors['email'] = "Email is already registered. Please use a different email address.";
     }
+    $stmt->close();
 
+    // If no errors, proceed
     if (empty($errors)) {
-        $query = "INSERT INTO `users` (username, email, password, reg_date, role_id, faculty, contact_number)
-        VALUES (?, ?, ?, ?, ?, ?, ?)";
-        $statement = $con->prepare($query);
-        $statement->bind_param("ssssssi", $username, $email, $hashed_password, $reg_date, $userrole, $faculty, $phoneno);
-        $result = $statement->execute();
+        // Insert into users
+        $insertUserQuery = "INSERT INTO users (username, email, password, reg_date, role_id, contact_number) 
+                            VALUES (?, ?, ?, ?, ?, ?)";
+        $stmt = $con->prepare($insertUserQuery);
+        $stmt->bind_param("sssssi", $username, $email, $hashed_password, $reg_date, $userrole, $phoneno);
 
-        //getting lecturer's user id and stores into $user_id
-        if ($result) {
-            $user_id = $statement->insert_id;
+        if ($stmt->execute()) {
+            // Get the inserted user_id
+            $user_id = $stmt->insert_id;
+            $stmt->close();
 
-            $query = "INSERT INTO `lecturers` (username, user_id, faculty, designation, department)
-            VALUES (?, ?, ?, ?, ?)";
-            $statement = $con->prepare($query);
-            $statement->bind_param("sisss", $username, $user_id, $faculty, $designation, $department);
-            $result = $statement->execute();
-        }
+            // Insert into students
+            $insertStudentQuery = "INSERT INTO lecturers (user_id, username, faculty, department, designation) 
+                                   VALUES (?, ?, ?, ?, ?)";
+            $stmt = $con->prepare($insertStudentQuery);
+            $stmt->bind_param("issss", $user_id, $username, $faculty, $department, $designation);
+            $stmt->execute();
+            $stmt->close();
 
-        if ($result) {
             header("Location: register_lecturer.php?success=1");
             exit();
         } else {
+            $stmt->close();
             header("Location: register_lecturer.php?error=1");
             exit();
         }
     }
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -108,15 +100,15 @@ if (isset($_POST['register'])) {
             <h2 class="text-xl font-bold mb-6 text-center">Lecturer Register Page</h2>
 
             <?php if (isset($_GET['success'])): ?>
-                <div class="bg-green-100 text-green-800 px-4 py-3 rounded mb-4 text-center">
-                    Registration successful! <a href="login.php" class="text-blue-600 underline">Click here to login</a>
-                </div>
+            <div class="bg-green-100 text-green-800 px-4 py-3 rounded mb-4 text-center">
+                Registration successful! <a href="login.php" class="text-blue-600 underline">Click here to login</a>
+            </div>
             <?php endif; ?>
 
             <?php if (isset($_GET['error'])): ?>
-                <div class="bg-red-100 text-red-800 px-4 py-3 rounded mb-4 text-center">
-                    Registration failed. Something went wrong. Please try again or contact support.
-                </div>
+            <div class="bg-red-100 text-red-800 px-4 py-3 rounded mb-4 text-center">
+                Registration failed. Something went wrong. Please try again or contact support.
+            </div>
             <?php endif; ?>
 
             <form id="form" action="" method="POST">

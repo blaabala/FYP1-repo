@@ -8,14 +8,25 @@ $lecturer_id = $_SESSION['id'] ?? null;
 if (!$lecturer_id) {
     echo "<script>
         alert('Please login to continue.');
-        window.location.href = 'login_lecturer.php';
+        window.location.href = 'login.php';
     </script>";
     exit(); // Prevent further code execution
 }
 $email = $_SESSION['email'];
 
-$query = mysqli_query($con, "SELECT users.*, roles.role_name 
-FROM users JOIN roles ON users.role_id=roles.id WHERE users.email='$email'");
+$query = mysqli_query($con, "SELECT users.id, 
+users.username, 
+users.email, 
+users.contact_number, 
+users.role_id,
+roles.role_name, 
+lecturers.faculty, 
+lecturers.department, 
+lecturers.designation 
+FROM users
+INNER JOIN roles ON users.role_id = roles.id
+INNER JOIN lecturers ON lecturers.user_id = users.id
+WHERE users.email = '$email'");
 
 while ($result = mysqli_fetch_assoc($query)) {
     $res_id = $result['id'];
@@ -24,6 +35,8 @@ while ($result = mysqli_fetch_assoc($query)) {
     $res_role = $result['role_id'];
     $res_role_name = $result['role_name'];
     $res_faculty = $result['faculty'];
+    $res_department = $result['department'];
+    $res_designation = $result['designation'];
     $res_contact = $result['contact_number'];
 }
 ?>

@@ -33,20 +33,44 @@
                     <?php
                     session_start();
                     include("database.php");
-                    $email = $_SESSION['email'];
-                    $query = mysqli_query($con, "SELECT users.*, roles.role_name 
-											FROM users 
-											JOIN roles ON users.role_id = roles.id 
-											WHERE users.email = '$email'");
-                    while ($result = mysqli_fetch_assoc($query)) {
-                        $res_id = $result['id'];
-                        $res_username = $result['username'];
-                        $res_email = $result['email'];
-                        $res_email = $result['email'];
-                        $res_role = $result['role_id'];
-                        $res_role_name = $result['role_name'];
-                        $res_faculty = $result['faculty'];
-                        $res_contact = $result['contact_number'];
+
+                    // Check if the user is logged in
+                    $email = $_SESSION['email'] ?? null;
+                    if (!$email) {
+                        $_SESSION['error_message'] = "Please log in to continue.";
+                        header("Location: login_admin.php");
+                        exit();
+                    }
+
+                    // Fetch user details
+                    $query = "SELECT users.*, roles.role_name 
+                              FROM users 
+                              JOIN roles ON users.role_id = roles.id 
+                              WHERE users.email = ?";
+                    $stmt = $con->prepare($query);
+                    $stmt->bind_param("s", $email);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+
+                    if ($result->num_rows === 0) {
+                        $_SESSION['error_message'] = "User not found. Please log in again.";
+                        header("Location: login_admin.php");
+                        exit();
+                    }
+
+                    $user = $result->fetch_assoc();
+                    $res_id = $user['id'];
+                    $res_username = $user['username'];
+                    $res_email = $user['email'];
+                    $res_role_name = $user['role_name'];
+                    $res_faculty = $user['faculty'];
+                    $res_contact = $user['contact_number'];
+
+                    // Ensure the user is an admin
+                    if (strtolower($res_role_name) !== 'admin') {
+                        $_SESSION['error_message'] = "You must be an admin to view this page.";
+                        header("Location: home.php");
+                        exit();
                     }
                     ?>
 
@@ -68,12 +92,12 @@
                 <div class="col-md-12">
                     <?php
                     if (isset($_SESSION['success_message'])) {
-                        echo "<div class='alert alert-success'>" . $_SESSION['success_message'] . "</div>";
+                        echo "<div class='alert alert-success'>" . htmlspecialchars($_SESSION['success_message']) . "</div>";
                         unset($_SESSION['success_message']);
                     }
 
                     if (isset($_SESSION['error_message'])) {
-                        echo "<div class='alert alert-danger'>" . $_SESSION['error_message'] . "</div>";
+                        echo "<div class='alert alert-danger'>" . htmlspecialchars($_SESSION['error_message']) . "</div>";
                         unset($_SESSION['error_message']);
                     }
                     ?>
@@ -102,75 +126,89 @@
                                         <th>Description</th>
                                         <th>Location</th>
                                         <th>Status</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php
                                     $count = 1;
-                                    // Selecting all product records from the database
+                                    // Fetch all appointments with formatted dates
                                     $sel_query = "SELECT appointments.*, 
-                                                u1.username AS student_name, 
-                                                u1.email AS student_email, 
-                                                u2.username AS lecturer_name, 
-                                                u2.email AS lecturer_email 
-                                                FROM appointments 
-                                                JOIN users u1 ON appointments.student_id = u1.id 
-                                                JOIN users u2 ON appointments.lecturer_id = u2.id 
-                                                WHERE appointments.student_id = ? OR appointments.lecturer_id = ?
-                                                ORDER BY appointments.id DESC;";
+                                                  u1.username AS student_name, 
+                                                  u1.email AS student_email, 
+                                                  u2.username AS lecturer_name, 
+                                                  u2.email AS lecturer_email,
+                                                  DATE_FORMAT(appointments.start_datetime, '%Y-%m-%d %h:%i %p') AS formatted_start,
+                                                  DATE_FORMAT(appointments.end_datetime, '%Y-%m-%d %h:%i %p') AS formatted_end 
+                                                  FROM appointments 
+                                                  JOIN students s ON appointments.student_id = s.id 
+                                                  JOIN users u1 ON s.user_id = u1.id 
+                                                  JOIN lecturers l ON appointments.lecturer_id = l.id 
+                                                  JOIN users u2 ON l.user_id = u2.id 
+                                                  ORDER BY appointments.id DESC";
                                     $stmt = $con->prepare($sel_query);
-                                    $stmt->bind_param('ii', $res_id, $res_id);
-                                    $stmt->execute();
-                                    $result = $stmt->get_result();
-                                    while ($row = mysqli_fetch_assoc($result)) {
+                                    if (!$stmt) {
+                                        echo "<tr><td colspan='10' style='text-align: center;'>Error preparing query: " . htmlspecialchars($con->error) . "</td></tr>";
+                                    } else {
+                                        if (!$stmt->execute()) {
+                                            echo "<tr><td colspan='10' style='text-align: center;'>Error executing query: " . htmlspecialchars($stmt->error) . "</td></tr>";
+                                        } else {
+                                            $result = $stmt->get_result();
+                                            if ($result->num_rows === 0) {
+                                                echo "<tr><td colspan='10' style='text-align: center;'>No appointments found.</td></tr>";
+                                            } else {
+                                                while ($row = $result->fetch_assoc()) {
                                     ?>
-                                        <tr>
-                                            <td><?php echo $count; ?></td>
-                                            <td><?php echo $row["student_name"]; ?></td>
-                                            <td><?php echo $row["lecturer_name"]; ?></td>
-                                            <td><?php echo $row["title"]; ?></td>
-                                            <td><?php echo $row["start_datetime"]; ?></td>
-                                            <td><?php echo $row["end_datetime"]; ?></td>
-                                            <td><?php echo $row["description"]; ?></td>
-                                            <td><?php echo $row["location"]; ?></td>
-                                            <!-- status text color changes -->
-                                            <?php
-                                            $statusClass = '';
-                                            $statusText = $row['status'];
-                                            switch ($statusText) {
-                                                case 'Pending':
-                                                    $statusClass = 'status-pending';
-                                                    break;
-                                                case 'Confirmed':
-                                                    $statusClass = 'status-confirmed';
-                                                    break;
-                                                case 'Cancelled':
-                                                    $statusClass = 'status-cancelled';
-                                                    break;
-                                                default:
-                                                    $statusClass = '';
-                                            }
-                                            echo "<td class='$statusClass'>{$statusText}</td>";
-                                            ?>
-                                            <!-- Conditionally render the Update button -->
-                                            <td>
-                                                <?php if ($row['status'] !== 'Cancelled'): ?>
-                                                    <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal"
-                                                        data-bs-target="#updateModal"
-                                                        data-id="<?php echo $row['id']; ?>">Update</button>
-                                                <?php else: ?>
-                                                    <button type="button" class="btn btn-outline-secondary"
-                                                        disabled>Cancelled</button>
-                                                <?php endif; ?>
-                                            </td>
-                                        </tr>
+                                                    <tr>
+                                                        <td><?php echo $count; ?></td>
+                                                        <td><?php echo htmlspecialchars($row["student_name"]); ?></td>
+                                                        <td><?php echo htmlspecialchars($row["lecturer_name"]); ?></td>
+                                                        <td><?php echo htmlspecialchars($row["title"]); ?></td>
+                                                        <td><?php echo htmlspecialchars($row["formatted_start"]); ?></td>
+                                                        <td><?php echo htmlspecialchars($row["formatted_end"]); ?></td>
+                                                        <td><?php echo htmlspecialchars($row["description"]); ?></td>
+                                                        <td><?php echo htmlspecialchars($row["location"]); ?></td>
+                                                        <!-- Status text color changes -->
+                                                        <?php
+                                                        $statusClass = '';
+                                                        $statusText = $row['status'];
+                                                        switch ($statusText) {
+                                                            case 'Pending':
+                                                                $statusClass = 'status-pending';
+                                                                break;
+                                                            case 'Confirmed':
+                                                                $statusClass = 'status-confirmed';
+                                                                break;
+                                                            case 'Cancelled':
+                                                                $statusClass = 'status-cancelled';
+                                                                break;
+                                                            default:
+                                                                $statusClass = '';
+                                                        }
+                                                        echo "<td class='$statusClass'>" . htmlspecialchars($statusText) . "</td>";
+                                                        ?>
+                                                        <!-- Conditionally render the Update button -->
+                                                        <td>
+                                                            <?php if ($row['status'] !== 'Cancelled'): ?>
+                                                                <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal"
+                                                                    data-bs-target="#updateModal"
+                                                                    data-id="<?php echo $row['id']; ?>">Update</button>
+                                                            <?php else: ?>
+                                                                <button type="button" class="btn btn-outline-secondary"
+                                                                    disabled>Cancelled</button>
+                                                            <?php endif; ?>
+                                                        </td>
+                                                    </tr>
                                     <?php
-                                        $count++;
+                                                    $count++;
+                                                }
+                                            }
+                                            $stmt->close();
+                                        }
                                     }
                                     ?>
                                 </tbody>
                             </table>
-
                         </div>
                     </div>
                 </div>
@@ -367,7 +405,7 @@
                 </ul>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 LEE JUN KHANG. All rights reserved. </p>
+                <p>© 2024 LEE JUN KHANG. All rights reserved. </p>
             </div>
         </div>
     </footer>
