@@ -185,18 +185,18 @@ while ($row = $result->fetch_assoc()) {
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
-        html,
-        body {
-            height: 100%;
-            margin: 0;
-        }
+    html,
+    body {
+        height: 100%;
+        margin: 0;
+    }
     </style>
     <script>
-        function toggleAvailabilityFields() {
-            const isRecurring = document.getElementById('is_recurring').checked;
-            document.getElementById('non-recurring-fields').classList.toggle('hidden', isRecurring);
-            document.getElementById('recurring-fields').classList.toggle('hidden', !isRecurring);
-        }
+    function toggleAvailabilityFields() {
+        const isRecurring = document.getElementById('is_recurring').checked;
+        document.getElementById('non-recurring-fields').classList.toggle('hidden', isRecurring);
+        document.getElementById('recurring-fields').classList.toggle('hidden', !isRecurring);
+    }
     </script>
 </head>
 
@@ -230,7 +230,7 @@ while ($row = $result->fetch_assoc()) {
                                 Availability</a>
                         </li>
                         <li>
-                            <a href="edit_profile.php?id=<?php echo $res_id; ?>"
+                            <a href="edit_profile.php?id=<?php echo htmlspecialchars($res_id); ?>"
                                 class="text-lg font-medium hover:text-blue-200 transition-colors duration-300">Edit
                                 Profile</a>
                         </li>
@@ -274,7 +274,7 @@ while ($row = $result->fetch_assoc()) {
                 <div class="mb-4">
                     <label for="start_datetime" class="block text-gray-700">Start Date and Time:</label>
                     <input type="datetime-local" id="start_datetime" name="start_datetime"
-                        class="w-full p-2 border rounded">
+                        class="w-full p-2 border rounded" required>
                 </div>
                 <div class="mb-4">
                     <label for="end_datetime" class="block text-gray-700">End Date and Time:</label>
@@ -299,7 +299,7 @@ while ($row = $result->fetch_assoc()) {
                 </div>
                 <div class="mb-4">
                     <label for="start_time" class="block text-gray-700">Start Time (HH:MM, 24-hour format):</label>
-                    <input type="time" id="start_time" name="start_time" class="w-full p-2 border rounded">
+                    <input type="time" id="start_time" name="start_time" class="w-full p-2 border rounded" required>
                 </div>
                 <div class="mb-4">
                     <label for="end_time" class="block text-gray-700">End Time (HH:MM, 24-hour format):</label>
@@ -315,18 +315,17 @@ while ($row = $result->fetch_assoc()) {
                 </div>
             </div>
 
-            <button type="submit" name="set_availability" class="bg-blue-8
-
-00 text-white py-2 px-4 rounded hover:bg-blue-900">Set Availability</button>
+            <button type="submit" name="set_availability"
+                class="bg-blue-800 text-white py-2 px-4 rounded hover:bg-blue-900">Set Availability</button>
         </form>
 
         <!-- Display existing availability -->
         <h3 class="text-xl font-semibold mt-6 mb-2">Existing Availability</h3>
         <?php if (count($availabilities) > 0): ?>
-            <ul class="bg-white p-4 rounded shadow">
-                <?php foreach ($availabilities as $avail): ?>
-                    <li class="mb-2">
-                        <?php
+        <ul class="bg-white p-4 rounded shadow">
+            <?php foreach ($availabilities as $avail): ?>
+            <li class="mb-2">
+                <?php
                         if ($avail['is_recurring']) {
                             $days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
                             $day_of_week = $days[$avail['day_of_week']];
@@ -345,11 +344,11 @@ while ($row = $result->fetch_assoc()) {
                             echo "$start_datetime - $end_datetime";
                         }
                         ?>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
+            </li>
+            <?php endforeach; ?>
+        </ul>
         <?php else: ?>
-            <p class="text-gray-700">No availability set.</p>
+        <p class="text-gray-700">No availability set.</p>
         <?php endif; ?>
     </div>
 

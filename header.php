@@ -95,7 +95,10 @@ while ($result = mysqli_fetch_assoc($query)) {
                         <li><a href="appointment_view.php"
                                 class="text-lg font-medium hover:text-blue-200 transition-colors duration-300">Appointments</a>
                         </li>
-                        <li><?php echo "<a href='edit_profile.php?id=$res_id' class='text-lg font-medium hover:text-blue-200 transition-colors duration-300'>Edit Profile</a>"; ?>
+                        <li>
+                            <?php
+							echo '<a href="edit_profile.php?id=' . htmlspecialchars($res_id) . '" class="text-lg font-medium hover:text-blue-200 transition-colors duration-300">Edit Profile</a>';
+							?>
                         </li>
                         <li><a href="logout.php"
                                 class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors duration-300">Logout

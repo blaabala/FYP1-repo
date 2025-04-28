@@ -40,10 +40,9 @@
                             </a>
                         </li>
                         <li>
-                            <?php echo "<a href='edit_profile.php?id=$res_id'" ?>
-                            class="text-base md:text-lg font-medium hover:text-blue-200 transition-colors duration-300">
-                            Edit Profile
-                            </a>
+                            <?php
+							echo '<a href="edit_profile.php?id=' . htmlspecialchars($res_id) . '" class="text-lg font-medium hover:text-blue-200 transition-colors duration-300">Edit Profile</a>';
+							?>
                         </li>
                     </ul>
                 </div>
