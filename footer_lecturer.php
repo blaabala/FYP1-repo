@@ -41,7 +41,7 @@
                             </a>
                         </li>
                         <li>
-                            <?php echo "<a href='edit_profile.php?id=$res_id'" ?>
+                            <?php echo "<a href='edit_profile_lecturer.php?id=$res_id'" ?>
                             class="text-lg font-medium hover:text-blue-200 transition-colors duration-300">
                             Edit Profile
                             </a>

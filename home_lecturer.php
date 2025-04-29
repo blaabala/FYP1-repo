@@ -41,7 +41,7 @@ include("header_lecturer.php");
             <div class="flex justify-end">
                 <button
                     class="bg-white px-6 py-3 rounded-lg shadow-md text-blue-600 text-2xl font-bold hover:bg-blue-50 transition-colors duration-300">
-                    <?php echo "<a href='edit_profile.php?id=$res_id'>" ?>Click to Edit</a>
+                    <?php echo "<a href='edit_profile_lecturer.php?id=$res_id'>" ?>Click to Edit</a>
                 </button>
             </div>
         </div>

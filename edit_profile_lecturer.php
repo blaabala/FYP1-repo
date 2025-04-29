@@ -1,5 +1,5 @@
 <?php
-include("header.php");
+include("header_lecturer.php");
 
 // Ensure the user is logged in and $res_id is set
 if (!isset($res_id)) {
@@ -15,6 +15,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $new_password = $_POST['new_password'];
     $confirm_password = $_POST['confirm_password'];
     $faculty = $_POST['faculty'];
+    $department = $_POST['department'];
+    $designation = $_POST['designation'];
     $phoneno = $_POST['phoneno'];
 
     // Fetch the current password hash from the users table
@@ -33,12 +35,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $password = password_hash($new_password, PASSWORD_DEFAULT);
             } else {
                 $_SESSION['error_message'] = "New passwords do not match!";
-                header("Location: edit_profile.php?id=$res_id");
+                header("Location: edit_profile_lecturer.php?id=$res_id");
                 exit();
             }
         } else {
             $_SESSION['error_message'] = "Current password is incorrect!";
-            header("Location: edit_profile.php?id=$res_id");
+            header("Location: edit_profile_lecturer.php?id=$res_id");
             exit();
         }
     } else {
@@ -61,31 +63,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         $stmt->close();
 
-        // Update the students table (faculty)
-        $update_students_query = "UPDATE students SET faculty = ? WHERE user_id = ?";
-        $stmt = $con->prepare($update_students_query);
+        // Update the lecturers table (faculty, department, designation)
+        $update_lecturers_query = "UPDATE lecturers SET faculty = ?, department = ?, designation = ? WHERE user_id = ?";
+        $stmt = $con->prepare($update_lecturers_query);
         if (!$stmt) {
-            throw new Exception("Error preparing students update query: " . $con->error);
+            throw new Exception("Error preparing lecturers update query: " . $con->error);
         }
-        $stmt->bind_param('si', $faculty, $res_id);
+        $stmt->bind_param('sssi', $faculty, $department, $designation, $res_id);
         if (!$stmt->execute()) {
-            throw new Exception("Error updating students table: " . $stmt->error);
+            throw new Exception("Error updating lecturers table: " . $stmt->error);
         }
         $stmt->close();
+
+        // Update the session email to prevent authentication issues
+        $_SESSION['email'] = $email;
 
         // Commit the transaction
         $con->commit();
         $_SESSION['success_message'] = "Profile updated successfully.";
+        header("Location: edit_profile_lecturer.php"); // Redirect to lecturer's home page
+        exit();
     } catch (Exception $e) {
         // Roll back the transaction on error
         $con->rollback();
         $_SESSION['error_message'] = "Error updating profile: " . $e->getMessage();
+        header("Location: edit_profile_lecturer.php?id=$res_id");
+        exit();
     }
-
-    header("Location: edit_profile.php?id=$res_id");
-    exit();
 }
 
+// Display messages only if they exist, then clear them
 if (isset($_SESSION['success_message'])) {
     echo "<script>alert('Profile updated successfully!');</script>";
     unset($_SESSION['success_message']);
@@ -100,7 +107,7 @@ if (isset($_SESSION['error_message'])) {
 <div class="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
     <div class="w-full max-w-md bg-white rounded-xl shadow-lg p-8 space-y-6">
         <header class="text-center text-2xl font-bold text-gray-800 mb-6">
-            Edit User Profile
+            Edit Lecturer Profile
         </header>
         <form action="" method="post" class="space-y-4">
             <div>
@@ -171,6 +178,18 @@ if (isset($_SESSION['error_message'])) {
                 </select>
             </div>
             <div>
+                <label for="department" class="block text-sm font-medium text-gray-700">Department</label>
+                <input required type="text" id="department" name="department"
+                    value="<?php echo htmlspecialchars($res_department); ?>" placeholder="Enter your department"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            <div>
+                <label for="designation" class="block text-sm font-medium text-gray-700">Designation</label>
+                <input required type="text" id="designation" name="designation"
+                    value="<?php echo htmlspecialchars($res_designation); ?>" placeholder="Enter your designation"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            <div>
                 <label for="phoneno" class="block text-sm font-medium text-gray-700">Contact Number</label>
                 <input required type="text" id="phoneno" name="phoneno"
                     value="<?php echo htmlspecialchars($res_contact); ?>" placeholder="i.e.: +60123456789"
@@ -186,4 +205,4 @@ if (isset($_SESSION['error_message'])) {
     </div>
 </div>
 
-<?php include("footer.php"); ?>
+<?php include("footer_lecturer.php"); ?>

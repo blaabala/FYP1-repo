@@ -61,19 +61,19 @@ while ($result = mysqli_fetch_assoc($query)) {
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
-    /* Ensure the body takes up the full viewport height */
-    html,
-    body {
-        height: 100%;
-        margin: 0;
-        display: flex;
-        flex-direction: column;
-    }
+        /* Ensure the body takes up the full viewport height */
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
 
-    main {
-        flex: 1;
-        /* This makes the main content grow and push footer down */
-    }
+        main {
+            flex: 1;
+            /* This makes the main content grow and push footer down */
+        }
     </style>
 </head>
 
@@ -107,7 +107,7 @@ while ($result = mysqli_fetch_assoc($query)) {
                                 class="text-lg font-medium hover:text-blue-200 transition-colors duration-300">Set
                                 Availability</a></li>
                         <li>
-                            <?php echo "<a href='edit_profile.php?id=$res_id' class='text-lg font-medium hover:text-blue-200 transition-colors duration-300'>Edit Profile</a>"; ?>
+                            <?php echo "<a href='edit_profile_lecturer.php?id=$res_id' class='text-lg font-medium hover:text-blue-200 transition-colors duration-300'>Edit Profile</a>"; ?>
                         </li>
                         <li>
                             <a href="logout.php"
