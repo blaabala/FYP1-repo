@@ -56,50 +56,63 @@ while ($result = mysqli_fetch_assoc($query)) {
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <!-- Comment out missing style.css to avoid 404 error -->
+    <!-- <link rel="stylesheet" href="assets/css/style.css"> -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
     <style>
-    html,
-    body {
-        height: 100%;
-        margin: 0;
-        display: flex;
-        flex-direction: column;
-    }
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
 
-    main {
-        flex: 1;
-    }
+        main {
+            flex: 1;
+        }
 
-    /* Remove underlines from header and footer navigation links */
-    header nav a:not(.bg-red-500),
-    footer ul a {
-        text-decoration: none !important;
-    }
+        header nav a:not(.bg-red-500),
+        footer ul a {
+            text-decoration: none !important;
+        }
 
-    .status-pending {
-        color: #f39c12;
-        font-weight: bold;
-    }
+        .status-pending {
+            color: #f39c12;
+            font-weight: bold;
+        }
 
-    .status-confirmed {
-        color: #27ae60;
-        font-weight: bold;
-    }
+        .status-confirmed {
+            color: #27ae60;
+            font-weight: bold;
+        }
 
-    .status-cancelled {
-        color: #c0392b;
-        font-weight: bold;
-    }
+        .status-cancelled {
+            color: #c0392b;
+            font-weight: bold;
+        }
 
-    .status-rejected {
-        color: #e74c3c;
-        font-weight: bold;
-    }
+        .status-rejected {
+            color: #e74c3c;
+            font-weight: bold;
+        }
 
-    .status-completed {
-        color: #3498db;
-        font-weight: bold;
-    }
+        .status-completed {
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+
+        #clear-search {
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
     </style>
 </head>
 
@@ -139,8 +152,6 @@ while ($result = mysqli_fetch_assoc($query)) {
 
     <main class="container mx-auto px-4 py-8">
         <?php
-        // echo "<p class='text-gray-600'>Debug: res_id = " . htmlspecialchars($res_id) . "</p>";
-
         if (isset($_SESSION['success_message'])) {
             echo "<div class='bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4' role='alert'>" . $_SESSION['success_message'] . "</div>";
             unset($_SESSION['success_message']);
@@ -154,6 +165,15 @@ while ($result = mysqli_fetch_assoc($query)) {
 
         <div class="mb-6">
             <h2 class="text-2xl font-bold text-center mb-4">Appointments</h2>
+            <div class="flex justify-between items-center mb-4">
+                <div class="relative w-1/4">
+                    <input type="text" id="search-title" placeholder="Search by title"
+                        class="border p-2 rounded w-full">
+                    <button id="clear-search"
+                        class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        style="display: none;">×</button>
+                </div>
+            </div>
             <div class="flex justify-end">
                 <a href="lecturer_list.php"
                     class="bg-blue-500 text-white no-underline px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
@@ -162,7 +182,7 @@ while ($result = mysqli_fetch_assoc($query)) {
             </div>
         </div>
 
-        <div class="space-y-4">
+        <div class="space-y-4" id="appointment-list">
             <?php
             $sel_query = "SELECT appointments.*, 
                 u1.username AS student_name,
@@ -212,39 +232,39 @@ while ($result = mysqli_fetch_assoc($query)) {
                             $statusClass = '';
                     }
             ?>
-            <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-800"><?php echo htmlspecialchars($row['title']); ?>
-                        </h3>
-                        <p class="text-sm text-gray-600"><span class="font-medium">Student:</span>
-                            <?php echo htmlspecialchars($row['student_name']); ?></p>
-                        <p class="text-sm text-gray-600"><span class="font-medium">Lecturer:</span>
-                            <?php echo htmlspecialchars($row['lecturer_name']); ?></p>
-                        <p class="text-sm text-gray-600"><span class="font-medium">From:</span>
-                            <?php echo htmlspecialchars($row['start_datetime']); ?></p>
-                        <p class="text-sm text-gray-600"><span class="font-medium">To:</span>
-                            <?php echo htmlspecialchars($row['end_datetime']); ?></p>
-                        <p class="text-sm text-gray-600"><span class="font-medium">Description:</span>
-                            <?php echo htmlspecialchars($row['description']); ?></p>
-                        <p class="text-sm text-gray-600"><span class="font-medium">Location:</span>
-                            <?php echo htmlspecialchars($row['location']); ?></p>
-                        <p class="text-sm <?php echo $statusClass; ?>"><span class="font-medium">Status:</span>
-                            <?php echo htmlspecialchars($statusText); ?></p>
+                    <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-800"><?php echo htmlspecialchars($row['title']); ?>
+                                </h3>
+                                <p class="text-sm text-gray-600"><span class="font-medium">Student:</span>
+                                    <?php echo htmlspecialchars($row['student_name']); ?></p>
+                                <p class="text-sm text-gray-600"><span class="font-medium">Lecturer:</span>
+                                    <?php echo htmlspecialchars($row['lecturer_name']); ?></p>
+                                <p class="text-sm text-gray-600"><span class="font-medium">From:</span>
+                                    <?php echo htmlspecialchars($row['start_datetime']); ?></p>
+                                <p class="text-sm text-gray-600"><span class="font-medium">To:</span>
+                                    <?php echo htmlspecialchars($row['end_datetime']); ?></p>
+                                <p class="text-sm text-gray-600"><span class="font-medium">Description:</span>
+                                    <?php echo htmlspecialchars($row['description']); ?></p>
+                                <p class="text-sm text-gray-600"><span class="font-medium">Location:</span>
+                                    <?php echo htmlspecialchars($row['location']); ?></p>
+                                <p class="text-sm <?php echo $statusClass; ?>"><span class="font-medium">Status:</span>
+                                    <?php echo htmlspecialchars($statusText); ?></p>
+                            </div>
+                            <div>
+                                <?php if ($statusText !== 'Cancelled'): ?>
+                                    <button type="button"
+                                        class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                                        data-bs-toggle="modal" data-bs-target="#updateModal"
+                                        data-id="<?php echo $row['id']; ?>">More...</button>
+                                <?php else: ?>
+                                    <button type="button" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg cursor-not-allowed"
+                                        disabled>Cancelled</button>
+                                <?php endif; ?>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <?php if ($statusText !== 'Cancelled'): ?>
-                        <button type="button"
-                            class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-                            data-bs-toggle="modal" data-bs-target="#updateModal"
-                            data-id="<?php echo $row['id']; ?>">More...</button>
-                        <?php else: ?>
-                        <button type="button" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg cursor-not-allowed"
-                            disabled>Cancelled</button>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
             <?php
                 }
             }
@@ -422,18 +442,28 @@ while ($result = mysqli_fetch_assoc($query)) {
     <?php include("footer.php"); ?>
 
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const updateButtons = document.querySelectorAll('button[data-bs-target="#updateModal"]');
+        $(document).ready(function() {
+            console.log('Document ready. Checking for #appointment-list...');
+            const appointmentListCheck = $('#appointment-list');
+            console.log('Initial #appointment-list check:', appointmentListCheck.length ? 'Found' : 'Not found');
 
-        updateButtons.forEach(button => {
-            button.addEventListener('click', function() {
+            const updateButtons = document.querySelectorAll('button[data-bs-target="#updateModal"]');
+
+            function attachUpdateButtonListeners() {
+                console.log('Attaching update button listeners...');
+                document.querySelectorAll('button[data-bs-target="#updateModal"]').forEach(button => {
+                    button.removeEventListener('click', handleUpdateButtonClick);
+                    button.addEventListener('click', handleUpdateButtonClick);
+                });
+            }
+
+            function handleUpdateButtonClick() {
                 const appointmentId = this.getAttribute('data-id');
-
+                console.log('Fetching appointment data for ID:', appointmentId);
                 fetch('appointment_fetch.php?id=' + appointmentId)
                     .then(response => {
                         if (!response.ok) {
-                            throw new Error('Network response was not ok: ' + response
-                                .statusText);
+                            throw new Error('Network response was not ok: ' + response.statusText);
                         }
                         return response.json();
                     })
@@ -444,98 +474,146 @@ while ($result = mysqli_fetch_assoc($query)) {
                             return;
                         }
 
-                        // Ensure the date format is compatible with datetime-local (YYYY-MM-DDThh:mm)
                         const formatDateTime = (dateTime) => {
                             const date = new Date(dateTime);
-                            return date.toISOString().slice(0,
-                                16); // Cuts off seconds and timezone
+                            return date.toISOString().slice(0, 16);
                         };
 
-                        document.getElementById('update_status').value = data.status ||
-                            'Pending';
+                        document.getElementById('update_status').value = data.status || 'Pending';
                         document.getElementById('update_title').value = data.title || '';
-                        document.getElementById('update_requester_email').value = data
-                            .requester_email || '';
-                        document.getElementById('update_accepter_email').value = data
-                            .accepter_email || '';
-                        document.getElementById('update_from_time').value = data.from_time ?
-                            formatDateTime(data.from_time) : '';
-                        document.getElementById('update_to_time').value = data.to_time ?
-                            formatDateTime(data.to_time) : '';
-                        document.getElementById('update_location').value = data.location ||
-                            '';
-                        document.getElementById('update_description').value = data
-                            .description || '';
-                        document.getElementById('update_appointment_id').value = data.id ||
-                            '';
+                        document.getElementById('update_requester_email').value = data.requester_email || '';
+                        document.getElementById('update_accepter_email').value = data.accepter_email || '';
+                        document.getElementById('update_from_time').value = data.from_time ? formatDateTime(data
+                            .from_time) : '';
+                        document.getElementById('update_to_time').value = data.to_time ? formatDateTime(data
+                            .to_time) : '';
+                        document.getElementById('update_location').value = data.location || '';
+                        document.getElementById('update_description').value = data.description || '';
+                        document.getElementById('update_appointment_id').value = data.id || '';
 
                         const isAccepter = (data.current_user_id == data.accepter_id);
                         const isRequester = (data.current_user_id == data.requester_id);
 
                         if (isAccepter && !isRequester) {
                             document.querySelectorAll(
-                                    '#updateModal input:not(#update_status), #updateModal textarea'
-                                )
+                                    '#updateModal input:not(#update_status), #updateModal textarea')
                                 .forEach(el => {
                                     el.disabled = true;
                                 });
                             document.getElementById('update_status').disabled = false;
-                            document.querySelector('#updateModal .btn-primary').style
-                                .display = 'block';
-                            document.getElementById('accepterMessage').style.display =
-                                'block';
-                            document.getElementById('viewOnlyMessage').style.display =
-                                'none';
+                            document.querySelector('#updateModal .btn-primary').style.display = 'block';
+                            document.getElementById('accepterMessage').style.display = 'block';
+                            document.getElementById('viewOnlyMessage').style.display = 'none';
                         } else if (!isRequester && data.current_user_role !== 3) {
                             document.querySelectorAll(
-                                    '#updateModal input, #updateModal select, #updateModal textarea'
-                                )
+                                    '#updateModal input, #updateModal select, #updateModal textarea')
                                 .forEach(el => {
                                     el.disabled = true;
                                 });
-                            document.querySelector('#updateModal .btn-primary').style
-                                .display = 'none';
-                            document.getElementById('viewOnlyMessage').style.display =
-                                'block';
-                            document.getElementById('accepterMessage').style.display =
-                                'none';
+                            document.querySelector('#updateModal .btn-primary').style.display = 'none';
+                            document.getElementById('viewOnlyMessage').style.display = 'block';
+                            document.getElementById('accepterMessage').style.display = 'none';
                         } else {
                             document.querySelectorAll(
-                                    '#updateModal input, #updateModal select, #updateModal textarea'
-                                )
+                                    '#updateModal input, #updateModal select, #updateModal textarea')
                                 .forEach(el => {
                                     el.disabled = false;
                                 });
-                            document.querySelector('#updateModal .btn-primary').style
-                                .display = 'block';
-                            document.getElementById('viewOnlyMessage').style.display =
-                                'none';
-                            document.getElementById('accepterMessage').style.display =
-                                'none';
+                            document.querySelector('#updateModal .btn-primary').style.display = 'block';
+                            document.getElementById('viewOnlyMessage').style.display = 'none';
+                            document.getElementById('accepterMessage').style.display = 'none';
                         }
                     })
                     .catch(error => {
                         console.error('Error fetching appointment data:', error);
-                        alert(
-                            'Failed to fetch appointment data. Check the console for details.'
-                        );
+                        alert('Failed to fetch appointment data. Check the console for details.');
                     });
+            }
+
+            function showConfirmationModal() {
+                const confirmationModal = new bootstrap.Modal(document.getElementById('confirmModalCenter'));
+                confirmationModal.show();
+            }
+
+            function submitForm() {
+                const confirmationModal = bootstrap.Modal.getInstance(document.getElementById(
+                    'confirmModalCenter'));
+                confirmationModal.hide();
+                document.querySelector('#updateModal form').submit();
+            }
+
+            // Simplified search without debounce to rule out timing issues
+            $('#search-title').on('input', function() {
+                var searchTerm = $(this).val().trim();
+                console.log('Search term:', searchTerm);
+
+                const appointmentList = $('#appointment-list');
+                console.log('Before AJAX - #appointment-list exists:', appointmentList.length ? 'Yes' :
+                    'No');
+                if (!appointmentList.length) {
+                    console.error('appointment-list element not found before AJAX');
+                    alert('Error: Appointment list container not found. Please refresh the page.');
+                    return;
+                }
+
+                appointmentList.prepend('<div class="loading">Loading...</div>');
+                $('.loading').show();
+
+                $.ajax({
+                    url: 'appointment_search.php',
+                    type: 'POST',
+                    data: {
+                        search: searchTerm
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        $('.loading').remove();
+                        console.log('AJAX response:', response);
+
+                        const appointmentListAfter = $('#appointment-list');
+                        console.log('After AJAX - #appointment-list exists:',
+                            appointmentListAfter.length ? 'Yes' : 'No');
+                        if (!appointmentListAfter.length) {
+                            console.error('appointment-list element not found after AJAX');
+                            alert(
+                                'Error: Appointment list container not found after search. Please refresh the page.'
+                            );
+                            return;
+                        }
+
+                        if (response.error) {
+                            alert('Error: ' + response.error + '\nDebug: ' + JSON.stringify(
+                                response.debug));
+                            return;
+                        }
+                        appointmentListAfter.html(response.html);
+                        attachUpdateButtonListeners();
+                    },
+                    error: function(xhr, status, error) {
+                        $('.loading').remove();
+                        console.error('AJAX Error:', status, error);
+                        console.log('Raw response:', xhr.responseText);
+                        alert(
+                            'Failed to fetch search results. Raw response logged to console.'
+                        );
+                    }
+                });
             });
+
+            $('#search-title').on('input', function() {
+                $('#clear-search').toggle(!!$(this).val());
+            });
+
+            $('#clear-search').on('click', function() {
+                $('#search-title').val('').trigger('input');
+            });
+
+            // Initial attachment of event listeners
+            attachUpdateButtonListeners();
         });
-    });
-
-    function showConfirmationModal() {
-        const confirmationModal = new bootstrap.Modal(document.getElementById('confirmModalCenter'));
-        confirmationModal.show();
-    }
-
-    function submitForm() {
-        const confirmationModal = bootstrap.Modal.getInstance(document.getElementById('confirmModalCenter'));
-        confirmationModal.hide();
-        document.querySelector('#updateModal form').submit();
-    }
     </script>
-    <script src="assets/js/script.js"></script>
+    <!-- Ensure script.js is commented out to avoid conflicts -->
+    <!-- <script src="assets/js/script.js"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous">
     </script>
