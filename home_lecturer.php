@@ -19,7 +19,7 @@ include("header_lecturer.php");
             <div class="flex justify-end">
                 <button
                     class="bg-white px-6 py-3 rounded-lg shadow-md text-blue-600 text-2xl font-bold hover:bg-blue-50 transition-colors duration-300">
-                    <a href="appointment_view.php">More...</a>
+                    <a href="appointment_view_lecturer.php">More...</a>
                 </button>
             </div>
         </div>
