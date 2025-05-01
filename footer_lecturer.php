@@ -49,7 +49,14 @@
                     </ul>
                 </div>
                 <div class="text-center">
-                    <p class="text-sm">© 2024 LEE JUN KHANG. All rights reserved.</p>
+                    <p class="text-sm">Contact us: <a href="tel:+60123456789"
+                            class="underline hover:text-blue-200 transition-colors duration-300">+60123456789</a> | <a
+                            href="mailto:info@utarhospital.my"
+                            class="underline hover:text-blue-200 transition-colors duration-300">info@ams.1utar.my</a>
+                    </p>
+                </div>
+                <div class="text-center">
+                    <p class="text-sm">© <?php echo date('Y'); ?> LEE JUN KHANG. All rights reserved.</p>
                 </div>
             </div>
         </div>

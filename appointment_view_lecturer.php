@@ -1,5 +1,4 @@
 <?php
-session_start();
 include('database.php');
 include('header_lecturer.php');
 
@@ -36,13 +35,6 @@ $lecturer_id = $lecturer['id'];
 // Handle POST request for updating an appointment
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $appointment_id = $_POST['appointment_id'] ?? null;
-    $title = $_POST['title'] ?? '';
-    $requester_email = $_POST['requester_email'] ?? '';
-    $accepter_email = $_POST['accepter_email'] ?? '';
-    $from_time = $_POST['from_time'] ?? '';
-    $to_time = $_POST['to_time'] ?? '';
-    $location = $_POST['location'] ?? '';
-    $description = $_POST['description'] ?? '';
     $status = $_POST['status'] ?? '';
 
     if (!$current_user_id || !$appointment_id) {
@@ -80,7 +72,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     }
 
-    // If accepter (but not admin), only allow status update
+    // For lecturers (accepters, non-admins), only allow status updates
     if ($is_accepter && !$is_admin) {
         if (empty($status)) {
             error_log("Missing status for accepter update");
@@ -91,8 +83,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $update_query = "UPDATE appointments SET status = ? WHERE id = ?";
         $update_stmt = $con->prepare($update_query);
         $update_stmt->bind_param('si', $status, $appointment_id);
+
+        if ($update_stmt->execute()) {
+            $_SESSION['success_message'] = "Appointment status updated successfully.";
+        } else {
+            error_log("SQL Error: " . $update_stmt->error);
+            $_SESSION['error_message'] = "Error updating appointment status: " . $update_stmt->error;
+        }
     } else {
-        // Full update for admin
+        // Full update for admins
+        $title = $_POST['title'] ?? '';
+        $requester_email = $_POST['requester_email'] ?? '';
+        $accepter_email = $_POST['accepter_email'] ?? '';
+        $from_time = $_POST['from_time'] ?? '';
+        $to_time = $_POST['to_time'] ?? '';
+        $location = $_POST['location'] ?? '';
+        $description = $_POST['description'] ?? '';
+
         if (empty($title) || empty($requester_email) || empty($accepter_email) || empty($from_time) || empty($to_time) || empty($location) || empty($status)) {
             $_SESSION['error_message'] = "All fields are required.";
             header("Location: appointment_view_lecturer.php");
@@ -130,402 +137,507 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                          WHERE id = ?";
         $update_stmt = $con->prepare($update_query);
         $update_stmt->bind_param('siisssssi', $title, $student_id, $lecturer_id, $from_time, $to_time, $location, $description, $status, $appointment_id);
-    }
 
-    if ($update_stmt->execute()) {
-        $_SESSION['success_message'] = "Appointment updated successfully.";
-    } else {
-        error_log("SQL Error: " . $update_stmt->error);
-        $_SESSION['error_message'] = "Error updating appointment: " . $update_stmt->error;
+        if ($update_stmt->execute()) {
+            $_SESSION['success_message'] = "Appointment updated successfully.";
+        } else {
+            error_log("SQL Error: " . $update_stmt->error);
+            $_SESSION['error_message'] = "Error updating appointment: " . $update_stmt->error;
+        }
     }
 
     $update_stmt->close();
     header("Location: appointment_view_lecturer.php");
     exit();
 }
+
+// Fetch appointments for initial display
+$sel_query = "SELECT appointments.*, 
+              u1.username AS requester_name, 
+              u1.email AS requester_email, 
+              u2.username AS accepter_name, 
+              u2.email AS accepter_email 
+       FROM appointments 
+       JOIN users u1 ON appointments.student_id = u1.id 
+       JOIN lecturers l ON appointments.lecturer_id = l.id 
+       JOIN users u2 ON l.user_id = u2.id 
+       WHERE appointments.lecturer_id = ?
+       ORDER BY appointments.id DESC";
+$stmt = $con->prepare($sel_query);
+$stmt->bind_param('i', $lecturer_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$appointments = [];
+while ($row = $result->fetch_assoc()) {
+    $appointments[] = $row;
+}
+$stmt->close();
 ?>
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+<!DOCTYPE html>
+<html lang="en">
 
-<style>
-.status-confirmed {
-    color: #27ae60;
-    font-weight: bold;
-}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Appointment Records</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <style>
+        .status-confirmed {
+            color: #27ae60;
+            font-weight: bold;
+        }
 
-.status-cancelled {
-    color: #c0392b;
-    font-weight: bold;
-}
+        .status-cancelled {
+            color: #c0392b;
+            font-weight: bold;
+        }
 
-.status-rejected {
-    color: #e74c3c;
-    font-weight: bold;
-}
+        .status-rejected {
+            color: #e74c3c;
+            font-weight: bold;
+        }
 
-.status-completed {
-    color: #3498db;
-    font-weight: bold;
-}
+        .status-completed {
+            color: #3498db;
+            font-weight: bold;
+        }
 
-.product-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
+        .product-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
 
-.product-table th,
-.product-table td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-}
+        .product-table th,
+        .product-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
 
-.product-table th {
-    background-color: #f8f9fa;
-    font-weight: bold;
-}
+        .product-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
 
-.product-table tr:hover {
-    background-color: #f1f1f1;
-}
-</style>
+        .product-table tr:hover {
+            background-color: #f1f1f1;
+        }
 
-<main>
-    <div class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <?php
-                if (isset($_SESSION['success_message'])) {
-                    echo "<div class='alert alert-success'>" . $_SESSION['success_message'] . "</div>";
-                    unset($_SESSION['success_message']);
-                }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
 
-                if (isset($_SESSION['error_message'])) {
-                    echo "<div class='alert alert-danger'>" . $_SESSION['error_message'] . "</div>";
-                    unset($_SESSION['error_message']);
-                }
-                ?>
-                <div class="card">
-                    <div class="card-header">
-                        <h2 style="text-align: center;">View Appointment Records</h2>
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <!-- Create button can be added if needed -->
+        #clear-search {
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <?php
+                    if (isset($_SESSION['success_message'])) {
+                        echo "<div class='alert alert-success'>" . $_SESSION['success_message'] . "</div>";
+                        unset($_SESSION['success_message']);
+                    }
+
+                    if (isset($_SESSION['error_message'])) {
+                        echo "<div class='alert alert-danger'>" . $_SESSION['error_message'] . "</div>";
+                        unset($_SESSION['error_message']);
+                    }
+                    ?>
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 style="text-align: center;">View Appointment Records</h2>
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <div class="relative">
+                                    <input type="text" id="search-filter" placeholder="Search appointments..."
+                                        class="border p-2 rounded">
+                                    <button id="clear-search"
+                                        class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                        style="display: none;">×</button>
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="card-body">
-                        <table class="product-table">
-                            <thead>
-                                <tr>
-                                    <th>No.</th>
-                                    <th>Requester Name</th>
-                                    <th>Title</th>
-                                    <th>From</th>
-                                    <th>To</th>
-                                    <th>Description</th>
-                                    <th>Location</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php
-                                $count = 1;
-                                $sel_query = "SELECT appointments.*, 
-                                             u1.username AS requester_name, 
-                                             u1.email AS requester_email, 
-                                             u2.username AS accepter_name, 
-                                             u2.email AS accepter_email 
-                                      FROM appointments 
-                                      JOIN users u1 ON appointments.student_id = u1.id 
-                                      JOIN lecturers l ON appointments.lecturer_id = l.id 
-                                      JOIN users u2 ON l.user_id = u2.id 
-                                      WHERE appointments.lecturer_id = ?
-                                      ORDER BY appointments.id DESC";
-                                $stmt = $con->prepare($sel_query);
-                                $stmt->bind_param('i', $lecturer_id);
-                                $stmt->execute();
-                                $result = $stmt->get_result();
-
-                                if ($result->num_rows === 0) {
-                                    echo "<tr><td colspan='9' class='text-center'>No appointments found.</td></tr>";
-                                } else {
-                                    while ($row = mysqli_fetch_assoc($result)) {
-                                        $statusText = $row['status'] ?: 'Confirmed'; // Default to Confirmed as per schema
-                                        $statusClass = '';
-                                        switch ($statusText) {
-                                            case 'Confirmed':
-                                                $statusClass = 'status-confirmed';
-                                                break;
-                                            case 'Cancelled':
-                                                $statusClass = 'status-cancelled';
-                                                break;
-                                            case 'Rejected':
-                                                $statusClass = 'status-rejected';
-                                                break;
-                                            case 'Completed':
-                                                $statusClass = 'status-completed';
-                                                break;
-                                            default:
-                                                $statusClass = '';
-                                        }
-                                ?>
-                                <tr>
-                                    <td><?php echo $count; ?></td>
-                                    <td><?php echo htmlspecialchars($row["requester_name"]); ?></td>
-                                    <td><?php echo htmlspecialchars($row["title"]); ?></td>
-                                    <td><?php echo htmlspecialchars($row["start_datetime"]); ?></td>
-                                    <td><?php echo htmlspecialchars($row["end_datetime"]); ?></td>
-                                    <td><?php echo htmlspecialchars($row["description"]); ?></td>
-                                    <td><?php echo htmlspecialchars($row["location"]); ?></td>
-                                    <td class="<?php echo $statusClass; ?>"><?php echo htmlspecialchars($statusText); ?>
-                                    </td>
-                                    <td>
-                                        <?php if ($statusText !== 'Cancelled'): ?>
-                                        <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal"
-                                            data-bs-target="#updateModal"
-                                            data-id="<?php echo $row['id']; ?>">Update</button>
+                        <div class="card-body">
+                            <div id="appointment-list">
+                                <table class="product-table">
+                                    <thead>
+                                        <tr>
+                                            <th>No.</th>
+                                            <th>Requester Name</th>
+                                            <th>Title</th>
+                                            <th>From</th>
+                                            <th>To</th>
+                                            <th>Description</th>
+                                            <th>Location</th>
+                                            <th>Status</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php if (empty($appointments)): ?>
+                                            <tr>
+                                                <td colspan="9" class="text-center">No appointments found.</td>
+                                            </tr>
                                         <?php else: ?>
-                                        <button type="button" class="btn btn-outline-secondary"
-                                            disabled>Cancelled</button>
+                                            <?php $count = 1; ?>
+                                            <?php foreach ($appointments as $row): ?>
+                                                <?php
+                                                $statusText = $row['status'] ?: 'Confirmed'; // Default to Confirmed as per schema
+                                                $statusClass = '';
+                                                switch ($statusText) {
+                                                    case 'Confirmed':
+                                                        $statusClass = 'status-confirmed';
+                                                        break;
+                                                    case 'Cancelled':
+                                                        $statusClass = 'status-cancelled';
+                                                        break;
+                                                    case 'Rejected':
+                                                        $statusClass = 'status-rejected';
+                                                        break;
+                                                    case 'Completed':
+                                                        $statusClass = 'status-completed';
+                                                        break;
+                                                    default:
+                                                        $statusClass = '';
+                                                }
+                                                ?>
+                                                <tr>
+                                                    <td><?php echo $count; ?></td>
+                                                    <td><?php echo htmlspecialchars($row["requester_name"]); ?></td>
+                                                    <td><?php echo htmlspecialchars($row["title"]); ?></td>
+                                                    <td><?php echo htmlspecialchars($row["start_datetime"]); ?></td>
+                                                    <td><?php echo htmlspecialchars($row["end_datetime"]); ?></td>
+                                                    <td><?php echo htmlspecialchars($row["description"]); ?></td>
+                                                    <td><?php echo htmlspecialchars($row["location"]); ?></td>
+                                                    <td class="<?php echo $statusClass; ?>">
+                                                        <?php echo htmlspecialchars($statusText); ?></td>
+                                                    <td>
+                                                        <?php if ($statusText !== 'Cancelled'): ?>
+                                                            <button type="button" class="btn btn-outline-warning"
+                                                                data-bs-toggle="modal" data-bs-target="#updateModal"
+                                                                data-id="<?php echo $row['id']; ?>">Update</button>
+                                                        <?php else: ?>
+                                                            <button type="button" class="btn btn-outline-secondary"
+                                                                disabled>Cancelled</button>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                </tr>
+                                                <?php $count++; ?>
+                                            <?php endforeach; ?>
                                         <?php endif; ?>
-                                    </td>
-                                </tr>
-                                <?php
-                                        $count++;
-                                    }
-                                }
-                                $stmt->close();
-                                ?>
-                            </tbody>
-                        </table>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Update Appointment Modal -->
-            <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true"
-                data-bs-backdrop='static'>
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h1 class="modal-title fs-5" id="updateModalLabel">Update Appointment Request</h1>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <!-- Update Appointment Modal -->
+                <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel"
+                    aria-hidden="true" data-bs-backdrop='static'>
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h1 class="modal-title fs-5" id="updateModalLabel">Update Appointment Request</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div id="viewOnlyMessage" style="display: none;" class="alert alert-info">
+                                You are viewing this appointment in read-only mode.
+                            </div>
+                            <div id="accepterMessage" style="display: none;" class="alert alert-warning">
+                                As the accepter, you can only update the status of this appointment.
+                            </div>
+                            <form action="appointment_view_lecturer.php" method="post">
+                                <div class="modal-body">
+                                    <div class="form-group row">
+                                        <label for="update_status"
+                                            class="col-sm-2 col-form-label col-form-label-lg">Status</label>
+                                        <div class="col-sm-10">
+                                            <select class="form-control" id="update_status" name="status">
+                                                <option value=""></option>
+                                                <option value="Confirmed">Confirmed</option>
+                                                <option value="Rejected">Rejected</option>
+                                                <option value="Cancelled">Cancelled</option>
+                                                <option value="Completed">Completed</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="appointment_id" id="update_appointment_id" value="">
+                                    <div class="form-group row">
+                                        <label for="update_title"
+                                            class="col-sm-2 col-form-label col-form-label-lg">Title</label>
+                                        <div class="col-sm-10">
+                                            <input type="text" class="form-control form-control-lg" id="update_title"
+                                                name="title" placeholder="">
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <div class="form-group col-md-6">
+                                            <label for="update_requester_email">Requester email</label>
+                                            <input type="email" class="form-control" id="update_requester_email"
+                                                name="requester_email" value="">
+                                        </div>
+                                        <div class="form-group col-md-6">
+                                            <label for="update_accepter_email">Accepter email</label>
+                                            <input type="email" class="form-control" id="update_accepter_email"
+                                                name="accepter_email" value="">
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <div class="form-group mb-4">
+                                            <label for="update_from_time">From</label>
+                                            <input type="datetime-local" class="form-control" id="update_from_time"
+                                                name="from_time">
+                                        </div>
+                                        <div class="form-group mb-4">
+                                            <label for="update_to_time">To</label>
+                                            <input type="datetime-local" class="form-control" id="update_to_time"
+                                                name="to_time">
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <div class="form-group col-md-6">
+                                            <label for="update_location">Location</label>
+                                            <input type="text" class="form-control" id="update_location"
+                                                name="location">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="update_description">Description</label>
+                                        <textarea class="form-control" id="update_description" name="description"
+                                            rows="3" placeholder="Description"></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Cancel</button>
+                                    <button class="btn btn-primary" type="button"
+                                        onclick="showConfirmationModal()">Update</button>
+                                </div>
+                            </form>
                         </div>
-                        <div id="viewOnlyMessage" style="display: none;" class="alert alert-info">
-                            You are viewing this appointment in read-only mode.
-                        </div>
-                        <div id="accepterMessage" style="display: none;" class="alert alert-warning">
-                            As the accepter, you can only update the status of this appointment.
-                        </div>
-                        <form action="appointment_view_lecturer.php" method="post">
+                    </div>
+                </div>
+
+                <!-- Confirmation Modal -->
+                <div class="modal fade" id="confirmModalCenter" tabindex="-1" role="dialog"
+                    aria-labelledby="confirmModalCenterTitle" aria-hidden="true" data-bs-backdrop='static'>
+                    <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="confirmModalLongTitle">Please Confirm</h5>
+                            </div>
                             <div class="modal-body">
-                                <div class="form-group row">
-                                    <label for="update_status"
-                                        class="col-sm-2 col-form-label col-form-label-lg">Status</label>
-                                    <div class="col-sm-10">
-                                        <select class="form-control" id="update_status" name="status">
-                                            <option value=""></option>
-                                            <option value="Confirmed">Confirmed</option>
-                                            <option value="Rejected">Rejected</option>
-                                            <option value="Cancelled">Cancelled</option>
-                                            <option value="Completed">Completed</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <input type="hidden" name="appointment_id" id="update_appointment_id" value="">
-                                <div class="form-group row">
-                                    <label for="update_title"
-                                        class="col-sm-2 col-form-label col-form-label-lg">Title</label>
-                                    <div class="col-sm-10">
-                                        <input type="text" class="form-control form-control-lg" id="update_title"
-                                            name="title" placeholder="">
-                                    </div>
-                                </div>
-                                <div class="form-group row">
-                                    <div class="form-group col-md-6">
-                                        <label for="update_requester_email">Requester email</label>
-                                        <input type="email" class="form-control" id="update_requester_email"
-                                            name="requester_email" value="">
-                                    </div>
-                                    <div class="form-group col-md-6">
-                                        <label for="update_accepter_email">Accepter email</label>
-                                        <input type="email" class="form-control" id="update_accepter_email"
-                                            name="accepter_email" value="">
-                                    </div>
-                                </div>
-                                <div class="form-group row">
-                                    <div class="form-group mb-4">
-                                        <label for="update_from_time">From</label>
-                                        <input type="datetime-local" class="form-control" id="update_from_time"
-                                            name="from_time">
-                                    </div>
-                                    <div class="form-group mb-4">
-                                        <label for="update_to_time">To</label>
-                                        <input type="datetime-local" class="form-control" id="update_to_time"
-                                            name="to_time">
-                                    </div>
-                                </div>
-                                <div class="form-group row">
-                                    <div class="form-group col-md-6">
-                                        <label for="update_location">Location</label>
-                                        <input type="text" class="form-control" id="update_location" name="location">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="update_description">Description</label>
-                                    <textarea class="form-control" id="update_description" name="description" rows="3"
-                                        placeholder="Description"></textarea>
-                                </div>
+                                Are you sure that you want to submit changes?
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <button class="btn btn-primary" type="button"
-                                    onclick="showConfirmationModal()">Update</button>
+                                <button type="button" class="btn btn-danger" onclick="submitForm()">Confirm</button>
                             </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Confirmation Modal -->
-            <div class="modal fade" id="confirmModalCenter" tabindex="-1" role="dialog"
-                aria-labelledby="confirmModalCenterTitle" aria-hidden="true" data-bs-backdrop='static'>
-                <div class="modal-dialog modal-dialog-centered" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="confirmModalLongTitle">Please Confirm</h5>
-                        </div>
-                        <div class="modal-body">
-                            Are you sure that you want to submit changes?
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="button" class="btn btn-danger" onclick="submitForm()">Confirm</button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</main>
+    </main>
 
-<?php include("footer_lecturer.php"); ?>
+    <?php include("footer_lecturer.php"); ?>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const updateButtons = document.querySelectorAll('button[data-bs-target="#updateModal"]');
+    <script src="assets/js/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous">
+    </script>
+    <script>
+        $(document).ready(function() {
+            // Search functionality
+            $('#search-filter').on('input', function() {
+                var searchTerm = $(this).val().trim();
+                console.log('Search term:', searchTerm);
 
-    updateButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const appointmentId = this.getAttribute('data-id');
+                const appointmentList = $('#appointment-list');
+                if (!appointmentList.length) {
+                    console.error('appointment-list element not found before AJAX');
+                    alert('Error: Appointment list container not found. Please refresh the page.');
+                    return;
+                }
 
-            fetch('appointment_fetch.php?id=' + appointmentId)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok: ' + response
-                            .statusText);
+                appointmentList.prepend('<div class="loading">Loading...</div>');
+                $('.loading').show();
+
+                $.ajax({
+                    url: 'appointment_search_lecturer.php',
+                    type: 'POST',
+                    data: {
+                        search: searchTerm,
+                        lecturer_id: <?php echo $lecturer_id; ?>
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        $('.loading').remove();
+                        console.log('AJAX response:', response);
+
+                        const appointmentListAfter = $('#appointment-list');
+                        if (!appointmentListAfter.length) {
+                            console.error('appointment-list element not found after AJAX');
+                            alert(
+                                'Error: Appointment list container not found after search. Please refresh the page.'
+                            );
+                            return;
+                        }
+
+                        if (response.error) {
+                            alert('Error: ' + response.error + '\nDebug: ' + JSON.stringify(
+                                response.debug));
+                            return;
+                        }
+                        appointmentListAfter.html(response.html);
+                        attachUpdateButtonListeners
+                            (); // Re-attach event listeners to new buttons
+                    },
+                    error: function(xhr, status, error) {
+                        $('.loading').remove();
+                        console.error('AJAX Error:', status, error);
+                        console.log('Raw response:', xhr.responseText);
+                        alert(
+                            'Failed to fetch search results. Raw response logged to console.'
+                        );
                     }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.error) {
-                        console.error('Server error:', data.error);
-                        alert('Error fetching appointment data: ' + data.error);
-                        return;
-                    }
-
-                    // Ensure the date format is compatible with datetime-local (YYYY-MM-DDThh:mm)
-                    const formatDateTime = (dateTime) => {
-                        const date = new Date(dateTime);
-                        return date.toISOString().slice(0,
-                        16); // Cuts off seconds and timezone
-                    };
-
-                    document.getElementById('update_status').value = data.status ||
-                        'Confirmed';
-                    document.getElementById('update_title').value = data.title || '';
-                    document.getElementById('update_requester_email').value = data
-                        .requester_email || '';
-                    document.getElementById('update_accepter_email').value = data
-                        .accepter_email || '';
-                    document.getElementById('update_from_time').value = data.from_time ?
-                        formatDateTime(data.from_time) : '';
-                    document.getElementById('update_to_time').value = data.to_time ?
-                        formatDateTime(data.to_time) : '';
-                    document.getElementById('update_location').value = data.location || '';
-                    document.getElementById('update_description').value = data
-                        .description || '';
-                    document.getElementById('update_appointment_id').value = data.id || '';
-
-                    const isAccepter = (data.current_user_id == data.accepter_id);
-                    const isAdmin = (data.current_user_role == 3);
-
-                    if (isAccepter && !isAdmin) {
-                        document.querySelectorAll(
-                                '#updateModal input:not(#update_status), #updateModal textarea'
-                                )
-                            .forEach(el => {
-                                el.disabled = true;
-                            });
-                        document.getElementById('update_status').disabled = false;
-                        document.querySelector('#updateModal .btn-primary').style.display =
-                            'block';
-                        document.getElementById('accepterMessage').style.display = 'block';
-                        document.getElementById('viewOnlyMessage').style.display = 'none';
-                    } else if (!isAdmin) {
-                        document.querySelectorAll(
-                                '#updateModal input, #updateModal select, #updateModal textarea'
-                                )
-                            .forEach(el => {
-                                el.disabled = true;
-                            });
-                        document.querySelector('#updateModal .btn-primary').style.display =
-                            'none';
-                        document.getElementById('viewOnlyMessage').style.display = 'block';
-                        document.getElementById('accepterMessage').style.display = 'none';
-                    } else {
-                        document.querySelectorAll(
-                                '#updateModal input, #updateModal select, #updateModal textarea'
-                                )
-                            .forEach(el => {
-                                el.disabled = false;
-                            });
-                        document.querySelector('#updateModal .btn-primary').style.display =
-                            'block';
-                        document.getElementById('viewOnlyMessage').style.display = 'none';
-                        document.getElementById('accepterMessage').style.display = 'none';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching appointment data:', error);
-                    alert(
-                        'Failed to fetch appointment data. Check the console for details.');
                 });
+            });
+
+            // Clear search functionality
+            $('#search-filter').on('input', function() {
+                $('#clear-search').toggle(!!$(this).val());
+            });
+
+            $('#clear-search').on('click', function() {
+                $('#search-filter').val('').trigger('input');
+            });
+
+            // Function to attach event listeners to update buttons
+            function attachUpdateButtonListeners() {
+                const updateButtons = document.querySelectorAll('button[data-bs-target="#updateModal"]');
+
+                updateButtons.forEach(button => {
+                    button.removeEventListener('click',
+                        handleUpdateButtonClick); // Remove existing listeners to prevent duplicates
+                    button.addEventListener('click', handleUpdateButtonClick);
+                });
+
+                function handleUpdateButtonClick() {
+                    const appointmentId = this.getAttribute('data-id');
+
+                    fetch('appointment_fetch.php?id=' + appointmentId)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok: ' + response.statusText);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data.error) {
+                                console.error('Server error:', data.error);
+                                alert('Error fetching appointment data: ' + data.error);
+                                return;
+                            }
+
+                            // Ensure the date format is compatible with datetime-local (YYYY-MM-DDThh:mm)
+                            const formatDateTime = (dateTime) => {
+                                if (!dateTime) return '';
+                                const date = new Date(dateTime);
+                                return date.toISOString().slice(0, 16); // Cuts off seconds and timezone
+                            };
+
+                            document.getElementById('update_status').value = data.status || 'Confirmed';
+                            document.getElementById('update_title').value = data.title || '';
+                            document.getElementById('update_requester_email').value = data.requester_email ||
+                                '';
+                            document.getElementById('update_accepter_email').value = data.accepter_email || '';
+                            document.getElementById('update_from_time').value = data.from_time ? formatDateTime(
+                                data.from_time) : '';
+                            document.getElementById('update_to_time').value = data.to_time ? formatDateTime(data
+                                .to_time) : '';
+                            document.getElementById('update_location').value = data.location || '';
+                            document.getElementById('update_description').value = data.description || '';
+                            document.getElementById('update_appointment_id').value = data.id || '';
+
+                            const isAccepter = (data.current_user_id == data.accepter_id);
+                            const isAdmin = (data.current_user_role == 3);
+
+                            if (isAccepter && !isAdmin) {
+                                // Lecturers can only update status
+                                document.querySelectorAll(
+                                        '#updateModal input:not([name="status"]), #updateModal textarea')
+                                    .forEach(el => {
+                                        el.disabled = true;
+                                    });
+                                document.getElementById('update_status').disabled = false;
+                                document.querySelector('#updateModal .btn-primary').style.display = 'block';
+                                document.getElementById('accepterMessage').style.display = 'block';
+                                document.getElementById('viewOnlyMessage').style.display = 'none';
+                            } else if (!isAdmin) {
+                                // No permission to update
+                                document.querySelectorAll(
+                                        '#updateModal input, #updateModal select, #updateModal textarea')
+                                    .forEach(el => {
+                                        el.disabled = true;
+                                    });
+                                document.querySelector('#updateModal .btn-primary').style.display = 'none';
+                                document.getElementById('viewOnlyMessage').style.display = 'block';
+                                document.getElementById('accepterMessage').style.display = 'none';
+                            } else {
+                                // Admins can update all fields
+                                document.querySelectorAll(
+                                        '#updateModal input, #updateModal select, #updateModal textarea')
+                                    .forEach(el => {
+                                        el.disabled = false;
+                                    });
+                                document.querySelector('#updateModal .btn-primary').style.display = 'block';
+                                document.getElementById('viewOnlyMessage').style.display = 'none';
+                                document.getElementById('accepterMessage').style.display = 'none';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error fetching appointment data:', error);
+                            alert('Failed to fetch appointment data. Check the console for details.');
+                        });
+                }
+            }
+
+            // Initial attachment of event listeners
+            attachUpdateButtonListeners();
         });
-    });
-});
 
-function showConfirmationModal() {
-    const confirmationModal = new bootstrap.Modal(document.getElementById('confirmModalCenter'));
-    confirmationModal.show();
-}
+        function showConfirmationModal() {
+            const confirmationModal = new bootstrap.Modal(document.getElementById('confirmModalCenter'));
+            confirmationModal.show();
+        }
 
-function submitForm() {
-    const confirmationModal = bootstrap.Modal.getInstance(document.getElementById('confirmModalCenter'));
-    confirmationModal.hide();
-    document.querySelector('#updateModal form').submit();
-}
-</script>
-<script src="assets/js/script.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous">
-</script>
+        function submitForm() {
+            const confirmationModal = bootstrap.Modal.getInstance(document.getElementById('confirmModalCenter'));
+            confirmationModal.hide();
+            document.querySelector('#updateModal form').submit();
+        }
+    </script>
 </body>
 
 </html>
+
 <?php
 $con->close();
 ?>
