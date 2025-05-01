@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 29, 2025 at 03:40 AM
+-- Generation Time: May 01, 2025 at 09:08 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -68,7 +68,8 @@ CREATE TABLE `appointments` (
 INSERT INTO `appointments` (`id`, `student_id`, `lecturer_id`, `title`, `start_datetime`, `end_datetime`, `status`, `description`, `location`, `created_at`, `updated_at`) VALUES
 (1, 2, 1, 'Nothing', '2025-04-29 14:00:00', '2025-04-29 14:30:00', 'Completed', 'testing123', 'PG078', '2025-04-28 14:04:35', '2025-04-28 15:31:13'),
 (4, 2, 1, 'n', '2025-04-30 12:00:00', '2025-04-30 12:30:00', 'Rejected', 'n', 'n', '2025-04-28 15:04:06', '2025-04-29 01:02:20'),
-(5, 2, 1, 'n', '2025-09-08 11:30:00', '2025-09-08 12:00:00', 'Confirmed', 'n', 'n', '2025-04-28 15:04:35', '2025-04-28 15:04:35');
+(5, 2, 1, 'n', '2025-09-08 11:30:00', '2025-09-08 12:00:00', 'Confirmed', 'n', 'n', '2025-04-28 15:04:35', '2025-04-28 15:04:35'),
+(7, 2, 2, 'Trying', '2025-05-02 13:30:00', '2025-05-02 14:00:00', 'Rejected', '-', '-', '2025-05-01 05:14:55', '2025-05-01 05:16:54');
 
 -- --------------------------------------------------------
 
@@ -79,10 +80,18 @@ INSERT INTO `appointments` (`id`, `student_id`, `lecturer_id`, `title`, `start_d
 CREATE TABLE `blocked_dates` (
   `id` bigint(11) NOT NULL,
   `lecturer_id` bigint(11) DEFAULT NULL,
-  `blocked_date` datetime DEFAULT NULL,
+  `start_date` date NOT NULL,
+  `end_date` date NOT NULL,
   `reason` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `blocked_dates`
+--
+
+INSERT INTO `blocked_dates` (`id`, `lecturer_id`, `start_date`, `end_date`, `reason`, `created_at`) VALUES
+(1, 2, '2025-04-28', '2025-05-09', 'On leave', '2025-05-01 05:13:54');
 
 -- --------------------------------------------------------
 
@@ -104,7 +113,8 @@ CREATE TABLE `lecturers` (
 --
 
 INSERT INTO `lecturers` (`id`, `user_id`, `username`, `faculty`, `department`, `designation`) VALUES
-(1, 4, 'LEE KOK LEONG', 'FICT', 'DCCT', 'Senior Lecturer');
+(1, 4, 'LEE KOK LEONG', 'FICT', 'DCCT', 'Senior Lecturer'),
+(2, 7, 'MUHAMMAD MATTHEW SOH', 'FICT', 'DCS', 'Lecturer');
 
 -- --------------------------------------------------------
 
@@ -135,7 +145,8 @@ INSERT INTO `lecturer_availability` (`id`, `lecturer_id`, `is_recurring`, `day_o
 (1, 1, 0, NULL, NULL, NULL, NULL, NULL, '2025-04-29 14:00:00', '2025-04-29 16:00:00', '2025-04-28 06:17:15', '2025-04-28 06:20:40'),
 (2, 1, 1, 3, '12:00:00', '13:00:00', '2025-04-30', '2025-05-28', NULL, NULL, '2025-04-28 06:23:57', '2025-04-28 06:23:57'),
 (3, 1, 1, 3, '14:00:00', '16:00:00', '2025-04-30', '2025-05-28', NULL, NULL, '2025-04-28 06:32:26', '2025-04-28 06:32:26'),
-(4, 1, 1, 1, '09:00:00', '12:00:00', '2025-04-01', '2025-12-31', '2025-04-28 09:00:00', '2025-12-31 12:00:00', '2025-04-28 12:30:08', '2025-04-28 15:58:26');
+(4, 1, 1, 1, '09:00:00', '12:00:00', '2025-04-01', '2025-12-31', '2025-04-28 09:00:00', '2025-12-31 12:00:00', '2025-04-28 12:30:08', '2025-04-28 15:58:26'),
+(5, 2, 1, 5, '13:00:00', '15:00:00', '2025-05-02', '2025-05-30', NULL, NULL, '2025-04-30 02:11:55', '2025-04-30 02:11:55');
 
 -- --------------------------------------------------------
 
@@ -199,10 +210,11 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `email`, `role_id`, `reg_date`, `password`, `contact_number`) VALUES
-(2, 'LEE JUN KHANG', 'leejunkhang56@gmail.com', 2, '2025-04-28 01:13:47', '$2y$10$5Y4kUTWOck6Ny8IQqbvKl.IrXAlvkDo7i6fnl9TfVWFMdgPmhvDVq', '601110983279'),
+(2, 'LEE JUN KHANG', 'leejunkhang56@gmail.com', 2, '2025-04-28 01:13:47', '$2y$10$5BBsDqT/1ED12vGBCVT81.Mpy4EfBIXn1uaM67EO7.MROL/gaIIm.', '601110983279'),
 (4, 'LEE KOK LEONG', 'kleong@gmail.com', 1, '2025-04-28 01:23:39', '$2y$10$eKPc9FZQJu19PkN/5M8RqeZzJNYonpUUsaUYEhruI4n9hAZxy61qm', '60123456789'),
 (5, 'ADMIN', 'admin@gmail.com', 3, '2025-04-28 08:05:40', '$2y$10$2F1dMrkIe6gJsYdks05O3O2VoGKkDKFW.v9CPVgv0mLheHISozKDW', '60123456789'),
-(6, 'VINCENT LOH', 'vincent@gmail.com', 2, '2025-04-28 23:08:58', '$2y$10$4i9A2G5X4GilqTapHSMIB.zFZeATybPxD7ecP6vT.Oa5G0L2fv8ru', '60123456789');
+(6, 'VINCENT LOH', 'vincent@gmail.com', 2, '2025-04-28 23:08:58', '$2y$10$4i9A2G5X4GilqTapHSMIB.zFZeATybPxD7ecP6vT.Oa5G0L2fv8ru', '60123456789'),
+(7, 'MUHAMMAD MATTHEW SOH', 'muhammad@gmail.com', 1, '2025-04-30 10:10:07', '$2y$10$ogsG7GoAHYCIabNn/PaEG.j0fEv.evTPK5nE8Z7sC9gX/t.deQPeS', '60123456789');
 
 --
 -- Indexes for dumped tables
@@ -278,25 +290,25 @@ ALTER TABLE `admins`
 -- AUTO_INCREMENT for table `appointments`
 --
 ALTER TABLE `appointments`
-  MODIFY `id` bigint(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` bigint(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `blocked_dates`
 --
 ALTER TABLE `blocked_dates`
-  MODIFY `id` bigint(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `lecturers`
 --
 ALTER TABLE `lecturers`
-  MODIFY `id` bigint(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `lecturer_availability`
 --
 ALTER TABLE `lecturer_availability`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `roles`
@@ -314,7 +326,7 @@ ALTER TABLE `students`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` bigint(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- Constraints for dumped tables
