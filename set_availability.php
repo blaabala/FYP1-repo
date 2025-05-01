@@ -68,7 +68,7 @@ if ($result->num_rows === 0) {
 $lecturer = $result->fetch_assoc();
 $lecturer_id = $lecturer['id'];
 
-// Handle form submission
+// Handle form submission for setting availability
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['set_availability'])) {
     try {
         $is_recurring = isset($_POST['is_recurring']) ? 1 : 0;
@@ -152,6 +152,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['set_availability'])) 
     exit;
 }
 
+// Handle form submission for setting blocked dates
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['set_block_date'])) {
+    try {
+        $start_date = !empty($_POST['block_start_date']) ? $_POST['block_start_date'] : null;
+        $end_date = !empty($_POST['block_end_date']) ? $_POST['block_end_date'] : null;
+        $reason = !empty($_POST['reason']) ? trim($_POST['reason']) : null;
+
+        // Validate fields
+        if (!$start_date || !$end_date) {
+            $_SESSION['error_message'] = "Please fill in all required fields for blocked dates.";
+            header("Location: set_availability.php");
+            exit;
+        }
+
+        // Validate dates
+        $start_date_obj = new DateTime($start_date);
+        $end_date_obj = new DateTime($end_date);
+        if ($start_date_obj > $end_date_obj) {
+            $_SESSION['error_message'] = "End date must be on or after start date.";
+            header("Location: set_availability.php");
+            exit;
+        }
+
+        // Insert into blocked_dates table
+        $query = "INSERT INTO blocked_dates (lecturer_id, start_date, end_date, reason) VALUES (?, ?, ?, ?)";
+        $stmt = $con->prepare($query);
+        $stmt->bind_param("isss", $lecturer_id, $start_date, $end_date, $reason);
+        if ($stmt->execute()) {
+            $_SESSION['success_message'] = "Blocked date set successfully.";
+        } else {
+            throw new Exception("Error executing query: " . $stmt->error);
+        }
+    } catch (Exception $e) {
+        $_SESSION['error_message'] = "Error setting blocked date: " . $e->getMessage();
+    }
+    header("Location: set_availability.php");
+    exit;
+}
+
 // Fetch existing availability for display
 $query = "SELECT * FROM lecturer_availability WHERE lecturer_id = ?";
 $stmt = $con->prepare($query);
@@ -161,6 +200,61 @@ $result = $stmt->get_result();
 $availabilities = [];
 while ($row = $result->fetch_assoc()) {
     $availabilities[] = $row;
+}
+
+// Fetch existing blocked dates
+$query = "SELECT * FROM blocked_dates WHERE lecturer_id = ? ORDER BY start_date ASC";
+$stmt = $con->prepare($query);
+$stmt->bind_param("i", $lecturer_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$blocked_dates = [];
+while ($row = $result->fetch_assoc()) {
+    $blocked_dates[] = $row;
+}
+
+// Function to check if a date range overlaps with any blocked date range
+function checkOverlap($start_date, $end_date, $blocked_dates)
+{
+    $start = new DateTime($start_date);
+    $end = new DateTime($end_date);
+    foreach ($blocked_dates as $blocked) {
+        $block_start = new DateTime($blocked['start_date']);
+        $block_end = new DateTime($blocked['end_date']);
+        // Check for overlap: start_date <= block_end AND end_date >= block_start
+        if ($start <= $block_end && $end >= $block_start) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Function to check if a recurring availability instance overlaps with blocked dates
+function checkRecurringOverlap($avail, $blocked_dates)
+{
+    if (empty($blocked_dates)) {
+        return false;
+    }
+
+    $day_of_week = $avail['day_of_week'];
+    $start_time = $avail['start_time'];
+    $end_time = $avail['end_time'];
+    $recurring_start = $avail['start_date'] ? new DateTime($avail['start_date']) : new DateTime();
+    $recurring_end = $avail['end_date'] ? new DateTime($avail['end_date']) : (new DateTime())->modify('+1 year'); // Default to 1 year if no end date
+
+    // Iterate through each week between recurring_start and recurring_end
+    $current = clone $recurring_start;
+    while ($current <= $recurring_end) {
+        if ((int)$current->format('w') === $day_of_week) {
+            $instance_start = (clone $current)->setTime((int)substr($start_time, 0, 2), (int)substr($start_time, 3, 2));
+            $instance_end = (clone $current)->setTime((int)substr($end_time, 0, 2), (int)substr($end_time, 3, 2));
+            if (checkOverlap($instance_start->format('Y-m-d'), $instance_end->format('Y-m-d'), $blocked_dates)) {
+                return true;
+            }
+        }
+        $current->modify('+1 day');
+    }
+    return false;
 }
 ?>
 
@@ -188,6 +282,11 @@ while ($row = $result->fetch_assoc()) {
     body {
         height: 100%;
         margin: 0;
+    }
+
+    .disabled-text {
+        color: #888;
+        font-style: italic;
     }
     </style>
     <script>
@@ -229,7 +328,7 @@ while ($row = $result->fetch_assoc()) {
                                 Availability</a>
                         </li>
                         <li>
-                            <a href="edit_profile.php?id=<?php echo htmlspecialchars($res_id); ?>"
+                            <a href="edit_profile_lecturer.php?id=<?php echo htmlspecialchars($res_id); ?>"
                                 class="text-lg font-medium hover:text-blue-200 transition-colors duration-300">Edit
                                 Profile</a>
                         </li>
@@ -259,7 +358,7 @@ while ($row = $result->fetch_assoc()) {
         ?>
 
         <!-- Form to set availability -->
-        <form action="set_availability.php" method="post" class="bg-white p-4 rounded shadow">
+        <form action="set_availability.php" method="post" class="bg-white p-4 rounded shadow mb-6">
             <div class="mb-4">
                 <label class="inline-flex items-center">
                     <input type="checkbox" id="is_recurring" name="is_recurring" onchange="toggleAvailabilityFields()"
@@ -318,6 +417,26 @@ while ($row = $result->fetch_assoc()) {
                 class="bg-blue-800 text-white py-2 px-4 rounded hover:bg-blue-900">Set Availability</button>
         </form>
 
+        <!-- Form to set blocked dates -->
+        <h2 class="text-2xl font-bold mb-4">Set Block Date</h2>
+        <form action="set_availability.php" method="post" class="bg-white p-4 rounded shadow mb-6">
+            <div class="mb-4">
+                <label for="block_start_date" class="block text-gray-700">Start Date:</label>
+                <input type="date" id="block_start_date" name="block_start_date" class="w-full p-2 border rounded"
+                    required>
+            </div>
+            <div class="mb-4">
+                <label for="block_end_date" class="block text-gray-700">End Date:</label>
+                <input type="date" id="block_end_date" name="block_end_date" class="w-full p-2 border rounded" required>
+            </div>
+            <div class="mb-4">
+                <label for="reason" class="block text-gray-700">Reason (optional):</label>
+                <textarea id="reason" name="reason" class="w-full p-2 border rounded" rows="3"></textarea>
+            </div>
+            <button type="submit" name="set_block_date"
+                class="bg-blue-800 text-white py-2 px-4 rounded hover:bg-blue-900">Set Block Date</button>
+        </form>
+
         <!-- Display existing availability -->
         <h3 class="text-xl font-semibold mt-6 mb-2">Existing Availability</h3>
         <?php if (count($availabilities) > 0): ?>
@@ -325,6 +444,7 @@ while ($row = $result->fetch_assoc()) {
             <?php foreach ($availabilities as $avail): ?>
             <li class="mb-2">
                 <?php
+                        $is_disabled = false;
                         if ($avail['is_recurring']) {
                             $days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
                             $day_of_week = $days[$avail['day_of_week']];
@@ -336,11 +456,16 @@ while ($row = $result->fetch_assoc()) {
                                 $end_date = date("d M Y", strtotime($avail['end_date']));
                                 $recurring_period = " (from $start_date to $end_date)";
                             }
+                            $is_disabled = checkRecurringOverlap($avail, $blocked_dates);
                             echo "Every $day_of_week, $start_time - $end_time$recurring_period";
                         } else {
                             $start_datetime = date("d M Y, h:i A", strtotime($avail['start_datetime']));
                             $end_datetime = date("d M Y, h:i A", strtotime($avail['end_datetime']));
+                            $is_disabled = checkOverlap(date("Y-m-d", strtotime($avail['start_datetime'])), date("Y-m-d", strtotime($avail['end_datetime'])), $blocked_dates);
                             echo "$start_datetime - $end_datetime";
+                        }
+                        if ($is_disabled) {
+                            echo " <span class='disabled-text'>(Disabled due to blocked dates)</span>";
                         }
                         ?>
             </li>
@@ -348,6 +473,25 @@ while ($row = $result->fetch_assoc()) {
         </ul>
         <?php else: ?>
         <p class="text-gray-700">No availability set.</p>
+        <?php endif; ?>
+
+        <!-- Display existing blocked dates -->
+        <h3 class="text-xl font-semibold mt-6 mb-2">Existing Blocked Dates</h3>
+        <?php if (count($blocked_dates) > 0): ?>
+        <ul class="bg-white p-4 rounded shadow">
+            <?php foreach ($blocked_dates as $blocked): ?>
+            <li class="mb-2">
+                <?php
+                        $start_date = date("d M Y", strtotime($blocked['start_date']));
+                        $end_date = date("d M Y", strtotime($blocked['end_date']));
+                        $reason = $blocked['reason'] ? " - Reason: " . htmlspecialchars($blocked['reason']) : '';
+                        echo "$start_date to $end_date$reason";
+                        ?>
+            </li>
+            <?php endforeach; ?>
+        </ul>
+        <?php else: ?>
+        <p class="text-gray-700">No blocked dates set.</p>
         <?php endif; ?>
     </div>
 

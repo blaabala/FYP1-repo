@@ -63,6 +63,17 @@ while ($row = $result->fetch_assoc()) {
     $availabilities[] = $row;
 }
 
+// Fetch blocked dates
+$blocked_dates = [];
+$query = "SELECT * FROM blocked_dates WHERE lecturer_id = ?";
+$statement = $con->prepare($query);
+$statement->bind_param("i", $lecturer_id);
+$statement->execute();
+$result = $statement->get_result();
+while ($row = $result->fetch_assoc()) {
+    $blocked_dates[] = $row;
+}
+
 // Fetch booked appointments to exclude them
 $booked_slots = [];
 $query = "SELECT start_datetime, end_datetime FROM appointments WHERE lecturer_id = ? AND status IN ('Confirmed', 'Pending', 'testing123')";
@@ -384,6 +395,17 @@ $bufferHours = 2; // Buffer period of 2 hours
                 return date;
             }
 
+            // Function to check if a date is within a blocked date range
+            function isDateBlocked(date, blockedDates) {
+                const dateStr = date.toISOString().split('T')[0]; // Get YYYY-MM-DD
+                return blockedDates.some(blocked => {
+                    const blockStart = parseDateInKualaLumpur(blocked.start_date);
+                    const blockEnd = parseDateInKualaLumpur(blocked.end_date);
+                    const checkDate = parseDateInKualaLumpur(dateStr);
+                    return checkDate >= blockStart && checkDate <= blockEnd;
+                });
+            }
+
             // Current time and buffer period
             const currentTime = new Date('<?php echo $currentTime->format('c'); ?>');
             const bufferHours = <?php echo $bufferHours; ?>;
@@ -391,6 +413,10 @@ $bufferHours = 2; // Buffer period of 2 hours
             const bufferThreshold = new Date(currentTime.getTime() + bufferMillis);
             console.log('Current Time:', currentTime);
             console.log('Buffer Threshold (cannot book before this):', bufferThreshold);
+
+            // Blocked dates
+            const blockedDates = <?php echo json_encode($blocked_dates); ?>;
+            console.log('Blocked Dates:', blockedDates);
 
             // Events array (non-recurring slots)
             const nonRecurringEvents = [
@@ -455,9 +481,26 @@ $bufferHours = 2; // Buffer period of 2 hours
                                     }
                                 }
 
+                                $isBlocked = false;
+                                foreach ($blocked_dates as $blocked) {
+                                    $blockStart = new DateTime($blocked['start_date']);
+                                    $blockEnd = new DateTime($blocked['end_date']);
+                                    $slotDate = (clone $slotStart)->setTime(0, 0, 0);
+                                    if ($slotDate >= $blockStart && $slotDate <= $blockEnd) {
+                                        $isBlocked = true;
+                                        break;
+                                    }
+                                }
+
                                 if ($isFullyBooked) {
                                     $eventItems[] = sprintf(
                                         "{title: '', start: %s, end: %s, backgroundColor: '#ff3b30', borderColor: '#ff3b30', classNames: ['fully-booked-slot'], editable: false, selectable: false, eventOverlap: false, eventAllow: function() { return false; }}",
+                                        json_encode($slot['start']),
+                                        json_encode($slot['end'])
+                                    );
+                                } elseif ($isBlocked) {
+                                    $eventItems[] = sprintf(
+                                        "{title: '', start: %s, end: %s, classNames: ['disabled-time-slot'], editable: false, selectable: false, eventOverlap: false, eventAllow: function() { return false; }}",
                                         json_encode($slot['start']),
                                         json_encode($slot['end'])
                                     );
@@ -650,17 +693,21 @@ $bufferHours = 2; // Buffer period of 2 hours
                                         while (currentSlot < slotEnd) {
                                             const slotEndTime = new Date(currentSlot);
                                             slotEndTime.setMinutes(currentSlot
-                                            .getMinutes() + 30);
+                                                .getMinutes() + 30);
 
                                             // Check if the slot is in the past or within the buffer period
                                             const isPastOrTooSoon = currentSlot <
                                                 currentTime || currentSlot.getTime() <
                                                 bufferThreshold.getTime();
 
+                                            // Check if the slot is within a blocked date range
+                                            const isBlocked = isDateBlocked(currentSlot,
+                                                blockedDates);
+
                                             console.log('Adding recurring event:',
                                                 currentSlot, slotEndTime);
 
-                                            if (isPastOrTooSoon) {
+                                            if (isPastOrTooSoon || isBlocked) {
                                                 calendar.addEvent({
                                                     title: '',
                                                     start: currentSlot,
@@ -677,7 +724,7 @@ $bufferHours = 2; // Buffer period of 2 hours
                                                     }
                                                 });
                                                 console.log(
-                                                    'Disabled recurring slot (past or too soon):',
+                                                    'Disabled recurring slot (past, too soon, or blocked):',
                                                     currentSlot, slotEndTime);
                                             } else {
                                                 calendar.addEvent({
@@ -697,13 +744,13 @@ $bufferHours = 2; // Buffer period of 2 hours
                                             }
 
                                             currentSlot.setMinutes(currentSlot
-                                            .getMinutes() + 30);
+                                                .getMinutes() + 30);
                                         }
                                     }
                                     currentDate.setDate(currentDate.getDate() + 1);
                                 }
                                 currentDate.setTime(startDate
-                            .getTime()); // Reset for next iteration
+                                    .getTime()); // Reset for next iteration
                             });
                         } catch (error) {
                             console.error('Error in datesSet:', error);
@@ -727,7 +774,16 @@ $bufferHours = 2; // Buffer period of 2 hours
                             }
                             if (selectedStart.getTime() < bufferThreshold.getTime()) {
                                 alert(
-                                    `Cannot book a time slot within ${bufferHours} hours of the current time.`);
+                                    `Cannot book a time slot within ${bufferHours} hours of the current time.`
+                                    );
+                                calendar.unselect();
+                                return;
+                            }
+
+                            // Check if the selected slot is within a blocked date range
+                            if (isDateBlocked(selectedStart, blockedDates)) {
+                                alert(
+                                    'This time slot is unavailable due to the lecturer being unavailable.');
                                 calendar.unselect();
                                 return;
                             }
@@ -797,7 +853,7 @@ $bufferHours = 2; // Buffer period of 2 hours
 
                             let isBooked = bookedSlots.some(b => {
                                 const bookedStart = parseDateInKualaLumpur(b
-                                .start_datetime);
+                                    .start_datetime);
                                 const bookedEnd = parseDateInKualaLumpur(b.end_datetime);
                                 return selectedStart < bookedEnd && selectedEnd >
                                     bookedStart;
