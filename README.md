@@ -1,3 +1,3 @@
-# FYP1-repo
+# FYP-repo
 
-Respository of my FYP1
+Respository of my FYP
