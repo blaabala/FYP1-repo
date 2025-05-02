@@ -10,10 +10,11 @@ if (!$admin_id) {
         alert('Please login to continue.');
         window.location.href = 'login.php';
     </script>";
-    exit(); // Prevent further code execution
+    exit();
 }
 $email = $_SESSION['email'];
 
+// Fetch admin data
 $query = mysqli_query($con, "SELECT users.id, 
 users.username, 
 users.email, 
@@ -21,21 +22,30 @@ users.contact_number,
 users.role_id,
 roles.role_name, 
 admins.department
-
 FROM users
 INNER JOIN roles ON users.role_id = roles.id
 INNER JOIN admins ON admins.user_id = users.id
 WHERE users.email = '$email'");
 
-while ($result = mysqli_fetch_assoc($query)) {
-    $res_id = $result['id'];
-    $res_username = $result['username'];
-    $res_email = $result['email'];
-    $res_role = $result['role_id'];
-    $res_role_name = $result['role_name'];
-    $res_department = $result['department'];
-    $res_contact = $result['contact_number'];
+// Check if the query returned any rows
+$result = mysqli_fetch_assoc($query);
+if (!$result) {
+    // No user found with the given email, likely session is outdated
+    echo "<script>
+        alert('User not found. Please login again.');
+        window.location.href = 'logout.php';
+    </script>";
+    exit();
 }
+
+// Assign variables after confirming a result exists
+$res_id = $result['id'];
+$res_username = $result['username'];
+$res_email = $result['email'];
+$res_role = $result['role_id'];
+$res_role_name = $result['role_name'];
+$res_department = $result['department'];
+$res_contact = $result['contact_number'];
 ?>
 
 <!DOCTYPE html>
@@ -59,9 +69,9 @@ while ($result = mysqli_fetch_assoc($query)) {
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-    /* Ensure the layout takes up the full viewport height */
     .main-box {
         min-height: 100vh;
         display: flex;
@@ -69,14 +79,73 @@ while ($result = mysqli_fetch_assoc($query)) {
         justify-content: space-between;
     }
 
-    /* Reduce padding for the container holding the buttons, but leave a small gap */
     .container-tight {
         padding-top: 0.75rem;
-        /* 12px, reduced from 1rem, leaves a small gap */
         padding-bottom: 0.75rem;
-        /* 12px, reduced from 1rem */
         padding-left: 1.5rem;
         padding-right: 1.5rem;
+    }
+
+    /* Ensure header matches edit_profile_admin.php */
+    .navbar {
+        background-color: #3D5A80;
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .navdiv {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .image-container {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .logo-text {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: white;
+        text-decoration: none;
+    }
+
+    .navdiv ul {
+        list-style: none;
+        display: flex;
+        gap: 1.5rem;
+        margin: 0;
+        padding: 0;
+    }
+
+    .navdiv ul li a {
+        color: white;
+        text-decoration: none;
+        font-size: 1rem;
+        transition: color 0.3s;
+    }
+
+    .navdiv ul li a:hover {
+        color: #ecf0f1;
+    }
+
+    .logout-btn {
+        background-color: #e74c3c;
+        color: white;
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .logout-btn:hover {
+        background-color: #c0392b;
     }
     </style>
 </head>
@@ -89,76 +158,55 @@ while ($result = mysqli_fetch_assoc($query)) {
                     <a href="home_admin.php"><img src="assets/images/logo.png" alt="logo" class="nav-logo"
                             style="width: 70px; height: auto;"></a>
                     <a href="home_admin.php" class="logo-text">Appointment Management System</a>
-
                 </div>
                 <ul>
-                    <li>
-                        <a href="home_admin.php">
-                            Home
-                        </a>
-                    </li>
-                    <li>
-                        <a href="lecturer_view_admin.php">
-                            Lecturers
-                        </a>
-                    </li>
-                    <li>
-                        <a href="student_view_admin.php">
-                            Students
-                        </a>
-                    </li>
-                    <li>
-                        <a href="appointment_view_admin.php">
-                            Appointments
-                        </a>
-                    </li>
-                    <li>
-                        <?php echo "<a href='edit_profile_admin.php?id=$res_id'>Edit Profile</a>" ?>
-                    </li>
-                    <button><a href="logout.php" class="logout-btn">Logout</a></button>
+                    <li><a href="home_admin.php">Home</a></li>
+                    <li><a href="lecturer_view_admin.php">Lecturers</a></li>
+                    <li><a href="student_view_admin.php">Students</a></li>
+                    <li><a href="appointment_view_admin.php">Appointments</a></li>
+                    <li><a href="edit_profile_admin.php?id=<?php echo $res_id; ?>">Edit Profile</a></li>
+                    <li><button><a href="logout.php" class="logout-btn">Logout</a></button></li>
                 </ul>
             </div>
         </nav>
     </header>
 
-    <div class="top">
-        <div class="box">
-            <p>Welcome, <strong><?php echo $res_username . ' (' . $res_role_name . ')'; ?></strong></p>
+    <main class="container-tight mx-auto">
+        <div class="mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">Welcome, <?php echo htmlspecialchars($res_username); ?>!</h1>
+            <p class="text-gray-600">Here’s an overview of your Appointment Management System.</p>
         </div>
-        <div class="box">
-            <p>Email Address: <strong><?php echo $res_email ?></strong></p>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div class="bg-white p-6 rounded-xl shadow-lg">
+                <h3 class="text-lg font-semibold text-gray-700">Total Appointments</h3>
+                <p class="text-3xl font-bold text-blue-600" id="total-appointments">0</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-lg">
+                <h3 class="text-lg font-semibold text-gray-700">Total Lecturers</h3>
+                <p class="text-3xl font-bold text-green-600" id="total-lecturers">0</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-lg">
+                <h3 class="text-lg font-semibold text-gray-700">Total Students</h3>
+                <p class="text-3xl font-bold text-purple-600" id="total-students">0</p>
+            </div>
         </div>
-        <div class="box">
-            <p>Current Date & Time:<br><strong id="datetime"></strong></p>
-        </div>
-    </div>
-    <div class="container-tight mx-auto">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Clickable Lecturer Box -->
-            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 text-center">
-                <a href="lecturer_view_admin.php"
-                    class="block h-full text-blue-700 text-3xl font-bold hover:text-blue-900">
-                    <i class="fa-solid fa-chalkboard-teacher"></i> Lecturers
-                </a>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Pie Chart: Appointment Status -->
+            <div class="bg-white p-6 rounded-xl shadow-lg">
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">Appointment Status Distribution</h3>
+                <canvas id="statusChart" height="200"></canvas>
             </div>
 
-            <!-- Clickable Students Box -->
-            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 text-center">
-                <a href="student_view_admin.php"
-                    class="block h-full text-blue-700 text-3xl font-bold hover:text-blue-900">
-                    <i class="fa-solid fa-users"></i> Students
-                </a>
-            </div>
-
-            <!-- Clickable Appointments Box -->
-            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 text-center">
-                <a href="appointment_view_admin.php"
-                    class="block h-full text-blue-700 text-3xl font-bold hover:text-blue-900">
-                    <i class="fa-solid fa-calendar-check"></i> Appointments
-                </a>
+            <!-- Line Chart: Appointment Trends -->
+            <div class="bg-white p-6 rounded-xl shadow-lg">
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">Daily Appointment Trends (Last 7 Days)</h3>
+                <canvas id="trendChart" height="200"></canvas>
             </div>
         </div>
-    </div>
     </main>
 
     <footer class="footer">
@@ -171,32 +219,14 @@ while ($result = mysqli_fetch_assoc($query)) {
             </div>
             <div class="footer-nav">
                 <ul>
-                    <li>
-                        <a href="home_admin.php">
-                            Home
-                        </a>
-                    </li>
-                    <li>
-                        <a href="lecturer_view_admin.php">
-                            Lecturers
-                        </a>
-                    </li>
-                    <li>
-                        <a href="student_view_admin.php">
-                            Students
-                        </a>
-                    </li>
-                    <li>
-                        <a href="appointment_view_admin.php">
-                            Appointments
-                        </a>
-                    </li>
-                    <li>
-                        <?php echo "<a href='edit_profile_admin.php?id=$res_id'>Edit Profile</a>" ?>
-                    </li>
+                    <li><a href="home_admin.php">Home</a></li>
+                    <li><a href="lecturer_view_admin.php">Lecturers</a></li>
+                    <li><a href="student_view_admin.php">Students</a></li>
+                    <li><a href="appointment_view_admin.php">Appointments</a></li>
+                    <li><?php echo "<a href='edit_profile_admin.php?id=$res_id'>Edit Profile</a>"; ?></li>
                 </ul>
             </div>
-            <div class=" footer-bottom">
+            <div class="footer-bottom">
                 <div class="text-center">
                     <p class="text-sm">Contact us: <a href="tel:+60123456789"
                             class="underline hover:text-blue-200 transition-colors duration-300">+60123456789</a> | <a
@@ -210,9 +240,106 @@ while ($result = mysqli_fetch_assoc($query)) {
             </div>
         </div>
     </footer>
+
     <script src="assets/js/script.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous">
+    </script>
+    <script>
+    let statusChart, trendChart;
+
+    function updateDashboard() {
+        fetch('dashboard_data.php')
+            .then(response => response.json())
+            .then(data => {
+                // Update Stats Cards
+                document.getElementById('total-appointments').textContent = data.total_appointments;
+                document.getElementById('total-lecturers').textContent = data.total_lecturers;
+                document.getElementById('total-students').textContent = data.total_students;
+
+                // Update Pie Chart: Appointment Status Distribution
+                if (statusChart) statusChart.destroy();
+                const statusCtx = document.getElementById('statusChart').getContext('2d');
+                statusChart = new Chart(statusCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Confirmed', 'Rejected', 'Cancelled', 'Completed'],
+                        datasets: [{
+                            data: [
+                                data.status_data.Confirmed,
+                                data.status_data.Rejected,
+                                data.status_data.Cancelled,
+                                data.status_data.Completed,
+                            ],
+                            backgroundColor: [
+                                'rgba(54, 162, 235, 0.6)',
+                                'rgba(255, 99, 132, 0.6)',
+                                'rgba(255, 206, 86, 0.6)',
+                                'rgba(75, 192, 192, 0.6)',
+                                'rgba(153, 102, 255, 0.6)'
+                            ],
+                            borderColor: [
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top'
+                            }
+                        }
+                    }
+                });
+
+                // Update Line Chart: Daily Appointment Trends
+                if (trendChart) trendChart.destroy();
+                const trendCtx = document.getElementById('trendChart').getContext('2d');
+                trendChart = new Chart(trendCtx, {
+                    type: 'line',
+                    data: {
+                        labels: data.trend_labels,
+                        datasets: [{
+                            label: 'Appointments',
+                            data: data.trend_values,
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Number of Appointments'
+                                },
+                                ticks: {
+                                    stepSize: 1,
+                                    precision: 0
+                                }
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(error => console.error('Error fetching dashboard data:', error));
+    }
+
+    // Initial load
+    updateDashboard();
+
+    // Poll for updates every 30 seconds
+    setInterval(updateDashboard, 30000);
     </script>
 </body>
 

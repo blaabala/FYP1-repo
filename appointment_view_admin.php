@@ -1,3 +1,44 @@
+<?php
+session_start();
+include("database.php");
+
+$email = isset($_SESSION['email']) ? $_SESSION['email'] : null;
+if (!$email) {
+    $_SESSION['error_message'] = "Please log in to continue.";
+    header("Location: login_admin.php");
+    exit();
+}
+
+$query = "SELECT users.*, roles.role_name 
+                              FROM users 
+                              JOIN roles ON users.role_id = roles.id 
+                              WHERE users.email = ?";
+$stmt = $con->prepare($query);
+$stmt->bind_param("s", $email);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows === 0) {
+    $_SESSION['error_message'] = "User not found. Please log in again.";
+    header("Location: login_admin.php");
+    exit();
+}
+
+$user = $result->fetch_assoc();
+$res_id = $user['id'];
+$res_username = $user['username'];
+$res_email = $user['email'];
+$res_role_name = $user['role_name'];
+$res_faculty = isset($user['faculty']) ? $user['faculty'] : null;
+$res_contact = $user['contact_number'];
+
+if (strtolower($res_role_name) !== 'admin') {
+    $_SESSION['error_message'] = "You must be an admin to view this page.";
+    header("Location: home.php");
+    exit();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -20,9 +61,79 @@
     <link rel="icon" type="image/x-icon" href="images/favicon.ico">
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+    body {
+        background: #98C1D9;
+    }
+
+    /* Header fixes */
+    .navbar {
+        background-color: #3D5A80;
+        /* Matching home_admin.php header color */
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .navdiv {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .image-container {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        /* Space between logo and text */
+    }
+
+    .logo-text {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: white;
+        text-decoration: none;
+    }
+
+    .navdiv ul {
+        list-style: none;
+        display: flex;
+        gap: 1.5rem;
+        /* Space between navigation items */
+        margin: 0;
+        padding: 0;
+    }
+
+    .navdiv ul li a {
+        color: white;
+        text-decoration: none;
+        font-size: 1rem;
+        transition: color 0.3s;
+    }
+
+    .navdiv ul li a:hover {
+        color: #ecf0f1;
+    }
+
+    .logout-btn {
+        background-color: #e74c3c;
+        color: white;
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .logout-btn:hover {
+        background-color: #c0392b;
+    }
+    </style>
 </head>
 
-<body>
+<body class="main-box top">
     <header>
         <nav class="navbar">
             <div class="navdiv">
@@ -30,55 +141,14 @@
                     <a href="home_admin.php"><img src="assets/images/logo.png" alt="logo" class="nav-logo"
                             style="width: 70px; height: auto;"></a>
                     <a href="home_admin.php" class="logo-text">Appointment Management System</a>
-
-                    <?php
-                    session_start();
-                    include("database.php");
-
-                    $email = isset($_SESSION['email']) ? $_SESSION['email'] : null;
-                    if (!$email) {
-                        $_SESSION['error_message'] = "Please log in to continue.";
-                        header("Location: login_admin.php");
-                        exit();
-                    }
-
-                    $query = "SELECT users.*, roles.role_name 
-                              FROM users 
-                              JOIN roles ON users.role_id = roles.id 
-                              WHERE users.email = ?";
-                    $stmt = $con->prepare($query);
-                    $stmt->bind_param("s", $email);
-                    $stmt->execute();
-                    $result = $stmt->get_result();
-
-                    if ($result->num_rows === 0) {
-                        $_SESSION['error_message'] = "User not found. Please log in again.";
-                        header("Location: login_admin.php");
-                        exit();
-                    }
-
-                    $user = $result->fetch_assoc();
-                    $res_id = $user['id'];
-                    $res_username = $user['username'];
-                    $res_email = $user['email'];
-                    $res_role_name = $user['role_name'];
-                    $res_faculty = isset($user['faculty']) ? $user['faculty'] : null;
-                    $res_contact = $user['contact_number'];
-
-                    if (strtolower($res_role_name) !== 'admin') {
-                        $_SESSION['error_message'] = "You must be an admin to view this page.";
-                        header("Location: home.php");
-                        exit();
-                    }
-                    ?>
-
                 </div>
                 <ul>
                     <li><a href="home_admin.php">Home</a></li>
-                    <li><a href="appointment_view_admin.php">View Appointments</a></li>
-                    <li><a href="user_view_admin.php">User Lists</a></li>
-                    <li><?php echo "<a href='edit_profile_admin.php?id=$res_id'>Edit Profile</a>"; ?></li>
-                    <button><a href="logout.php" class="logout-btn">Logout</a></button>
+                    <li><a href="lecturer_view_admin.php">Lecturers</a></li>
+                    <li><a href="student_view_admin.php">Students</a></li>
+                    <li><a href="appointment_view_admin.php">Appointments</a></li>
+                    <li><a href="edit_profile_admin.php?id=<?php echo $res_id; ?>">Edit Profile</a></li>
+                    <li><button><a href="logout.php" class="logout-btn">Logout</a></button></li>
                 </ul>
             </div>
         </nav>
