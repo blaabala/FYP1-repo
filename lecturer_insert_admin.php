@@ -20,9 +20,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $user_id = $stmt->insert_id;
 
         // Insert into lecturers table
-        $insert_lecturer_query = "INSERT INTO lecturers (user_id, faculty, department, designation, office_no) VALUES (?, ?, ?, ?, ?)";
+        $insert_lecturer_query = "INSERT INTO lecturers (user_id, username, faculty, department, designation, office_no) VALUES (?, ?, ?, ?, ?)";
         $stmt2 = $con->prepare($insert_lecturer_query);
-        $stmt2->bind_param('issss', $user_id, $faculty, $department, $designation, $office_no);
+        $stmt2->bind_param('isssss', $username, $user_id, $faculty, $department, $designation, $office_no);
         if ($stmt2->execute()) {
             $_SESSION['success_message'] = "Lecturer created successfully.";
         } else {

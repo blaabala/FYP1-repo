@@ -55,41 +55,42 @@ if ($result->num_rows > 0) {
     <title>Lecturer List</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"
         integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
     <style>
-        .modal {
-            transition: opacity 0.3s ease, transform 0.3s ease;
-        }
+    .modal {
+        transition: opacity 0.3s ease, transform 0.3s ease;
+    }
 
-        .modal-hidden {
-            opacity: 0;
-            transform: scale(0.95);
-            pointer-events: none;
-        }
+    .modal-hidden {
+        opacity: 0;
+        transform: scale(0.95);
+        pointer-events: none;
+    }
 
-        .modal-visible {
-            opacity: 1;
-            transform: scale(1);
-            pointer-events: auto;
-        }
+    .modal-visible {
+        opacity: 1;
+        transform: scale(1);
+        pointer-events: auto;
+    }
 
-        html,
-        body {
-            height: 100%;
-            margin: 0;
-        }
+    html,
+    body {
+        height: 100%;
+        margin: 0;
+    }
 
-        .loading {
-            text-align: center;
-            padding: 20px;
-            display: none;
-        }
+    .loading {
+        text-align: center;
+        padding: 20px;
+        display: none;
+    }
 
-        #clear-search {
-            cursor: pointer;
-            font-size: 1.2rem;
-        }
+    #clear-search {
+        cursor: pointer;
+        font-size: 1.2rem;
+    }
     </style>
 </head>
 
@@ -119,27 +120,27 @@ if ($result->num_rows > 0) {
 
         <div id="lecturer-list">
             <?php if (empty($lecturers)): ?>
-                <p class="text-center text-gray-500">No lecturers found.</p>
+            <p class="text-center text-gray-500">No lecturers found.</p>
             <?php else: ?>
-                <?php foreach ($lecturers as $lecturer): ?>
-                    <div class="lecturer-card bg-white p-4 mb-2 rounded shadow flex justify-between items-center cursor-pointer"
-                        data-id="<?php echo $lecturer['id']; ?>"
-                        data-availability="<?php echo htmlspecialchars(json_encode($lecturer['availability'])); ?>">
-                        <div>
-                            <h3 class="text-lg font-semibold"><?php echo htmlspecialchars($lecturer['username']); ?></h3>
-                            <p class="text-gray-600"><?php echo htmlspecialchars($lecturer['faculty']); ?></p>
-                            <p class="text-gray-500"><?php echo htmlspecialchars($lecturer['department']); ?></p>
-                            <p class="text-gray-500"><?php echo htmlspecialchars($lecturer['designation']); ?></p>
-                        </div>
-                        <div class="flex space-x-4">
-                            <button
-                                class="text-gray-500 hover:text-blue-600 p-2 rounded-full hover:bg-blue-50 transition-colors duration-300"
-                                title="View Details">
-                                <i class="fas fa-info-circle"></i>
-                            </button>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
+            <?php foreach ($lecturers as $lecturer): ?>
+            <div class="lecturer-card bg-white p-4 mb-2 rounded shadow flex justify-between items-center cursor-pointer"
+                data-id="<?php echo $lecturer['id']; ?>"
+                data-availability="<?php echo htmlspecialchars(json_encode($lecturer['availability'])); ?>">
+                <div>
+                    <h3 class="text-lg font-semibold"><?php echo htmlspecialchars($lecturer['username']); ?></h3>
+                    <p class="text-gray-600"><?php echo htmlspecialchars($lecturer['faculty']); ?></p>
+                    <p class="text-gray-500"><?php echo htmlspecialchars($lecturer['department']); ?></p>
+                    <p class="text-gray-500"><?php echo htmlspecialchars($lecturer['designation']); ?></p>
+                </div>
+                <div class="flex space-x-4">
+                    <button
+                        class="text-gray-500 hover:text-blue-600 p-2 rounded-full hover:bg-blue-50 transition-colors duration-300"
+                        title="View Details">
+                        <i class="fas fa-info-circle"></i>
+                    </button>
+                </div>
+            </div>
+            <?php endforeach; ?>
             <?php endif; ?>
         </div>
     </div>
@@ -171,135 +172,135 @@ if ($result->num_rows > 0) {
     </script>
 
     <script>
-        $(document).ready(function() {
-            // Function to attach event listeners to lecturer cards
-            function attachLecturerCardListeners() {
-                const lecturerCards = document.querySelectorAll('.lecturer-card');
-                const modal = document.getElementById('lecturer-modal');
-                const closeModalBtn = document.getElementById('close-modal');
-                const modalTitle = document.getElementById('modal-title');
-                const modalFaculty = document.getElementById('modal-faculty');
-                const modalDepartment = document.getElementById('modal-department');
-                const modalDesignation = document.getElementById('modal-designation');
-                const modalAvailability = document.getElementById('modal-availability');
-                const makeAppointmentBtn = document.getElementById('make-appointment-btn');
+    $(document).ready(function() {
+        // Function to attach event listeners to lecturer cards
+        function attachLecturerCardListeners() {
+            const lecturerCards = document.querySelectorAll('.lecturer-card');
+            const modal = document.getElementById('lecturer-modal');
+            const closeModalBtn = document.getElementById('close-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalFaculty = document.getElementById('modal-faculty');
+            const modalDepartment = document.getElementById('modal-department');
+            const modalDesignation = document.getElementById('modal-designation');
+            const modalAvailability = document.getElementById('modal-availability');
+            const makeAppointmentBtn = document.getElementById('make-appointment-btn');
 
-                lecturerCards.forEach(card => {
-                    card.removeEventListener('click',
-                        handleCardClick); // Remove existing listeners to prevent duplicates
-                    card.addEventListener('click', handleCardClick);
-                });
+            lecturerCards.forEach(card => {
+                card.removeEventListener('click',
+                    handleCardClick); // Remove existing listeners to prevent duplicates
+                card.addEventListener('click', handleCardClick);
+            });
 
-                function handleCardClick() {
-                    const lecturerId = this.getAttribute('data-id');
-                    const lecturerName = this.querySelector('h3').textContent;
-                    const faculty = this.querySelector('p:nth-child(2)').textContent;
-                    const department = this.querySelector('p:nth-child(3)').textContent;
-                    const designation = this.querySelector('p:nth-child(4)').textContent;
-                    const availability = JSON.parse(this.getAttribute('data-availability'));
+            function handleCardClick() {
+                const lecturerId = this.getAttribute('data-id');
+                const lecturerName = this.querySelector('h3').textContent;
+                const faculty = this.querySelector('p:nth-child(2)').textContent;
+                const department = this.querySelector('p:nth-child(3)').textContent;
+                const designation = this.querySelector('p:nth-child(4)').textContent;
+                const availability = JSON.parse(this.getAttribute('data-availability'));
 
-                    // Set modal content
-                    modalTitle.textContent = lecturerName;
-                    modalFaculty.textContent = `Faculty: ${faculty}`;
-                    modalDepartment.textContent = `Department: ${department}`;
-                    modalDesignation.textContent = `Designation: ${designation}`;
+                // Set modal content
+                modalTitle.textContent = lecturerName;
+                modalFaculty.textContent = `Faculty: ${faculty}`;
+                modalDepartment.textContent = `Department: ${department}`;
+                modalDesignation.textContent = `Designation: ${designation}`;
 
-                    // Format availability
-                    if (availability.length > 0) {
-                        modalAvailability.innerHTML = '<strong>Available:</strong><br>' + availability.join('<br>');
-                    } else {
-                        modalAvailability.innerHTML = '<strong>Available:</strong> No availability set.';
-                    }
-
-                    makeAppointmentBtn.setAttribute('href', `calendar.php?lecturer_id=${lecturerId}`);
-
-                    // Show the modal
-                    modal.classList.remove('modal-hidden');
-                    modal.classList.add('modal-visible');
+                // Format availability
+                if (availability.length > 0) {
+                    modalAvailability.innerHTML = '<strong>Available:</strong><br>' + availability.join('<br>');
+                } else {
+                    modalAvailability.innerHTML = '<strong>Available:</strong> No availability set.';
                 }
 
-                closeModalBtn.addEventListener('click', () => {
-                    modal.classList.remove('modal-visible');
-                    modal.classList.add('modal-hidden');
-                });
+                makeAppointmentBtn.setAttribute('href', `calendar.php?lecturer_id=${lecturerId}`);
 
-                modal.addEventListener('click', (e) => {
-                    if (e.target === modal) {
-                        modal.classList.remove('modal-visible');
-                        modal.classList.add('modal-hidden');
-                    }
-                });
+                // Show the modal
+                modal.classList.remove('modal-hidden');
+                modal.classList.add('modal-visible');
             }
 
-            // Initial attachment of event listeners
-            attachLecturerCardListeners();
+            closeModalBtn.addEventListener('click', () => {
+                modal.classList.remove('modal-visible');
+                modal.classList.add('modal-hidden');
+            });
 
-            // Search functionality
-            $('#search-filter').on('input', function() {
-                var searchTerm = $(this).val().trim();
-                console.log('Search term:', searchTerm);
-
-                const lecturerList = $('#lecturer-list');
-                console.log('Before AJAX - #lecturer-list exists:', lecturerList.length ? 'Yes' : 'No');
-                if (!lecturerList.length) {
-                    console.error('lecturer-list element not found before AJAX');
-                    alert('Error: Lecturer list container not found. Please refresh the page.');
-                    return;
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('modal-visible');
+                    modal.classList.add('modal-hidden');
                 }
+            });
+        }
 
-                lecturerList.prepend('<div class="loading">Loading...</div>');
-                $('.loading').show();
+        // Initial attachment of event listeners
+        attachLecturerCardListeners();
 
-                $.ajax({
-                    url: 'lecturer_search.php',
-                    type: 'POST',
-                    data: {
-                        search: searchTerm
-                    },
-                    dataType: 'json',
-                    success: function(response) {
-                        $('.loading').remove();
-                        console.log('AJAX response:', response);
+        // Search functionality
+        $('#search-filter').on('input', function() {
+            var searchTerm = $(this).val().trim();
+            console.log('Search term:', searchTerm);
 
-                        const lecturerListAfter = $('#lecturer-list');
-                        console.log('After AJAX - #lecturer-list exists:', lecturerListAfter
-                            .length ? 'Yes' : 'No');
-                        if (!lecturerListAfter.length) {
-                            console.error('lecturer-list element not found after AJAX');
-                            alert(
-                                'Error: Lecturer list container not found after search. Please refresh the page.'
-                            );
-                            return;
-                        }
+            const lecturerList = $('#lecturer-list');
+            console.log('Before AJAX - #lecturer-list exists:', lecturerList.length ? 'Yes' : 'No');
+            if (!lecturerList.length) {
+                console.error('lecturer-list element not found before AJAX');
+                alert('Error: Lecturer list container not found. Please refresh the page.');
+                return;
+            }
 
-                        if (response.error) {
-                            alert('Error: ' + response.error + '\nDebug: ' + JSON.stringify(
-                                response.debug));
-                            return;
-                        }
-                        lecturerListAfter.html(response.html);
-                        attachLecturerCardListeners(); // Re-attach event listeners to new cards
-                    },
-                    error: function(xhr, status, error) {
-                        $('.loading').remove();
-                        console.error('AJAX Error:', status, error);
-                        console.log('Raw response:', xhr.responseText);
+            lecturerList.prepend('<div class="loading">Loading...</div>');
+            $('.loading').show();
+
+            $.ajax({
+                url: 'lecturer_search.php',
+                type: 'POST',
+                data: {
+                    search: searchTerm
+                },
+                dataType: 'json',
+                success: function(response) {
+                    $('.loading').remove();
+                    console.log('AJAX response:', response);
+
+                    const lecturerListAfter = $('#lecturer-list');
+                    console.log('After AJAX - #lecturer-list exists:', lecturerListAfter
+                        .length ? 'Yes' : 'No');
+                    if (!lecturerListAfter.length) {
+                        console.error('lecturer-list element not found after AJAX');
                         alert(
-                            'Failed to fetch search results. Raw response logged to console.'
+                            'Error: Lecturer list container not found after search. Please refresh the page.'
                         );
+                        return;
                     }
-                });
-            });
 
-            // Clear search functionality
-            $('#search-filter').on('input', function() {
-                $('#clear-search').toggle(!!$(this).val());
-            });
-
-            $('#clear-search').on('click', function() {
-                $('#search-filter').val('').trigger('input');
+                    if (response.error) {
+                        alert('Error: ' + response.error + '\nDebug: ' + JSON.stringify(
+                            response.debug));
+                        return;
+                    }
+                    lecturerListAfter.html(response.html);
+                    attachLecturerCardListeners(); // Re-attach event listeners to new cards
+                },
+                error: function(xhr, status, error) {
+                    $('.loading').remove();
+                    console.error('AJAX Error:', status, error);
+                    console.log('Raw response:', xhr.responseText);
+                    alert(
+                        'Failed to fetch search results. Raw response logged to console.'
+                    );
+                }
             });
         });
+
+        // Clear search functionality
+        $('#search-filter').on('input', function() {
+            $('#clear-search').toggle(!!$(this).val());
+        });
+
+        $('#clear-search').on('click', function() {
+            $('#search-filter').val('').trigger('input');
+        });
+    });
     </script>
 </body>
 
