@@ -19,6 +19,7 @@
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link rel="icon" type="image/x-icon" href="images/favicon.ico">
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -37,7 +38,7 @@
                     $email = isset($_SESSION['email']) ? $_SESSION['email'] : null;
                     if (!$email) {
                         $_SESSION['error_message'] = "Please log in to continue.";
-                        header("Location: login.php");
+                        header("Location: login_admin.php");
                         exit();
                     }
 
@@ -52,7 +53,7 @@
 
                     if ($result->num_rows === 0) {
                         $_SESSION['error_message'] = "User not found. Please log in again.";
-                        header("Location: login.php");
+                        header("Location: login_admin.php");
                         exit();
                     }
 
@@ -176,7 +177,7 @@
                                                         switch ($statusText) {
                                                             // case 'Pending':
                                                             //     $statusClass = 'status-pending';
-                                                            // break;
+                                                            //     break;
                                                             case 'Confirmed':
                                                                 $statusClass = 'status-confirmed';
                                                                 break;
@@ -215,6 +216,24 @@
                                     ?>
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+
+                    <!-- Reporting/Analysis Section -->
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h2 style="text-align: center;">Appointment Analysis</h2>
+                            <div class="d-flex justify-content-end mb-3">
+                                <select class="form-select" id="timeRange" style="max-width: 200px;">
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly" selected>Monthly</option>
+                                </select>
+                                <button class="btn btn-primary ms-2" id="updateChart">Update Chart</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="appointmentChart" width="400" height="200"></canvas>
                         </div>
                     </div>
                 </div>
@@ -413,11 +432,6 @@
     </footer>
     <script src="assets/js/script.js"></script>
     <script>
-    // Ensure updateDateTime only runs if the element exists
-    if (typeof updateDateTime === 'function' && document.getElementById('someElementId')) {
-        updateDateTime();
-    }
-
     // Validate datetime inputs to enforce 00/30-minute increments
     function validateDatetime(inputId) {
         const input = document.getElementById(inputId);
@@ -468,12 +482,18 @@
         form.querySelector('#update_appointment_id').value = appointmentId;
 
         fetch(`appointment_fetch_admin.php?id=${appointmentId}`)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.error) {
                     alert(data.error);
                     return;
                 }
+                form.querySelector('#update_status').value = data.status || 'Pending';
                 form.querySelector('#update_title').value = data.title || '';
                 form.querySelector('#update_requester_email').value = data.student_email || '';
                 form.querySelector('#update_accepter_email').value = data.lecturer_email || '';
@@ -481,7 +501,6 @@
                 form.querySelector('#update_to_time').value = data.formatted_end || '';
                 form.querySelector('#update_location').value = data.location || '';
                 form.querySelector('#update_description').value = data.description || '';
-                form.querySelector('#update_status').value = data.status || 'Pending';
             })
             .catch(error => console.error('Error fetching appointment data:', error));
     });
@@ -502,6 +521,77 @@
             document.getElementById('searchButton').click();
         }
     });
+
+    // Chart initialization
+    let myChart = null;
+
+    function updateChart() {
+        const timeRange = document.getElementById('timeRange').value;
+        fetch(`appointment_analysis.php?range=${timeRange}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (myChart) myChart.destroy();
+                const ctx = document.getElementById('appointmentChart').getContext('2d');
+                const counts = [
+                    data.confirmed || 0,
+                    data.rejected || 0,
+                    data.cancelled || 0,
+                    data.completed || 0
+                ];
+                const maxCount = Math.max(...counts); // Find the maximum count for dynamic scaling
+
+                myChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Confirmed', 'Rejected', 'Cancelled', 'Completed'],
+                        datasets: [{
+                            label: 'Number of Appointments',
+                            data: counts,
+                            backgroundColor: [
+                                'rgba(54, 162, 235, 0.6)',
+                                'rgba(255, 99, 132, 0.6)',
+                                'rgba(255, 206, 86, 0.6)',
+                                'rgba(75, 192, 192, 0.6)'
+                            ],
+                            borderColor: [
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Number of Appointments'
+                                },
+                                ticks: {
+                                    stepSize: 1, // Whole number steps
+                                    precision: 0, // Force integer display
+                                    max: maxCount > 0 ? Math.ceil(maxCount * 1.1) :
+                                        10 // Dynamic max with 10% buffer
+                                }
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(error => console.error('Error fetching chart data:', error));
+    }
+
+    // Initial chart load and event listener
+    document.addEventListener('DOMContentLoaded', updateChart);
+    document.getElementById('updateChart').addEventListener('click', updateChart);
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous">
