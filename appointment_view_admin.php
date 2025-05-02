@@ -34,15 +34,13 @@
                     session_start();
                     include("database.php");
 
-                    // Check if the user is logged in
-                    $email = $_SESSION['email'] ?? null;
+                    $email = isset($_SESSION['email']) ? $_SESSION['email'] : null;
                     if (!$email) {
                         $_SESSION['error_message'] = "Please log in to continue.";
-                        header("Location: login_admin.php");
+                        header("Location: login.php");
                         exit();
                     }
 
-                    // Fetch user details
                     $query = "SELECT users.*, roles.role_name 
                               FROM users 
                               JOIN roles ON users.role_id = roles.id 
@@ -54,7 +52,7 @@
 
                     if ($result->num_rows === 0) {
                         $_SESSION['error_message'] = "User not found. Please log in again.";
-                        header("Location: login_admin.php");
+                        header("Location: login.php");
                         exit();
                     }
 
@@ -63,10 +61,9 @@
                     $res_username = $user['username'];
                     $res_email = $user['email'];
                     $res_role_name = $user['role_name'];
-                    $res_faculty = $user['faculty'];
+                    $res_faculty = isset($user['faculty']) ? $user['faculty'] : null;
                     $res_contact = $user['contact_number'];
 
-                    // Ensure the user is an admin
                     if (strtolower($res_role_name) !== 'admin') {
                         $_SESSION['error_message'] = "You must be an admin to view this page.";
                         header("Location: home.php");
@@ -104,17 +101,23 @@
                     <div class="card">
                         <div class="card-header">
                             <h2 style="text-align: center;">View Appointment Records</h2>
-                            <!-- Button trigger modal -->
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                                 <button type="button" class="btn btn-primary" data-bs-toggle="modal"
                                     data-bs-target="#createModal">
                                     <p>Create</p>
                                 </button>
                             </div>
+                            <div class="input-group mb-3" style="max-width: 300px; margin-top: 10px;">
+                                <input type="text" class="form-control" id="searchInput"
+                                    placeholder="Search by name or ID">
+                                <button class="btn btn-outline-secondary" type="button" id="searchButton">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <div class="card-body">
-                            <table class="product-table">
+                            <table class="product-table" id="appointmentTable">
                                 <thead>
                                     <tr>
                                         <th>No.</th>
@@ -132,7 +135,6 @@
                                 <tbody>
                                     <?php
                                     $count = 1;
-                                    // Fetch all appointments with formatted dates
                                     $sel_query = "SELECT appointments.*, 
                                                   u1.username AS student_name, 
                                                   u1.email AS student_email, 
@@ -159,46 +161,50 @@
                                             } else {
                                                 while ($row = $result->fetch_assoc()) {
                                     ?>
-                                                    <tr>
-                                                        <td><?php echo $count; ?></td>
-                                                        <td><?php echo htmlspecialchars($row["student_name"]); ?></td>
-                                                        <td><?php echo htmlspecialchars($row["lecturer_name"]); ?></td>
-                                                        <td><?php echo htmlspecialchars($row["title"]); ?></td>
-                                                        <td><?php echo htmlspecialchars($row["formatted_start"]); ?></td>
-                                                        <td><?php echo htmlspecialchars($row["formatted_end"]); ?></td>
-                                                        <td><?php echo htmlspecialchars($row["description"]); ?></td>
-                                                        <td><?php echo htmlspecialchars($row["location"]); ?></td>
-                                                        <!-- Status text color changes -->
-                                                        <?php
+                                    <tr>
+                                        <td><?php echo $count; ?></td>
+                                        <td><?php echo htmlspecialchars($row["student_name"]); ?></td>
+                                        <td><?php echo htmlspecialchars($row["lecturer_name"]); ?></td>
+                                        <td><?php echo htmlspecialchars($row["title"]); ?></td>
+                                        <td><?php echo htmlspecialchars($row["formatted_start"]); ?></td>
+                                        <td><?php echo htmlspecialchars($row["formatted_end"]); ?></td>
+                                        <td><?php echo htmlspecialchars($row["description"]); ?></td>
+                                        <td><?php echo htmlspecialchars($row["location"]); ?></td>
+                                        <?php
                                                         $statusClass = '';
                                                         $statusText = $row['status'];
                                                         switch ($statusText) {
-                                                            case 'Pending':
-                                                                $statusClass = 'status-pending';
-                                                                break;
+                                                            // case 'Pending':
+                                                            //     $statusClass = 'status-pending';
+                                                            // break;
                                                             case 'Confirmed':
                                                                 $statusClass = 'status-confirmed';
                                                                 break;
                                                             case 'Cancelled':
                                                                 $statusClass = 'status-cancelled';
                                                                 break;
+                                                            case 'Rejected':
+                                                                $statusClass = 'status-rejected';
+                                                                break;
+                                                            case 'Completed':
+                                                                $statusClass = 'status-completed';
+                                                                break;
                                                             default:
                                                                 $statusClass = '';
                                                         }
                                                         echo "<td class='$statusClass'>" . htmlspecialchars($statusText) . "</td>";
                                                         ?>
-                                                        <!-- Conditionally render the Update button -->
-                                                        <td>
-                                                            <?php if ($row['status'] !== 'Cancelled'): ?>
-                                                                <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal"
-                                                                    data-bs-target="#updateModal"
-                                                                    data-id="<?php echo $row['id']; ?>">Update</button>
-                                                            <?php else: ?>
-                                                                <button type="button" class="btn btn-outline-secondary"
-                                                                    disabled>Cancelled</button>
-                                                            <?php endif; ?>
-                                                        </td>
-                                                    </tr>
+                                        <td>
+                                            <?php if ($row['status'] !== 'Cancelled'): ?>
+                                            <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal"
+                                                data-bs-target="#updateModal"
+                                                data-id="<?php echo $row['id']; ?>">Update</button>
+                                            <?php else: ?>
+                                            <button type="button" class="btn btn-outline-secondary"
+                                                disabled>Cancelled</button>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
                                     <?php
                                                     $count++;
                                                 }
@@ -224,7 +230,7 @@
                                     aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
-                                <form action="appointment_insert.php" method="post">
+                                <form action="appointment_insert_admin.php" method="post">
                                     <div class="form-group row">
                                         <label for="title"
                                             class="col-sm-2 col-form-label col-form-label-lg">Title</label>
@@ -237,24 +243,24 @@
                                         <div class="form-group col-md-6">
                                             <label for="student_email">Student email</label>
                                             <input required type="email" class="form-control" id="student_email"
-                                                name="email">
+                                                name="student_email">
                                         </div>
                                         <div class="form-group col-md-6">
                                             <label for="lecturer_email">Lecturer email</label>
                                             <input required type="email" class="form-control" id="lecturer_email"
-                                                name="email">
+                                                name="lecturer_email">
                                         </div>
                                     </div>
                                     <div class="form-group row">
                                         <div class="form-group mb-4">
                                             <label for="start_datetime">From</label>
                                             <input required type="datetime-local" class="form-control"
-                                                id="start_datetime" name="start_datetime">
+                                                id="start_datetime" name="start_datetime" step="1800">
                                         </div>
                                         <div class="form-group mb-4">
                                             <label for="end_datetime">To</label>
                                             <input required type="datetime-local" class="form-control" id="end_datetime"
-                                                name="end_datetime">
+                                                name="end_datetime" step="1800">
                                         </div>
                                     </div>
                                     <div class="form-group row">
@@ -265,7 +271,7 @@
                                         </div>
                                     </div>
                                     <div class="form-group">
-                                        <label for=""></label>
+                                        <label for="description">Description</label>
                                         <textarea required class="form-control" id="description" name="description"
                                             rows="3" placeholder="Description"></textarea>
                                     </div>
@@ -288,28 +294,23 @@
                             <div class="modal-header">
                                 <h1 class="modal-title fs-5" id="updateModalLabel">Update Appointment Request</h1>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                    aria-label="Close"></button><br>
+                                    aria-label="Close"></button>
                             </div>
-                            <div id="viewOnlyMessage" style="display: none;" class="alert alert-info">
-                                You are viewing this appointment in read-only mode.
-                            </div>
-                            <div id="accepterMessage" style="display: none;" class="alert alert-warning">
-                                As the accepter, you can only update the status of this appointment.
-                            </div>
-                            <form action="appointment_update.php" method="post">
+                            <form action="appointment_update_admin.php" method="post">
                                 <div class="modal-body">
                                     <div class="form-group row">
                                         <label for="update_status"
                                             class="col-sm-2 col-form-label col-form-label-lg">Status</label>
                                         <div class="col-sm-10">
                                             <select class="form-control" id="update_status" name="status">
-                                                <option value="Pending" disabled default>Pending</option>
+                                                <!-- <option value="Pending">Pending</option> -->
                                                 <option value="Confirmed">Confirmed</option>
                                                 <option value="Cancelled">Cancelled</option>
+                                                <option value="Rejected">Rejected</option>
+                                                <option value="Completed">Completed</option>
                                             </select>
                                         </div>
                                     </div>
-                                    <label for="update_title" class="col-sm-2 col-form-label col-form-label-lg"></label>
                                     <input type="hidden" name="appointment_id" id="update_appointment_id" value="">
                                     <div class="form-group row">
                                         <label for="update_title"
@@ -323,24 +324,24 @@
                                         <div class="form-group col-md-6">
                                             <label for="update_requester_email">Requester email</label>
                                             <input type="email" class="form-control" id="update_requester_email"
-                                                name="requester_email" value="">
+                                                name="requester_email" readonly>
                                         </div>
                                         <div class="form-group col-md-6">
                                             <label for="update_accepter_email">Accepter email</label>
                                             <input type="email" class="form-control" id="update_accepter_email"
-                                                name="accepter_email" value="">
+                                                name="accepter_email" readonly>
                                         </div>
                                     </div>
                                     <div class="form-group row">
                                         <div class="form-group mb-4">
                                             <label for="update_from_time">From</label>
                                             <input type="datetime-local" class="form-control" id="update_from_time"
-                                                name="from_time">
+                                                name="from_time" step="1800">
                                         </div>
                                         <div class="form-group mb-4">
                                             <label for="update_to_time">To</label>
                                             <input type="datetime-local" class="form-control" id="update_to_time"
-                                                name="to_time">
+                                                name="to_time" step="1800">
                                         </div>
                                     </div>
                                     <div class="form-group row">
@@ -366,26 +367,27 @@
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Confirmation Modal -->
-            <div class="modal fade" id="confirmModalCenter" tabindex="-1" role="dialog"
-                aria-labelledby="confirmModalCenterTitle" aria-hidden="true" data-bs-backdrop='static'>
-                <div class="modal-dialog modal-dialog-centered" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="confirmModalLongTitle">Please Confirm</h5>
-                        </div>
-                        <div class="modal-body">
-                            Are you sure that you want to submit changes?
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="button" class="btn btn-danger" onclick="submitForm()">Confirm</button>
+                <!-- Confirmation Modal -->
+                <div class="modal fade" id="confirmModalCenter" tabindex="-1" role="dialog"
+                    aria-labelledby="confirmModalCenterTitle" aria-hidden="true" data-bs-backdrop='static'>
+                    <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="confirmModalLongTitle">Please Confirm</h5>
+                            </div>
+                            <div class="modal-body">
+                                Are you sure that you want to submit changes?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-danger" onclick="submitForm()">Confirm</button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
     </main>
 
     <footer class="footer">
@@ -410,6 +412,97 @@
         </div>
     </footer>
     <script src="assets/js/script.js"></script>
+    <script>
+    // Ensure updateDateTime only runs if the element exists
+    if (typeof updateDateTime === 'function' && document.getElementById('someElementId')) {
+        updateDateTime();
+    }
+
+    // Validate datetime inputs to enforce 00/30-minute increments
+    function validateDatetime(inputId) {
+        const input = document.getElementById(inputId);
+        const value = input.value;
+        if (value) {
+            const date = new Date(value);
+            const minutes = date.getMinutes();
+            if (minutes !== 0 && minutes !== 30) {
+                alert('Time must be on the hour (e.g., 10:00) or half-hour (e.g., 10:30).');
+                input.value = '';
+            }
+        }
+    }
+
+    // Attach validation to form submissions
+    document.querySelector('#createModal form').addEventListener('submit', function(event) {
+        validateDatetime('start_datetime');
+        validateDatetime('end_datetime');
+        if (!document.getElementById('start_datetime').value || !document.getElementById('end_datetime')
+            .value) {
+            event.preventDefault();
+        }
+    });
+
+    document.querySelector('#updateModal form').addEventListener('submit', function(event) {
+        validateDatetime('update_from_time');
+        validateDatetime('update_to_time');
+        if (!document.getElementById('update_from_time').value || !document.getElementById('update_to_time')
+            .value) {
+            event.preventDefault();
+        }
+    });
+
+    function showConfirmationModal() {
+        new bootstrap.Modal(document.getElementById('confirmModalCenter')).show();
+    }
+
+    function submitForm() {
+        document.querySelector('#updateModal form').submit();
+    }
+
+    // Populate update modal with data
+    var updateModal = document.getElementById('updateModal');
+    updateModal.addEventListener('show.bs.modal', function(event) {
+        var button = event.relatedTarget;
+        var appointmentId = button.getAttribute('data-id');
+        var form = updateModal.querySelector('form');
+        form.querySelector('#update_appointment_id').value = appointmentId;
+
+        fetch(`appointment_fetch_admin.php?id=${appointmentId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+                form.querySelector('#update_title').value = data.title || '';
+                form.querySelector('#update_requester_email').value = data.student_email || '';
+                form.querySelector('#update_accepter_email').value = data.lecturer_email || '';
+                form.querySelector('#update_from_time').value = data.formatted_start || '';
+                form.querySelector('#update_to_time').value = data.formatted_end || '';
+                form.querySelector('#update_location').value = data.location || '';
+                form.querySelector('#update_description').value = data.description || '';
+                form.querySelector('#update_status').value = data.status || 'Pending';
+            })
+            .catch(error => console.error('Error fetching appointment data:', error));
+    });
+
+    // AJAX search functionality
+    document.getElementById('searchButton').addEventListener('click', function() {
+        var searchTerm = document.getElementById('searchInput').value;
+        fetch(`appointment_search_admin.php?term=${encodeURIComponent(searchTerm)}`)
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('appointmentTable').innerHTML = html;
+            })
+            .catch(error => console.error('Error searching appointments:', error));
+    });
+
+    document.getElementById('searchInput').addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            document.getElementById('searchButton').click();
+        }
+    });
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous">
     </script>
