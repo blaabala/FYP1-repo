@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password = password_hash('default123', PASSWORD_DEFAULT); // Default password
 
     // Insert into users table
-    $insert_user_query = "INSERT INTO users (username, email, password, contact_number, role_id) VALUES (?, ?, ?, ?, 2)";
+    $insert_user_query = "INSERT INTO users (username, email, password, contact_number, role_id) VALUES (?, ?, ?, ?, 1)";
     $stmt = $con->prepare($insert_user_query);
     $stmt->bind_param('ssss', $username, $email, $password, $contact_number);
     if ($stmt->execute()) {

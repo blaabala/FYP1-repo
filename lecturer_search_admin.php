@@ -7,7 +7,7 @@ $searchTerm = "%$searchTerm%";
 $query = "SELECT users.id, users.username, users.email, users.contact_number, lecturers.faculty, lecturers.department, lecturers.designation, lecturers.office_no
           FROM users
           JOIN lecturers ON users.id = lecturers.user_id
-          WHERE users.role_id = 2 AND (users.username LIKE ? OR users.id LIKE ?)
+          WHERE users.role_id = 1 AND (users.username LIKE ? OR users.id LIKE ?)
           ORDER BY users.id DESC";
 $stmt = $con->prepare($query);
 $stmt->bind_param('ss', $searchTerm, $searchTerm);

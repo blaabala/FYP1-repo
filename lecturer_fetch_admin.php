@@ -8,7 +8,7 @@ if (isset($_GET['id'])) {
     $query = "SELECT users.id, users.username, users.email, users.contact_number, lecturers.faculty, lecturers.department, lecturers.designation, lecturers.office_no
               FROM users
               JOIN lecturers ON users.id = lecturers.user_id
-              WHERE users.id = ? AND users.role_id = 2";
+              WHERE users.id = ? AND users.role_id = 1";
     $stmt = $con->prepare($query);
     $stmt->bind_param('i', $user_id);
     $stmt->execute();

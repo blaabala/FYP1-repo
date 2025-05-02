@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $office_no = $_POST['office_no'];
 
     // Update users table
-    $update_user_query = "UPDATE users SET username = ?, email = ?, contact_number = ? WHERE id = ? AND role_id = 2";
+    $update_user_query = "UPDATE users SET username = ?, email = ?, contact_number = ? WHERE id = ? AND role_id = 1";
     $stmt = $con->prepare($update_user_query);
     $stmt->bind_param('sssi', $username, $email, $contact_number, $user_id);
     if ($stmt->execute()) {

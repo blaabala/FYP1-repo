@@ -42,7 +42,7 @@ if (strtolower($res_role_name) !== 'admin') {
 $lecturers_query = "SELECT users.id, users.username, users.email, users.contact_number, lecturers.department, lecturers.faculty, lecturers.designation, lecturers.office_no
                     FROM users
                     JOIN lecturers ON users.id = lecturers.user_id
-                    WHERE users.role_id = 2
+                    WHERE users.role_id = 1
                     ORDER BY users.id DESC";
 $stmt = $con->prepare($lecturers_query);
 $stmt->execute();
@@ -58,12 +58,12 @@ if (isset($_GET['delete_id'])) {
     $user_id = $_GET['delete_id'];
 
     // Delete from lecturers table
-    $delete_lecturer_query = "DELETE FROM lecturers WHERE user_id = ? AND EXISTS (SELECT 1 FROM users WHERE id = ? AND role_id = 2)";
+    $delete_lecturer_query = "DELETE FROM lecturers WHERE user_id = ? AND EXISTS (SELECT 1 FROM users WHERE id = ? AND role_id = 1)";
     $stmt = $con->prepare($delete_lecturer_query);
     $stmt->bind_param('ii', $user_id, $user_id);
     if ($stmt->execute()) {
         // Delete from users table
-        $delete_user_query = "DELETE FROM users WHERE id = ? AND role_id = 2";
+        $delete_user_query = "DELETE FROM users WHERE id = ? AND role_id = 1";
         $stmt2 = $con->prepare($delete_user_query);
         $stmt2->bind_param('i', $user_id);
         if ($stmt2->execute()) {
@@ -347,7 +347,7 @@ if (isset($_GET['delete_id'])) {
                                         <div class="form-group col-md-6">
                                             <label for="contact_number">Contact Number</label>
                                             <input required type="text" class="form-control" id="contact_number"
-                                                name="contact_number" placeholder="i.e.: +60123456789">
+                                                name="contact_number" placeholder="i.e.: 60123456789">
                                         </div>
                                     </div>
                                     <div class="form-group row">
