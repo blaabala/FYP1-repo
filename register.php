@@ -38,7 +38,7 @@ if (isset($_POST['register'])) {
         $insertUserQuery = "INSERT INTO users (username, email, password, reg_date, role_id, contact_number) 
                             VALUES (?, ?, ?, ?, ?, ?)";
         $stmt = $con->prepare($insertUserQuery);
-        $stmt->bind_param("sssssi", $username, $email, $hashed_password, $reg_date, $userrole, $phoneno);
+        $stmt->bind_param("ssssii", $username, $email, $hashed_password, $reg_date, $userrole, $phoneno);
 
         if ($stmt->execute()) {
             // Get the inserted user_id

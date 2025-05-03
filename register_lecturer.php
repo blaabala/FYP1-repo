@@ -14,7 +14,7 @@ if (isset($_POST['register'])) {
     $phoneno = mysqli_real_escape_string($con, stripslashes($_POST['phoneno']));
     $department = mysqli_real_escape_string($con, stripslashes($_POST['department']));
     $designation = mysqli_real_escape_string($con, stripslashes($_POST['designation']));
-
+    $office_no = mysqli_real_escape_string($con, stripslashes($_POST['office_no']));
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
     $reg_date = date("Y-m-d H:i:s");
 
@@ -40,7 +40,7 @@ if (isset($_POST['register'])) {
         $insertUserQuery = "INSERT INTO users (username, email, password, reg_date, role_id, contact_number) 
                             VALUES (?, ?, ?, ?, ?, ?)";
         $stmt = $con->prepare($insertUserQuery);
-        $stmt->bind_param("sssssi", $username, $email, $hashed_password, $reg_date, $userrole, $phoneno);
+        $stmt->bind_param("ssssii", $username, $email, $hashed_password, $reg_date, $userrole, $phoneno);
 
         if ($stmt->execute()) {
             // Get the inserted user_id
@@ -48,10 +48,10 @@ if (isset($_POST['register'])) {
             $stmt->close();
 
             // Insert into students
-            $insertStudentQuery = "INSERT INTO lecturers (user_id, username, faculty, department, designation) 
-                                   VALUES (?, ?, ?, ?, ?)";
+            $insertStudentQuery = "INSERT INTO lecturers (user_id, username, faculty, department, designation, office_no) 
+                                   VALUES (?, ?, ?, ?, ?, ?)";
             $stmt = $con->prepare($insertStudentQuery);
-            $stmt->bind_param("issss", $user_id, $username, $faculty, $department, $designation);
+            $stmt->bind_param("isssss", $user_id, $username, $faculty, $department, $designation, $office_no);
             $stmt->execute();
             $stmt->close();
 
@@ -175,6 +175,14 @@ if (isset($_POST['register'])) {
                         <option value="Lecturer">Lecturer</option>
                         <option value="Senior Lecturer">Senior Lecturer</option>
                     </select>
+                </div>
+
+                <div>
+                    <input required type="text" id="office_no" name="office_no" placeholder="Office No"
+                        class="mb-3 w-full p-2 border rounded">
+                    <?php if (isset($errors['office_no'])) {
+                        echo "<p style='color:red;'>" . $errors['office_no'] . "</p>";
+                    } ?>
                 </div>
 
                 <input required type="text" id="phoneno" name="phoneno" class="mb-3 w-full p-2 border rounded"

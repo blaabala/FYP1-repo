@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Insert into users table
     $insert_user_query = "INSERT INTO users (username, email, password, contact_number, role_id) VALUES (?, ?, ?, ?, 2)";
     $stmt = $con->prepare($insert_user_query);
-    $stmt->bind_param('ssss', $username, $email, $password, $contact_number);
+    $stmt->bind_param('ssssi', $username, $email, $password, $contact_number, $role_id);
     if ($stmt->execute()) {
         $user_id = $stmt->insert_id;
 
