@@ -10,7 +10,7 @@ $role_name = $_SESSION['role_name'] ?? null;
 if (!$user_id || !$email) {
     echo "<script>
         alert('Please login to continue.');
-        window.location.href = 'login_lecturer.php';
+        window.location.href = 'login.php';
     </script>";
     exit();
 }
@@ -28,7 +28,7 @@ $result = $stmt->get_result();
 if ($result->num_rows === 0) {
     echo "<script>
         alert('User not found. Please login again.');
-        window.location.href = 'login_lecturer.php';
+        window.location.href = 'login.php';
     </script>";
     exit();
 }
@@ -515,201 +515,201 @@ function findRecurringOverlaps($avail, $blocked_dates)
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
-    html,
-    body {
-        height: 100%;
-        margin: 0;
-    }
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+        }
 
-    .disabled-text {
-        color: #888;
-        font-style: italic;
-    }
+        .disabled-text {
+            color: #888;
+            font-style: italic;
+        }
 
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 50;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0, 0, 0, 0.4);
-    }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 50;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
 
-    .modal-content {
-        background-color: #fefefe;
-        margin: 15% auto;
-        padding: 20px;
-        border: 1px solid #888;
-        width: 80%;
-        max-width: 500px;
-        border-radius: 8px;
-    }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 8px;
+        }
 
-    .close {
-        color: #aaa;
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
-    }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
 
-    .close:hover,
-    .close:focus {
-        Csak color: black;
-        text-decoration: none;
-        cursor: pointer;
-    }
+        .close:hover,
+        .close:focus {
+            Csak color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
 
-    /* Hide the AM/PM part of the time picker (browser-specific) */
-    input[type="time"]::-webkit-datetime-edit-ampm-field {
-        display: none;
-    }
+        /* Hide the AM/PM part of the time picker (browser-specific) */
+        input[type="time"]::-webkit-datetime-edit-ampm-field {
+            display: none;
+        }
     </style>
     <script>
-    function toggleAvailabilityFields(context = 'main-form') {
-        let isRecurring, nonRecurringFields, recurringFields;
+        function toggleAvailabilityFields(context = 'main-form') {
+            let isRecurring, nonRecurringFields, recurringFields;
 
-        if (context === 'main-form') {
-            isRecurring = document.querySelector('#is_recurring').checked;
-            nonRecurringFields = document.querySelector('#non-recurring-fields');
-            recurringFields = document.querySelector('#recurring-fields');
-        } else {
-            // For modal (edit-avail-modal)
-            isRecurring = document.querySelector(`#${context} #edit-is-recurring`).checked;
-            nonRecurringFields = document.querySelector(`#${context} #edit-non-recurring-fields`);
-            recurringFields = document.querySelector(`#${context} #edit-recurring-fields`);
+            if (context === 'main-form') {
+                isRecurring = document.querySelector('#is_recurring').checked;
+                nonRecurringFields = document.querySelector('#non-recurring-fields');
+                recurringFields = document.querySelector('#recurring-fields');
+            } else {
+                // For modal (edit-avail-modal)
+                isRecurring = document.querySelector(`#${context} #edit-is-recurring`).checked;
+                nonRecurringFields = document.querySelector(`#${context} #edit-non-recurring-fields`);
+                recurringFields = document.querySelector(`#${context} #edit-recurring-fields`);
+            }
+
+            nonRecurringFields.classList.toggle('hidden', isRecurring);
+            recurringFields.classList.toggle('hidden', !isRecurring);
         }
 
-        nonRecurringFields.classList.toggle('hidden', isRecurring);
-        recurringFields.classList.toggle('hidden', !isRecurring);
-    }
+        // Ensure time is in 24-hour format (HH:MM) before submission
+        function ensure24HourFormat(inputId) {
+            const input = document.getElementById(inputId);
+            let timeValue = input.value;
 
-    // Ensure time is in 24-hour format (HH:MM) before submission
-    function ensure24HourFormat(inputId) {
-        const input = document.getElementById(inputId);
-        let timeValue = input.value;
+            // If the input is empty, do nothing
+            if (!timeValue) return;
 
-        // If the input is empty, do nothing
-        if (!timeValue) return;
+            // Remove any non-digit or non-colon characters
+            timeValue = timeValue.replace(/[^\d:]/g, '');
 
-        // Remove any non-digit or non-colon characters
-        timeValue = timeValue.replace(/[^\d:]/g, '');
-
-        // Match HH:MM format
-        if (timeValue.match(/^\d{1,2}:\d{2}$/)) {
-            let [hours, minutes] = timeValue.split(':').map(Number);
-            // Validate hours and minutes
-            if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
-                input.value = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+            // Match HH:MM format
+            if (timeValue.match(/^\d{1,2}:\d{2}$/)) {
+                let [hours, minutes] = timeValue.split(':').map(Number);
+                // Validate hours and minutes
+                if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
+                    input.value = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                } else {
+                    alert('Invalid time. Hours must be 00-23 and minutes must be 00-59.');
+                    input.value = '';
+                }
             } else {
-                alert('Invalid time. Hours must be 00-23 and minutes must be 00-59.');
+                alert('Please enter the time in 24-hour format (e.g., 14:30).');
                 input.value = '';
             }
-        } else {
-            alert('Please enter the time in 24-hour format (e.g., 14:30).');
-            input.value = '';
         }
-    }
 
-    // Validate form on submission
-    function validateForm(formId) {
-        // Ensure time fields are validated before submission
-        if (document.getElementById('is_recurring')?.checked || formId === 'edit-avail-form') {
-            ensure24HourFormat(formId === 'edit-avail-form' ? 'edit-start-time' : 'start_time');
-            ensure24HourFormat(formId === 'edit-avail-form' ? 'edit-end-time' : 'end_time');
+        // Validate form on submission
+        function validateForm(formId) {
+            // Ensure time fields are validated before submission
+            if (document.getElementById('is_recurring')?.checked || formId === 'edit-avail-form') {
+                ensure24HourFormat(formId === 'edit-avail-form' ? 'edit-start-time' : 'start_time');
+                ensure24HourFormat(formId === 'edit-avail-form' ? 'edit-end-time' : 'end_time');
 
-            // Check if the inputs are empty after validation
-            const startTime = document.getElementById(formId === 'edit-avail-form' ? 'edit-start-time' : 'start_time')
-                .value;
-            const endTime = document.getElementById(formId === 'edit-avail-form' ? 'edit-end-time' : 'end_time').value;
+                // Check if the inputs are empty after validation
+                const startTime = document.getElementById(formId === 'edit-avail-form' ? 'edit-start-time' : 'start_time')
+                    .value;
+                const endTime = document.getElementById(formId === 'edit-avail-form' ? 'edit-end-time' : 'end_time').value;
 
-            if (!startTime || !endTime) {
-                alert('Please ensure both start and end times are filled and valid.');
-                return false;
+                if (!startTime || !endTime) {
+                    alert('Please ensure both start and end times are filled and valid.');
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // Edit Blocked Date Modal
+        function openEditBlockedModal(id, startDate, endDate, reason) {
+            const modal = document.getElementById('edit-blocked-modal');
+            document.getElementById('edit-blocked-id').value = id;
+            document.getElementById('edit-block-start-date').UT
+            value = formatDateForInput(startDate);
+            document.getElementById('edit-block-end-date').value = formatDateForInput(endDate);
+            document.getElementById('edit-block-reason').value = reason || '';
+            modal.style.display = 'block';
+        }
+
+        function closeEditBlockedModal() {
+            const modal = document.getElementById('edit-blocked-modal');
+            modal.style.display = 'none';
+        }
+
+        // Edit Availability Modal
+        function openEditAvailModal(id, isRecurring, startDatetime, endDatetime, dayOfWeek, startTime, endTime, startDate,
+            endDate) {
+            const modal = document.getElementById('edit-avail-modal');
+            document.getElementById('edit-avail-id').value = id;
+            document.getElementById('edit-is-recurring').checked = isRecurring === '1';
+            document.getElementById('edit-start-datetime').value = startDatetime ? startDatetime.replace(' ', 'T') : '';
+            document.getElementById('edit-end-datetime').value = endDatetime ? endDatetime.replace(' ', 'T') : '';
+            document.getElementById('edit-day-of-week').value = dayOfWeek !== null ? dayOfWeek : '';
+            document.getElementById('edit-start-time').value = startTime || '';
+            document.getElementById('edit-end-time').value = endTime || '';
+            document.getElementById('edit-avail-start-date').value = startDate || '';
+            document.getElementById('edit-avail-end-date').value = endDate || '';
+
+            // Toggle fields based on is_recurring
+            toggleAvailabilityFields('edit-avail-modal');
+            modal.style.display = 'block';
+        }
+
+        function closeEditAvailModal() {
+            const modal = document.getElementById('edit-avail-modal');
+            modal.style.display = 'none';
+        }
+
+        function formatDateForInput(dateStr) {
+            // Convert "28 Apr 2025" to "2025-04-28" for <input type="date">
+            const date = new Date(dateStr);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function formatDatetimeForInput(datetimeStr) {
+            // Convert "02 May 2025, 01:00 PM" to "2025-05-02T13:00"
+            const date = new Date(datetimeStr);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+
+        function confirmDelete(type, id) {
+            if (confirm(`Are you sure you want to delete this ${type}?`)) {
+                window.location.href = type === 'availability' ? `delete_availability.php?id=${id}` :
+                    `delete_blocked_date.php?id=${id}`;
             }
         }
-        return true;
-    }
 
-    // Edit Blocked Date Modal
-    function openEditBlockedModal(id, startDate, endDate, reason) {
-        const modal = document.getElementById('edit-blocked-modal');
-        document.getElementById('edit-blocked-id').value = id;
-        document.getElementById('edit-block-start-date').UT
-        value = formatDateForInput(startDate);
-        document.getElementById('edit-block-end-date').value = formatDateForInput(endDate);
-        document.getElementById('edit-block-reason').value = reason || '';
-        modal.style.display = 'block';
-    }
-
-    function closeEditBlockedModal() {
-        const modal = document.getElementById('edit-blocked-modal');
-        modal.style.display = 'none';
-    }
-
-    // Edit Availability Modal
-    function openEditAvailModal(id, isRecurring, startDatetime, endDatetime, dayOfWeek, startTime, endTime, startDate,
-        endDate) {
-        const modal = document.getElementById('edit-avail-modal');
-        document.getElementById('edit-avail-id').value = id;
-        document.getElementById('edit-is-recurring').checked = isRecurring === '1';
-        document.getElementById('edit-start-datetime').value = startDatetime ? startDatetime.replace(' ', 'T') : '';
-        document.getElementById('edit-end-datetime').value = endDatetime ? endDatetime.replace(' ', 'T') : '';
-        document.getElementById('edit-day-of-week').value = dayOfWeek !== null ? dayOfWeek : '';
-        document.getElementById('edit-start-time').value = startTime || '';
-        document.getElementById('edit-end-time').value = endTime || '';
-        document.getElementById('edit-avail-start-date').value = startDate || '';
-        document.getElementById('edit-avail-end-date').value = endDate || '';
-
-        // Toggle fields based on is_recurring
-        toggleAvailabilityFields('edit-avail-modal');
-        modal.style.display = 'block';
-    }
-
-    function closeEditAvailModal() {
-        const modal = document.getElementById('edit-avail-modal');
-        modal.style.display = 'none';
-    }
-
-    function formatDateForInput(dateStr) {
-        // Convert "28 Apr 2025" to "2025-04-28" for <input type="date">
-        const date = new Date(dateStr);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    }
-
-    function formatDatetimeForInput(datetimeStr) {
-        // Convert "02 May 2025, 01:00 PM" to "2025-05-02T13:00"
-        const date = new Date(datetimeStr);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        return `${year}-${month}-${day}T${hours}:${minutes}`;
-    }
-
-    function confirmDelete(type, id) {
-        if (confirm(`Are you sure you want to delete this ${type}?`)) {
-            window.location.href = type === 'availability' ? `delete_availability.php?id=${id}` :
-                `delete_blocked_date.php?id=${id}`;
-        }
-    }
-
-    window.onclick = function(event) {
-        const editBlockedModal = document.getElementById('edit-blocked-modal');
-        const editAvailModal = document.getElementById('edit-avail-modal');
-        if (event.target == editBlockedModal) {
-            editBlockedModal.style.display = 'none';
-        }
-        if (event.target == editAvailModal) {
-            editAvailModal.style.display = 'none';
-        }
-    };
+        window.onclick = function(event) {
+            const editBlockedModal = document.getElementById('edit-blocked-modal');
+            const editAvailModal = document.getElementById('edit-avail-modal');
+            if (event.target == editBlockedModal) {
+                editBlockedModal.style.display = 'none';
+            }
+            if (event.target == editAvailModal) {
+                editAvailModal.style.display = 'none';
+            }
+        };
     </script>
 </head>
 
@@ -860,10 +860,10 @@ function findRecurringOverlaps($avail, $blocked_dates)
         <!-- Display existing availability with Edit and Delete buttons -->
         <h3 class="text-xl font-semibold mt-6 mb-2">Existing Availability</h3>
         <?php if (count($availabilities) > 0): ?>
-        <ul class="bg-white p-4 rounded shadow">
-            <?php foreach ($availabilities as $avail): ?>
-            <li class="mb-2 flex justify-between items-center">
-                <?php
+            <ul class="bg-white p-4 rounded shadow">
+                <?php foreach ($availabilities as $avail): ?>
+                    <li class="mb-2 flex justify-between items-center">
+                        <?php
                         $avail_id = $avail['id'];
                         $is_recurring = $avail['is_recurring'];
                         $start_datetime = $avail['start_datetime'] ? date("d M Y, h:i A", strtotime($avail['start_datetime'])) : null;
@@ -901,45 +901,45 @@ function findRecurringOverlaps($avail, $blocked_dates)
                             }
                         }
                         ?>
-                <div>
-                    <button
-                        onclick="openEditAvailModal(<?php echo $avail_id; ?>, '<?php echo $is_recurring; ?>', '<?php echo $start_datetime; ?>', '<?php echo $end_datetime; ?>', '<?php echo $day_of_week; ?>', '<?php echo $start_time; ?>', '<?php echo $end_time; ?>', '<?php echo $start_date; ?>', '<?php echo $end_date; ?>')"
-                        class="text-blue-500 hover:underline mr-2">Edit</button>
-                    <button onclick="confirmDelete('availability', <?php echo $avail_id; ?>)"
-                        class="text-red-500 hover:underline">Delete</button>
-                </div>
-            </li>
-            <?php endforeach; ?>
-        </ul>
+                        <div>
+                            <button
+                                onclick="openEditAvailModal(<?php echo $avail_id; ?>, '<?php echo $is_recurring; ?>', '<?php echo $start_datetime; ?>', '<?php echo $end_datetime; ?>', '<?php echo $day_of_week; ?>', '<?php echo $start_time; ?>', '<?php echo $end_time; ?>', '<?php echo $start_date; ?>', '<?php echo $end_date; ?>')"
+                                class="text-blue-500 hover:underline mr-2">Edit</button>
+                            <button onclick="confirmDelete('availability', <?php echo $avail_id; ?>)"
+                                class="text-red-500 hover:underline">Delete</button>
+                        </div>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
         <?php else: ?>
-        <p class="text-gray-700">No availability set.</p>
+            <p class="text-gray-700">No availability set.</p>
         <?php endif; ?>
 
         <!-- Display existing blocked dates with Edit and Delete buttons -->
         <h3 class="text-xl font-semibold mt-6 mb-2">Existing Blocked Dates</h3>
         <?php if (count($blocked_dates) > 0): ?>
-        <ul class="bg-white p-4 rounded shadow">
-            <?php foreach ($blocked_dates as $blocked): ?>
-            <li class="mb-2 flex justify-between items-center">
-                <?php
+            <ul class="bg-white p-4 rounded shadow">
+                <?php foreach ($blocked_dates as $blocked): ?>
+                    <li class="mb-2 flex justify-between items-center">
+                        <?php
                         $start_date = date("d M Y", strtotime($blocked['start_date']));
                         $end_date = date("d M Y", strtotime($blocked['end_date']));
                         $reason = $blocked['reason'] ? " - Reason: " . htmlspecialchars($blocked['reason']) : '';
                         $id = $blocked['id'];
                         echo "<span>$start_date to $end_date$reason</span>";
                         ?>
-                <div>
-                    <button
-                        onclick="openEditBlockedModal(<?php echo $id; ?>, '<?php echo $start_date; ?>', '<?php echo $end_date; ?>', '<?php echo htmlspecialchars($blocked['reason'] ?? ''); ?>')"
-                        class="text-blue-500 hover:underline mr-2">Edit</button>
-                    <button onclick="confirmDelete('blocked date', <?php echo $id; ?>)"
-                        class="text-red-500 hover:underline">Delete</button>
-                </div>
-            </li>
-            <?php endforeach; ?>
-        </ul>
+                        <div>
+                            <button
+                                onclick="openEditBlockedModal(<?php echo $id; ?>, '<?php echo $start_date; ?>', '<?php echo $end_date; ?>', '<?php echo htmlspecialchars($blocked['reason'] ?? ''); ?>')"
+                                class="text-blue-500 hover:underline mr-2">Edit</button>
+                            <button onclick="confirmDelete('blocked date', <?php echo $id; ?>)"
+                                class="text-red-500 hover:underline">Delete</button>
+                        </div>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
         <?php else: ?>
-        <p class="text-gray-700">No blocked dates set.</p>
+            <p class="text-gray-700">No blocked dates set.</p>
         <?php endif; ?>
 
         <!-- Edit Blocked Date Modal -->
