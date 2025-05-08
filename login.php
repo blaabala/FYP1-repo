@@ -63,67 +63,67 @@ if (isset($_POST['login'])) {
 
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
+    <!DOCTYPE html>
+    <html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Page</title>
-    <meta name="description" content="">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Login Page</title>
+        <meta name="description" content="">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="css/tailwind.min.css" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
+        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+        <link href="css/tailwind.min.css" rel="stylesheet">
+        <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap"
-        rel="stylesheet">
-</head>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap"
+            rel="stylesheet">
+    </head>
 
-<body class="bg-blue-200 min-h-screen flex items-center justify-center">
+    <body class="bg-blue-200 min-h-screen flex items-center justify-center">
 
-    <div class="flex flex-col items-center">
-        <img src="assets/images/logo - Copy.png" alt="Logo" class="w-28 h-28 mb-4 object-contain">
+        <div class="flex flex-col items-center">
+            <img src="assets/images/logo - Copy.png" alt="Logo" class="w-28 h-28 mb-4 object-contain">
 
-        <div class="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
-            <header class="text-xl font-bold mb-6 text-center">Login Page</header>
+            <div class="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
+                <header class="text-xl font-bold mb-6 text-center">Login Page</header>
 
-            <?php if (isset($_GET['error'])): ?>
-            <div class="bg-red-100 text-red-800 px-4 py-3 rounded mb-4 text-center">
-                Wrong Username/Password! Please try again.
+                <?php if (isset($_GET['error'])): ?>
+                    <div class="bg-red-100 text-red-800 px-4 py-3 rounded mb-4 text-center">
+                        Wrong Email Address/Password! Please try again.
+                    </div>
+                <?php endif; ?>
+
+                <form id="form" action="" method="post">
+                    <div>
+                        <input required type="email" id="email" name="email" placeholder="Email Address"
+                            class="mb-3 w-full p-2 border rounded">
+                    </div>
+                    <div>
+                        <input required type="password" id="password" name="password" placeholder="Password"
+                            autocomplete="off" class="mb-3 w-full p-2 border rounded">
+                    </div>
+
+                    <p><label for="remember_me">Remember Me&emsp;</label><input type="checkbox" name="remember_me"
+                            id="remember_me"></p>
+                    <div>
+                        <button required type="submit" name="login" value="Login"
+                            class="w-full bg-blue-800 text-white py-2 rounded hover:bg-blue-900">Login</button>
+                    </div>
+
+                </form>
+                <p class="mt-4 text-center text-sm text-gray-600">
+                    New user? <a href="register.php" class="text-blue-600 hover:underline">Click here to Register Page</a>
+                </p>
             </div>
-            <?php endif; ?>
-
-            <form id="form" action="" method="post">
-                <div>
-                    <input required type="email" id="email" name="email" placeholder="Email Address"
-                        class="mb-3 w-full p-2 border rounded">
-                </div>
-                <div>
-                    <input required type="password" id="password" name="password" placeholder="Password"
-                        autocomplete="off" class="mb-3 w-full p-2 border rounded">
-                </div>
-
-                <p><label for="remember_me">Remember Me&emsp;</label><input type="checkbox" name="remember_me"
-                        id="remember_me"></p>
-                <div>
-                    <button required type="submit" name="login" value="Login"
-                        class="w-full bg-blue-800 text-white py-2 rounded hover:bg-blue-900">Login</button>
-                </div>
-
-            </form>
-            <p class="mt-4 text-center text-sm text-gray-600">
-                New user? <a href="register.php" class="text-blue-600 hover:underline">Click here to Register Page</a>
-            </p>
         </div>
-    </div>
     <?php } ?>
 
 
-</body>
+    </body>
 
-</html>
+    </html>
