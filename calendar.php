@@ -36,6 +36,20 @@ while ($result = mysqli_fetch_assoc($query)) {
     $res_contact = $result['contact_number'];
 }
 
+// Fetch operating hours from the database
+$query = "SELECT start_time, end_time FROM operating_hours WHERE id = 1";
+$hours_result = mysqli_query($con, $query);
+$operating_hours = mysqli_fetch_assoc($hours_result);
+
+if (!$operating_hours) {
+    // Default to 8 AM to 5 PM if no record is found
+    $slot_min_time = '08:00:00';
+    $slot_max_time = '17:00:00';
+} else {
+    $slot_min_time = $operating_hours['start_time'];
+    $slot_max_time = $operating_hours['end_time'];
+}
+
 $lecturer_id = isset($_GET['lecturer_id']) ? (int)$_GET['lecturer_id'] : 0;
 if ($lecturer_id === 0) {
     die("Invalid lecturer ID.");
@@ -139,91 +153,91 @@ $bufferHours = 2; // Buffer period of 2 hours
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.js'></script>
     <style>
-    html,
-    body {
-        height: 100%;
-        margin: 0;
-        display: flex;
-        flex-direction: column;
-    }
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
 
-    main {
-        flex: 1;
-    }
+        main {
+            flex: 1;
+        }
 
-    .fc-highlight {
-        background-color: rgba(0, 123, 255, 0.3) !important;
-    }
+        .fc-highlight {
+            background-color: rgba(0, 123, 255, 0.3) !important;
+        }
 
-    .fc-timegrid-slot {
-        height: 40px !important;
-    }
+        .fc-timegrid-slot {
+            height: 40px !important;
+        }
 
-    .fc-timegrid-slot-label {
-        vertical-align: middle !important;
-    }
+        .fc-timegrid-slot-label {
+            vertical-align: middle !important;
+        }
 
-    .fc-event:hover {
-        cursor: pointer;
-    }
+        .fc-event:hover {
+            cursor: pointer;
+        }
 
-    .available-slot {
-        background-color: rgb(49, 241, 103) !important;
-        border: none !important;
-        opacity: 0.5 !important;
-        pointer-events: none !important;
-    }
+        .available-slot {
+            background-color: rgb(49, 241, 103) !important;
+            border: none !important;
+            opacity: 0.5 !important;
+            pointer-events: none !important;
+        }
 
-    .fully-booked-slot {
-        background-color: #ff3b30 !important;
-        border: none !important;
-        opacity: 0.5 !important;
-        pointer-events: none !important;
-    }
+        .fully-booked-slot {
+            background-color: #ff3b30 !important;
+            border: none !important;
+            opacity: 0.5 !important;
+            pointer-events: none !important;
+        }
 
-    .disabled-day-slot,
-    .disabled-time-slot {
-        background-color: #d3d3d3 !important;
-        border: none !important;
-        opacity: 0.5 !important;
-        pointer-events: none !important;
-    }
+        .disabled-day-slot,
+        .disabled-time-slot {
+            background-color: #d3d3d3 !important;
+            border: none !important;
+            opacity: 0.5 !important;
+            pointer-events: none !important;
+        }
 
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 50;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0, 0, 0, 0.4);
-    }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 50;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
 
-    .modal-content {
-        background-color: #fefefe;
-        margin: 15% auto;
-        padding: 20px;
-        border: 1px solid #888;
-        width: 80%;
-        max-width: 500px;
-        border-radius: 8px;
-    }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 8px;
+        }
 
-    .close {
-        color: #aaa;
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
-    }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
 
-    .close:hover,
-    .close:focus {
-        color: black;
-        text-decoration: none;
-        cursor: pointer;
-    }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -320,50 +334,43 @@ $bufferHours = 2; // Buffer period of 2 hours
         <?php include("footer.php"); ?>
 
         <script>
-        let calendar;
+            let calendar;
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const calendarEl = document.getElementById('calendar');
-            if (!calendarEl) {
-                console.error('Calendar element not found.');
-                return;
-            }
-
-            const modal = document.getElementById('booking-modal');
-            const closeModal = document.getElementsByClassName('close')[0];
-            const bookingForm = document.getElementById('booking-form');
-            const selectedDatetimeInput = document.getElementById('selected-datetime');
-            const selectedDatetimeDisplay = document.getElementById('selected-datetime-display');
-            const confirmButton = document.getElementById('confirm-button');
-            const titleInput = document.getElementById('title');
-            const descriptionInput = document.getElementById('description');
-            const locationInput = document.getElementById('location');
-
-            // Enable/disable confirm button based on form completion
-            function updateConfirmButtonState() {
-                const isFormComplete = selectedDatetimeInput.value && titleInput.value && descriptionInput
-                    .value && locationInput.value;
-                confirmButton.disabled = !isFormComplete;
-            }
-
-            titleInput.addEventListener('input', updateConfirmButtonState);
-            descriptionInput.addEventListener('input', updateConfirmButtonState);
-            locationInput.addEventListener('input', updateConfirmButtonState);
-
-            // Modal close functionality
-            closeModal.onclick = function() {
-                modal.style.display = 'none';
-                if (calendar) {
-                    calendar.unselect();
+            document.addEventListener('DOMContentLoaded', function() {
+                const calendarEl = document.getElementById('calendar');
+                if (!calendarEl) {
+                    console.error('Calendar element not found.');
+                    return;
                 }
-                bookingForm.reset();
-                selectedDatetimeInput.value = '';
-                selectedDatetimeDisplay.textContent = '';
-                confirmButton.disabled = true;
-            };
 
-            window.onclick = function(event) {
-                if (event.target == modal) {
+                const modal = document.getElementById('booking-modal');
+                const closeModal = document.getElementsByClassName('close')[0];
+                const bookingForm = document.getElementById('booking-form');
+                const selectedDatetimeInput = document.getElementById('selected-datetime');
+                const selectedDatetimeDisplay = document.getElementById('selected-datetime-display');
+                const confirmButton = document.getElementById('confirm-button');
+                const titleInput = document.getElementById('title');
+                const descriptionInput = document.getElementById('description');
+                const locationInput = document.getElementById('location');
+
+                const operatingStartHour = <?php echo (int)explode(':', $slot_min_time)[0]; ?>;
+                const operatingStartMinute = <?php echo (int)explode(':', $slot_min_time)[1]; ?>;
+                const operatingEndHour = <?php echo (int)explode(':', $slot_max_time)[0]; ?>;
+                const operatingEndMinute = <?php echo (int)explode(':', $slot_max_time)[1]; ?>;
+
+                // Enable/disable confirm button based on form completion
+                function updateConfirmButtonState() {
+                    const isFormComplete = selectedDatetimeInput.value && titleInput.value && descriptionInput
+                        .value && locationInput.value;
+                    confirmButton.disabled = !isFormComplete;
+                }
+
+                titleInput.addEventListener('input', updateConfirmButtonState);
+                descriptionInput.addEventListener('input', updateConfirmButtonState);
+                locationInput.addEventListener('input', updateConfirmButtonState);
+
+                // Modal close functionality
+                closeModal.onclick = function() {
                     modal.style.display = 'none';
                     if (calendar) {
                         calendar.unselect();
@@ -372,55 +379,67 @@ $bufferHours = 2; // Buffer period of 2 hours
                     selectedDatetimeInput.value = '';
                     selectedDatetimeDisplay.textContent = '';
                     confirmButton.disabled = true;
+                };
+
+                window.onclick = function(event) {
+                    if (event.target == modal) {
+                        modal.style.display = 'none';
+                        if (calendar) {
+                            calendar.unselect();
+                        }
+                        bookingForm.reset();
+                        selectedDatetimeInput.value = '';
+                        selectedDatetimeDisplay.textContent = '';
+                        confirmButton.disabled = true;
+                    }
+                };
+
+                // Helper function to parse dates in Asia/Kuala_Lumpur timezone
+                function parseDateInKualaLumpur(dateStr) {
+                    if (!dateStr) return null;
+                    const isDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(dateStr);
+                    let adjustedDateStr;
+                    if (isDateOnly) {
+                        adjustedDateStr = `${dateStr}T00:00:00+08:00`;
+                    } else if (dateStr.includes('+')) {
+                        adjustedDateStr = dateStr;
+                    } else {
+                        adjustedDateStr = `${dateStr}+08:00`;
+                    }
+                    const date = new Date(adjustedDateStr);
+                    if (isNaN(date.getTime())) {
+                        console.error(`Invalid date string: ${dateStr}`);
+                        return null;
+                    }
+                    return date;
                 }
-            };
 
-            // Helper function to parse dates in Asia/Kuala_Lumpur timezone
-            function parseDateInKualaLumpur(dateStr) {
-                if (!dateStr) return null;
-                const isDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(dateStr);
-                let adjustedDateStr;
-                if (isDateOnly) {
-                    adjustedDateStr = `${dateStr}T00:00:00+08:00`;
-                } else if (dateStr.includes('+')) {
-                    adjustedDateStr = dateStr;
-                } else {
-                    adjustedDateStr = `${dateStr}+08:00`;
+                // Function to check if a date is within a blocked date range
+                function isDateBlocked(date, blockedDates) {
+                    const dateStr = date.toISOString().split('T')[0]; // Get YYYY-MM-DD
+                    return blockedDates.some(blocked => {
+                        const blockStart = parseDateInKualaLumpur(blocked.start_date);
+                        const blockEnd = parseDateInKualaLumpur(blocked.end_date);
+                        const checkDate = parseDateInKualaLumpur(dateStr);
+                        return checkDate >= blockStart && checkDate <= blockEnd;
+                    });
                 }
-                const date = new Date(adjustedDateStr);
-                if (isNaN(date.getTime())) {
-                    console.error(`Invalid date string: ${dateStr}`);
-                    return null;
-                }
-                return date;
-            }
 
-            // Function to check if a date is within a blocked date range
-            function isDateBlocked(date, blockedDates) {
-                const dateStr = date.toISOString().split('T')[0]; // Get YYYY-MM-DD
-                return blockedDates.some(blocked => {
-                    const blockStart = parseDateInKualaLumpur(blocked.start_date);
-                    const blockEnd = parseDateInKualaLumpur(blocked.end_date);
-                    const checkDate = parseDateInKualaLumpur(dateStr);
-                    return checkDate >= blockStart && checkDate <= blockEnd;
-                });
-            }
+                // Current time and buffer period
+                const currentTime = new Date('<?php echo $currentTime->format('c'); ?>');
+                const bufferHours = <?php echo $bufferHours; ?>;
+                const bufferMillis = bufferHours * 60 * 60 * 1000; // Convert hours to milliseconds
+                const bufferThreshold = new Date(currentTime.getTime() + bufferMillis);
+                console.log('Current Time:', currentTime);
+                console.log('Buffer Threshold (cannot book before this):', bufferThreshold);
 
-            // Current time and buffer period
-            const currentTime = new Date('<?php echo $currentTime->format('c'); ?>');
-            const bufferHours = <?php echo $bufferHours; ?>;
-            const bufferMillis = bufferHours * 60 * 60 * 1000; // Convert hours to milliseconds
-            const bufferThreshold = new Date(currentTime.getTime() + bufferMillis);
-            console.log('Current Time:', currentTime);
-            console.log('Buffer Threshold (cannot book before this):', bufferThreshold);
+                // Blocked dates
+                const blockedDates = <?php echo json_encode($blocked_dates); ?>;
+                console.log('Blocked Dates:', blockedDates);
 
-            // Blocked dates
-            const blockedDates = <?php echo json_encode($blocked_dates); ?>;
-            console.log('Blocked Dates:', blockedDates);
-
-            // Events array (non-recurring slots)
-            const nonRecurringEvents = [
-                <?php
+                // Events array (non-recurring slots)
+                const nonRecurringEvents = [
+                    <?php
                     $eventItems = [];
                     $debugLogs = [];
 
@@ -525,370 +544,394 @@ $bufferHours = 2; // Buffer period of 2 hours
                         echo implode(",\n", $eventItems);
                     }
                     ?>
-            ];
+                ];
 
-            // Apply time constraints to non-recurring events
-            const events = nonRecurringEvents.map(event => {
-                const eventStart = parseDateInKualaLumpur(event.start);
-                const isPastOrTooSoon = eventStart < currentTime || eventStart.getTime() <
-                    bufferThreshold.getTime();
-                if (isPastOrTooSoon && !event.classNames.includes('fully-booked-slot')) {
-                    console.log('Disabling non-recurring event (past or too soon):', event.start, event
-                        .end);
-                    event.classNames = ['disabled-time-slot'];
-                }
-                return event;
-            });
+                // Apply time constraints to non-recurring events
+                const events = nonRecurringEvents.map(event => {
+                    const eventStart = parseDateInKualaLumpur(event.start);
+                    const isPastOrTooSoon = eventStart < currentTime || eventStart.getTime() <
+                        bufferThreshold.getTime();
+                    if (isPastOrTooSoon && !event.classNames.includes('fully-booked-slot')) {
+                        console.log('Disabling non-recurring event (past or too soon):', event.start, event
+                            .end);
+                        event.classNames = ['disabled-time-slot'];
+                    }
+                    return event;
+                });
 
-            console.log('Events array:', events);
+                console.log('Events array:', events);
 
-            // Debug logs for non-recurring events
-            <?php
+                // Debug logs for non-recurring events
+                <?php
                 if (!empty($debugLogs)) {
                     echo implode("\n", $debugLogs);
                 }
                 ?>
 
-            const recurringAvailabilities = <?php echo json_encode(array_values(array_filter($availabilities, function ($a) {
+                const recurringAvailabilities = <?php echo json_encode(array_values(array_filter($availabilities, function ($a) {
                                                     return $a['is_recurring'];
                                                 }))); ?>;
-            console.log('Recurring Availabilities:', recurringAvailabilities);
+                console.log('Recurring Availabilities:', recurringAvailabilities);
 
-            try {
-                console.log('Initializing FullCalendar...');
-                calendar = new FullCalendar.Calendar(calendarEl, {
-                    initialView: 'timeGridWeek',
-                    initialDate: '2025-04-27',
-                    slotDuration: '00:30:00',
-                    slotMinTime: '08:00:00',
-                    slotMaxTime: '18:00:00',
-                    contentHeight: 'auto',
-                    aspectRatio: 2,
-                    events: events,
-                    selectable: true,
-                    headerToolbar: {
-                        left: 'prev,next today',
-                        center: 'title',
-                        right: 'timeGridWeek,timeGridDay'
-                    },
-                    datesSet: function(dateInfo) {
-                        try {
-                            console.log('datesSet triggered with start:', dateInfo.startStr, 'end:',
-                                dateInfo.endStr);
+                try {
+                    console.log('Initializing FullCalendar...');
+                    calendar = new FullCalendar.Calendar(calendarEl, {
+                        initialView: 'timeGridWeek',
+                        initialDate: '2025-04-27',
+                        slotDuration: '00:30:00',
+                        slotMinTime: '<?php echo $slot_min_time; ?>',
+                        slotMaxTime: '<?php echo $slot_max_time; ?>',
+                        contentHeight: 'auto',
+                        aspectRatio: 2,
+                        events: events,
+                        selectable: true,
+                        headerToolbar: {
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: 'timeGridWeek,timeGridDay'
+                        },
+                        datesSet: function(dateInfo) {
+                            try {
+                                console.log('datesSet triggered with start:', dateInfo.startStr, 'end:',
+                                    dateInfo.endStr);
 
-                            // Remove existing dynamic events
-                            calendar.getEvents().forEach(event => {
-                                if (event.classNames.includes('disabled-day-slot') || event
-                                    .classNames.includes('recurring-availability-slot') ||
-                                    event.classNames.includes('disabled-time-slot')) {
-                                    event.remove();
-                                }
-                            });
-
-                            const startDate = parseDateInKualaLumpur(dateInfo.startStr);
-                            const endDate = parseDateInKualaLumpur(dateInfo.endStr);
-                            if (!startDate || !endDate) {
-                                console.error('Failed to parse startDate or endDate:', dateInfo
-                                    .startStr, dateInfo.endStr);
-                                return;
-                            }
-
-                            console.log('Parsed startDate:', startDate, 'endDate:', endDate);
-
-                            let currentDate = new Date(startDate);
-
-                            // Disable weekends
-                            while (currentDate < endDate) {
-                                const dayOfWeek = currentDate.getDay();
-                                if (dayOfWeek === 0 || dayOfWeek === 6) {
-                                    const dayStart = new Date(currentDate);
-                                    dayStart.setHours(8, 0, 0, 0);
-                                    const dayEnd = new Date(currentDate);
-                                    dayEnd.setHours(18, 0, 0, 0);
-
-                                    let slotStart = new Date(dayStart);
-                                    while (slotStart < dayEnd) {
-                                        const slotEnd = new Date(slotStart);
-                                        slotEnd.setMinutes(slotStart.getMinutes() + 30);
-
-                                        calendar.addEvent({
-                                            title: '',
-                                            start: slotStart,
-                                            end: slotEnd,
-                                            backgroundColor: '#d3d3d3',
-                                            borderColor: '#d3d3d3',
-                                            classNames: ['disabled-day-slot'],
-                                            editable: false,
-                                            selectable: false,
-                                            eventOverlap: false,
-                                            eventAllow: function() {
-                                                return false;
-                                            }
-                                        });
-
-                                        slotStart.setMinutes(slotStart.getMinutes() + 30);
+                                // Remove existing dynamic events
+                                calendar.getEvents().forEach(event => {
+                                    if (event.classNames.includes('disabled-day-slot') || event
+                                        .classNames.includes('recurring-availability-slot') ||
+                                        event.classNames.includes('disabled-time-slot')) {
+                                        event.remove();
                                     }
-                                }
-                                currentDate.setDate(currentDate.getDate() + 1);
-                            }
+                                });
 
-                            // Add recurring availability
-                            currentDate.setTime(startDate.getTime());
-                            recurringAvailabilities.forEach(availability => {
-                                console.log('Processing recurring availability:',
-                                    availability);
-
-                                const dayOfWeek = parseInt(availability.day_of_week);
-                                const startTime = availability.start_time ? availability
-                                    .start_time.split(':') : null;
-                                const endTime = availability.end_time ? availability
-                                    .end_time.split(':') : null;
-                                const recurringStartDate = availability.start_date ?
-                                    parseDateInKualaLumpur(availability.start_date) : null;
-                                const recurringEndDate = availability.end_date ?
-                                    parseDateInKualaLumpur(availability.end_date) : null;
-
-                                console.log('dayOfWeek:', dayOfWeek, 'recurringStartDate:',
-                                    recurringStartDate, 'recurringEndDate:',
-                                    recurringEndDate);
-
-                                if (!startTime || !endTime) {
-                                    console.error('Invalid time data for availability:',
-                                        availability);
+                                const startDate = parseDateInKualaLumpur(dateInfo.startStr);
+                                const endDate = parseDateInKualaLumpur(dateInfo.endStr);
+                                if (!startDate || !endDate) {
+                                    console.error('Failed to parse startDate or endDate:', dateInfo
+                                        .startStr, dateInfo.endStr);
                                     return;
                                 }
 
+                                console.log('Parsed startDate:', startDate, 'endDate:', endDate);
+
+                                let currentDate = new Date(startDate);
+
+                                // Disable weekends
                                 while (currentDate < endDate) {
-                                    console.log('Checking date:', currentDate,
-                                        'Day of week:', currentDate.getDay());
-                                    if (currentDate.getDay() === dayOfWeek) {
-                                        console.log('Matched dayOfWeek:', dayOfWeek);
-                                        console.log('Comparing dates - currentDate:',
-                                            currentDate, 'recurringStartDate:',
-                                            recurringStartDate, 'recurringEndDate:',
-                                            recurringEndDate);
-                                        if (recurringStartDate && currentDate <
-                                            recurringStartDate) {
-                                            console.log('Skipping date before start_date:',
-                                                currentDate);
-                                            currentDate.setDate(currentDate.getDate() + 1);
-                                            continue;
-                                        }
-                                        if (recurringEndDate && currentDate >
-                                            recurringEndDate) {
-                                            console.log('Skipping date after end_date:',
-                                                currentDate);
-                                            currentDate.setDate(currentDate.getDate() + 1);
-                                            continue;
-                                        }
+                                    const dayOfWeek = currentDate.getDay();
+                                    if (dayOfWeek === 0 || dayOfWeek === 6) {
+                                        const dayStart = new Date(currentDate);
+                                        dayStart.setHours(8, 0, 0, 0);
+                                        const dayEnd = new Date(currentDate);
+                                        dayEnd.setHours(18, 0, 0, 0);
 
-                                        const slotStart = new Date(currentDate);
-                                        slotStart.setHours(parseInt(startTime[0]), parseInt(
-                                            startTime[1]), 0, 0);
-                                        const slotEnd = new Date(currentDate);
-                                        slotEnd.setHours(parseInt(endTime[0]), parseInt(
-                                            endTime[1]), 0, 0);
+                                        let slotStart = new Date(dayStart);
+                                        while (slotStart < dayEnd) {
+                                            const slotEnd = new Date(slotStart);
+                                            slotEnd.setMinutes(slotStart.getMinutes() + 30);
 
-                                        let currentSlot = new Date(slotStart);
-                                        while (currentSlot < slotEnd) {
-                                            const slotEndTime = new Date(currentSlot);
-                                            slotEndTime.setMinutes(currentSlot
-                                                .getMinutes() + 30);
+                                            calendar.addEvent({
+                                                title: '',
+                                                start: slotStart,
+                                                end: slotEnd,
+                                                backgroundColor: '#d3d3d3',
+                                                borderColor: '#d3d3d3',
+                                                classNames: ['disabled-day-slot'],
+                                                editable: false,
+                                                selectable: false,
+                                                eventOverlap: false,
+                                                eventAllow: function() {
+                                                    return false;
+                                                }
+                                            });
 
-                                            // Check if the slot is in the past or within the buffer period
-                                            const isPastOrTooSoon = currentSlot <
-                                                currentTime || currentSlot.getTime() <
-                                                bufferThreshold.getTime();
-
-                                            // Check if the slot is within a blocked date range
-                                            const isBlocked = isDateBlocked(currentSlot,
-                                                blockedDates);
-
-                                            console.log('Adding recurring event:',
-                                                currentSlot, slotEndTime);
-
-                                            if (isPastOrTooSoon || isBlocked) {
-                                                calendar.addEvent({
-                                                    title: '',
-                                                    start: currentSlot,
-                                                    end: slotEndTime,
-                                                    classNames: [
-                                                        'disabled-time-slot',
-                                                        'recurring-availability-slot'
-                                                    ],
-                                                    editable: false,
-                                                    selectable: false,
-                                                    eventOverlap: false,
-                                                    eventAllow: function() {
-                                                        return false;
-                                                    }
-                                                });
-                                                console.log(
-                                                    'Disabled recurring slot (past, too soon, or blocked):',
-                                                    currentSlot, slotEndTime);
-                                            } else {
-                                                calendar.addEvent({
-                                                    title: '',
-                                                    start: currentSlot,
-                                                    end: slotEndTime,
-                                                    classNames: ['available-slot',
-                                                        'recurring-availability-slot'
-                                                    ],
-                                                    editable: false,
-                                                    selectable: false,
-                                                    eventOverlap: false,
-                                                    eventAllow: function() {
-                                                        return false;
-                                                    }
-                                                });
-                                            }
-
-                                            currentSlot.setMinutes(currentSlot
-                                                .getMinutes() + 30);
+                                            slotStart.setMinutes(slotStart.getMinutes() + 30);
                                         }
                                     }
                                     currentDate.setDate(currentDate.getDate() + 1);
                                 }
-                                currentDate.setTime(startDate
-                                    .getTime()); // Reset for next iteration
-                            });
-                        } catch (error) {
-                            console.error('Error in datesSet:', error);
-                        }
-                    },
-                    select: function(info) {
-                        try {
-                            const selectedStart = parseDateInKualaLumpur(info.startStr);
-                            const dayOfWeek = selectedStart.getDay();
-                            if (dayOfWeek === 0 || dayOfWeek === 6) {
-                                alert('Appointments cannot be booked on Saturdays or Sundays.');
-                                calendar.unselect();
-                                return;
-                            }
 
-                            // Check if the selected slot is in the past or within the buffer period
-                            if (selectedStart < currentTime) {
-                                alert('Cannot book a time slot in the past.');
-                                calendar.unselect();
-                                return;
-                            }
-                            if (selectedStart.getTime() < bufferThreshold.getTime()) {
-                                alert(
-                                    `Cannot book a time slot within ${bufferHours} hours of the current time.`
-                                    );
-                                calendar.unselect();
-                                return;
-                            }
+                                // Add recurring availability
+                                currentDate.setTime(startDate.getTime());
+                                recurringAvailabilities.forEach(availability => {
+                                    console.log('Processing recurring availability:',
+                                        availability);
 
-                            // Check if the selected slot is within a blocked date range
-                            if (isDateBlocked(selectedStart, blockedDates)) {
-                                alert(
-                                    'This time slot is unavailable due to the lecturer being unavailable.');
-                                calendar.unselect();
-                                return;
-                            }
+                                    const dayOfWeek = parseInt(availability.day_of_week);
+                                    const startTime = availability.start_time ? availability
+                                        .start_time.split(':') : null;
+                                    const endTime = availability.end_time ? availability
+                                        .end_time.split(':') : null;
+                                    const recurringStartDate = availability.start_date ?
+                                        parseDateInKualaLumpur(availability.start_date) : null;
+                                    const recurringEndDate = availability.end_date ?
+                                        parseDateInKualaLumpur(availability.end_date) : null;
 
-                            const minutes = selectedStart.getMinutes();
-                            const roundedMinutes = minutes < 30 ? 0 : 30;
-                            selectedStart.setMinutes(roundedMinutes, 0, 0);
+                                    console.log('dayOfWeek:', dayOfWeek, 'recurringStartDate:',
+                                        recurringStartDate, 'recurringEndDate:',
+                                        recurringEndDate);
 
-                            const selectedEnd = new Date(selectedStart);
-                            selectedEnd.setMinutes(selectedStart.getMinutes() + 30);
-
-                            const availabilities = <?php echo json_encode($availabilities); ?>;
-                            const bookedSlots = <?php echo json_encode($booked_slots); ?>;
-                            console.log('JavaScript bookedSlots:', bookedSlots);
-
-                            let selectedAvailability = null;
-                            let isAvailable = availabilities.some(a => {
-                                if (a.is_recurring) {
-                                    const dayOfWeek = parseInt(a.day_of_week);
-                                    const startTime = a.start_time ? a.start_time.split(
-                                        ':') : null;
-                                    const endTime = a.end_time ? a.end_time.split(':') :
-                                        null;
-                                    const recurringStartDate = a.start_date ?
-                                        parseDateInKualaLumpur(a.start_date) : null;
-                                    const recurringEndDate = a.end_date ?
-                                        parseDateInKualaLumpur(a.end_date) : null;
-
-                                    if (!startTime || !endTime) return false;
-                                    if (selectedStart.getDay() !== dayOfWeek) return false;
-                                    if (recurringStartDate && selectedStart <
-                                        recurringStartDate) return false;
-                                    if (recurringEndDate && selectedStart >
-                                        recurringEndDate) return false;
-
-                                    const slotStart = new Date(selectedStart);
-                                    slotStart.setHours(parseInt(startTime[0]), parseInt(
-                                        startTime[1]), 0, 0);
-                                    const slotEnd = new Date(selectedStart);
-                                    slotEnd.setHours(parseInt(endTime[0]), parseInt(endTime[
-                                        1]), 0, 0);
-
-                                    const isWithin = selectedStart >= slotStart &&
-                                        selectedEnd <= slotEnd;
-                                    if (isWithin) {
-                                        selectedAvailability = {
-                                            start: slotStart,
-                                            end: slotEnd
-                                        };
+                                    if (!startTime || !endTime) {
+                                        console.error('Invalid time data for availability:',
+                                            availability);
+                                        return;
                                     }
-                                    return isWithin;
-                                } else {
-                                    const availStart = parseDateInKualaLumpur(a
-                                        .start_datetime);
-                                    const availEnd = parseDateInKualaLumpur(a.end_datetime);
-                                    const isWithin = selectedStart >= availStart &&
-                                        selectedEnd <= availEnd;
-                                    if (isWithin) {
-                                        selectedAvailability = {
-                                            start: availStart,
-                                            end: availEnd
-                                        };
+
+                                    while (currentDate < endDate) {
+                                        console.log('Checking date:', currentDate,
+                                            'Day of week:', currentDate.getDay());
+                                        if (currentDate.getDay() === dayOfWeek) {
+                                            console.log('Matched dayOfWeek:', dayOfWeek);
+                                            console.log('Comparing dates - currentDate:',
+                                                currentDate, 'recurringStartDate:',
+                                                recurringStartDate, 'recurringEndDate:',
+                                                recurringEndDate);
+                                            if (recurringStartDate && currentDate <
+                                                recurringStartDate) {
+                                                console.log('Skipping date before start_date:',
+                                                    currentDate);
+                                                currentDate.setDate(currentDate.getDate() + 1);
+                                                continue;
+                                            }
+                                            if (recurringEndDate && currentDate >
+                                                recurringEndDate) {
+                                                console.log('Skipping date after end_date:',
+                                                    currentDate);
+                                                currentDate.setDate(currentDate.getDate() + 1);
+                                                continue;
+                                            }
+
+                                            const slotStart = new Date(currentDate);
+                                            slotStart.setHours(parseInt(startTime[0]), parseInt(
+                                                startTime[1]), 0, 0);
+                                            const slotEnd = new Date(currentDate);
+                                            slotEnd.setHours(parseInt(endTime[0]), parseInt(
+                                                endTime[1]), 0, 0);
+
+                                            let currentSlot = new Date(slotStart);
+                                            while (currentSlot < slotEnd) {
+                                                const slotEndTime = new Date(currentSlot);
+                                                slotEndTime.setMinutes(currentSlot
+                                                    .getMinutes() + 30);
+
+                                                // Check if the slot is in the past or within the buffer period
+                                                const isPastOrTooSoon = currentSlot <
+                                                    currentTime || currentSlot.getTime() <
+                                                    bufferThreshold.getTime();
+
+                                                // Check if the slot is within a blocked date range
+                                                const isBlocked = isDateBlocked(currentSlot,
+                                                    blockedDates);
+
+                                                console.log('Adding recurring event:',
+                                                    currentSlot, slotEndTime);
+
+                                                if (isPastOrTooSoon || isBlocked) {
+                                                    calendar.addEvent({
+                                                        title: '',
+                                                        start: currentSlot,
+                                                        end: slotEndTime,
+                                                        classNames: [
+                                                            'disabled-time-slot',
+                                                            'recurring-availability-slot'
+                                                        ],
+                                                        editable: false,
+                                                        selectable: false,
+                                                        eventOverlap: false,
+                                                        eventAllow: function() {
+                                                            return false;
+                                                        }
+                                                    });
+                                                    console.log(
+                                                        'Disabled recurring slot (past, too soon, or blocked):',
+                                                        currentSlot, slotEndTime);
+                                                } else {
+                                                    calendar.addEvent({
+                                                        title: '',
+                                                        start: currentSlot,
+                                                        end: slotEndTime,
+                                                        classNames: ['available-slot',
+                                                            'recurring-availability-slot'
+                                                        ],
+                                                        editable: false,
+                                                        selectable: false,
+                                                        eventOverlap: false,
+                                                        eventAllow: function() {
+                                                            return false;
+                                                        }
+                                                    });
+                                                }
+
+                                                currentSlot.setMinutes(currentSlot
+                                                    .getMinutes() + 30);
+                                            }
+                                        }
+                                        currentDate.setDate(currentDate.getDate() + 1);
                                     }
-                                    return isWithin;
-                                }
-                            });
-
-                            let isBooked = bookedSlots.some(b => {
-                                const bookedStart = parseDateInKualaLumpur(b
-                                    .start_datetime);
-                                const bookedEnd = parseDateInKualaLumpur(b.end_datetime);
-                                return selectedStart < bookedEnd && selectedEnd >
-                                    bookedStart;
-                            });
-
-                            if (isAvailable && !isBooked) {
-                                const formatter = new Intl.DateTimeFormat('en-MY', {
-                                    hour: 'numeric',
-                                    minute: '2-digit',
-                                    hour12: true,
-                                    timeZone: 'Asia/Kuala_Lumpur'
+                                    currentDate.setTime(startDate
+                                        .getTime()); // Reset for next iteration
                                 });
-                                const formattedTime = formatter.format(selectedStart);
-                                selectedDatetimeInput.value = selectedStart.toISOString();
-                                selectedDatetimeDisplay.textContent = formattedTime;
-
-                                // Show the modal
-                                modal.style.display = 'block';
-                                updateConfirmButtonState();
-                            } else {
-                                alert('This time slot is no longer available.');
-                                calendar.unselect();
+                            } catch (error) {
+                                console.error('Error in datesSet:', error);
                             }
-                        } catch (error) {
-                            console.error('Error during slot selection:', error);
-                        }
-                    }
-                });
+                        },
+                        select: function(info) {
+                            try {
+                                const selectedStart = parseDateInKualaLumpur(info.startStr);
+                                const dayOfWeek = selectedStart.getDay();
+                                if (dayOfWeek === 0 || dayOfWeek === 6) {
+                                    alert('Appointments cannot be booked on Saturdays or Sundays.');
+                                    calendar.unselect();
+                                    return;
+                                }
 
-                calendar.render();
-                console.log('FullCalendar initialized and rendered.');
-            } catch (error) {
-                console.error('Error initializing FullCalendar:', error);
-            }
-        });
+                                // Check if the selected slot is in the past or within the buffer period
+                                if (selectedStart < currentTime) {
+                                    alert('Cannot book a time slot in the past.');
+                                    calendar.unselect();
+                                    return;
+                                }
+                                if (selectedStart.getTime() < bufferThreshold.getTime()) {
+                                    alert(
+                                        `Cannot book a time slot within ${bufferHours} hours of the current time.`
+                                    );
+                                    calendar.unselect();
+                                    return;
+                                }
+
+                                // Check if the selected slot is within operating hours
+                                const selectedHour = selectedStart.getHours();
+                                const selectedMinute = selectedStart.getMinutes();
+                                let selectedEnd = new Date(selectedStart);
+                                selectedEnd.setMinutes(selectedStart.getMinutes() + 30);
+                                const selectedEndHour = selectedEnd.getHours();
+                                const selectedEndMinute = selectedEnd.getMinutes();
+
+                                const startMinutes = operatingStartHour * 60 + operatingStartMinute;
+                                const endMinutes = operatingEndHour * 60 + operatingEndMinute;
+                                const selectedStartMinutes = selectedHour * 60 + selectedMinute;
+                                const selectedEndMinutes = selectedEndHour * 60 + selectedEndMinute;
+
+                                if (selectedStartMinutes < startMinutes || selectedEndMinutes >
+                                    endMinutes) {
+                                    alert('Selected time slot is outside operating hours.');
+                                    calendar.unselect();
+                                    return;
+                                }
+
+                                // Check if the selected slot is within a blocked date range
+                                if (isDateBlocked(selectedStart, blockedDates)) {
+                                    alert(
+                                        'This time slot is unavailable due to the lecturer being unavailable.'
+                                    );
+                                    calendar.unselect();
+                                    return;
+                                }
+
+                                // Round the start time to the nearest 30-minute slot
+                                const roundedStart = new Date(selectedStart);
+                                const minutes = roundedStart.getMinutes();
+                                const roundedMinutes = minutes < 30 ? 0 : 30;
+                                roundedStart.setMinutes(roundedMinutes, 0, 0);
+
+                                // Calculate the end time based on the rounded start
+                                selectedEnd = new Date(roundedStart);
+                                selectedEnd.setMinutes(roundedStart.getMinutes() + 30);
+
+                                const availabilities = <?php echo json_encode($availabilities); ?>;
+                                const bookedSlots = <?php echo json_encode($booked_slots); ?>;
+                                console.log('JavaScript bookedSlots:', bookedSlots);
+
+                                let selectedAvailability = null;
+                                let isAvailable = availabilities.some(a => {
+                                    if (a.is_recurring) {
+                                        const dayOfWeek = parseInt(a.day_of_week);
+                                        const startTime = a.start_time ? a.start_time.split(
+                                            ':') : null;
+                                        const endTime = a.end_time ? a.end_time.split(':') :
+                                            null;
+                                        const recurringStartDate = a.start_date ?
+                                            parseDateInKualaLumpur(a.start_date) : null;
+                                        const recurringEndDate = a.end_date ?
+                                            parseDateInKualaLumpur(a.end_date) : null;
+
+                                        if (!startTime || !endTime) return false;
+                                        if (roundedStart.getDay() !== dayOfWeek) return false;
+                                        if (recurringStartDate && roundedStart <
+                                            recurringStartDate) return false;
+                                        if (recurringEndDate && roundedStart > recurringEndDate)
+                                            return false;
+
+                                        const slotStart = new Date(roundedStart);
+                                        slotStart.setHours(parseInt(startTime[0]), parseInt(
+                                            startTime[1]), 0, 0);
+                                        const slotEnd = new Date(roundedStart);
+                                        slotEnd.setHours(parseInt(endTime[0]), parseInt(endTime[
+                                            1]), 0, 0);
+
+                                        const isWithin = roundedStart >= slotStart &&
+                                            selectedEnd <= slotEnd;
+                                        if (isWithin) {
+                                            selectedAvailability = {
+                                                start: slotStart,
+                                                end: slotEnd
+                                            };
+                                        }
+                                        return isWithin;
+                                    } else {
+                                        const availStart = parseDateInKualaLumpur(a
+                                            .start_datetime);
+                                        const availEnd = parseDateInKualaLumpur(a.end_datetime);
+                                        const isWithin = roundedStart >= availStart &&
+                                            selectedEnd <= availEnd;
+                                        if (isWithin) {
+                                            selectedAvailability = {
+                                                start: availStart,
+                                                end: availEnd
+                                            };
+                                        }
+                                        return isWithin;
+                                    }
+                                });
+
+                                let isBooked = bookedSlots.some(b => {
+                                    const bookedStart = parseDateInKualaLumpur(b
+                                        .start_datetime);
+                                    const bookedEnd = parseDateInKualaLumpur(b.end_datetime);
+                                    return roundedStart < bookedEnd && selectedEnd >
+                                        bookedStart;
+                                });
+
+                                if (isAvailable && !isBooked) {
+                                    const formatter = new Intl.DateTimeFormat('en-MY', {
+                                        hour: 'numeric',
+                                        minute: '2-digit',
+                                        hour12: true,
+                                        timeZone: 'Asia/Kuala_Lumpur'
+                                    });
+                                    const formattedTime = formatter.format(roundedStart);
+                                    selectedDatetimeInput.value = roundedStart.toISOString();
+                                    selectedDatetimeDisplay.textContent = formattedTime;
+
+                                    // Show the modal
+                                    modal.style.display = 'block';
+                                    updateConfirmButtonState();
+                                } else {
+                                    alert('This time slot is no longer available.');
+                                    calendar.unselect();
+                                }
+                            } catch (error) {
+                                console.error('Error during slot selection:', error);
+                            }
+                        }
+                    });
+
+                    calendar.render();
+                    console.log('FullCalendar initialized and rendered.');
+                } catch (error) {
+                    console.error('Error initializing FullCalendar:', error);
+                }
+            });
         </script>
         <script src="script.js"></script>
 </body>
