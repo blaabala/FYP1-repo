@@ -29,18 +29,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $password = password_hash('User1234', PASSWORD_DEFAULT);
+    $reg_date = date('Y-m-d H:i:s'); // Set current date and time
 
     try {
         // Start transaction for atomicity
         $con->begin_transaction();
 
-        // Insert into users table
-        $insert_user_query = "INSERT INTO users (username, email, password, contact_number, role_id) VALUES (?, ?, ?, ?, 2)";
+        // Insert into users table with reg_date
+        $insert_user_query = "INSERT INTO users (username, email, password, contact_number, role_id, reg_date) VALUES (?, ?, ?, ?, 2, ?)";
         $stmt = $con->prepare($insert_user_query);
         if (!$stmt) {
             throw new Exception("Prepare failed: " . $con->error);
         }
-        $stmt->bind_param('sssi', $username, $email, $password, $contact_number); // Removed $role_id
+        $stmt->bind_param('sssss', $username, $email, $password, $contact_number, $reg_date);
         if (!$stmt->execute()) {
             throw new Exception("User insertion failed: " . $stmt->error);
         }

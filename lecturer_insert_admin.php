@@ -12,11 +12,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $office_no = $_POST['office_no'];
     $reg_date = date("Y-m-d H:i:s");
     $password = password_hash('User1234', PASSWORD_DEFAULT); // Default password
+    $reg_date = date('Y-m-d H:i:s'); // Set current date and time
+
 
     // Insert into users table
-    $insert_user_query = "INSERT INTO users (username, email, password, contact_number, role_id) VALUES (?, ?, ?, ?, 1)";
+    $insert_user_query = "INSERT INTO users (username, email, password, contact_number, role_id, reg_date) VALUES (?, ?, ?, ?, 1, ?)";
     $stmt = $con->prepare($insert_user_query);
-    $stmt->bind_param('ssss', $username, $email, $password, $contact_number);
+    $stmt->bind_param('sssss', $username, $email, $password, $contact_number, $reg_date);
     if ($stmt->execute()) {
         $user_id = $stmt->insert_id;
 

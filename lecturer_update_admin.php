@@ -18,9 +18,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt->bind_param('sssi', $username, $email, $contact_number, $user_id);
     if ($stmt->execute()) {
         // Update lecturers table
-        $update_lecturer_query = "UPDATE lecturers SET faculty = ?, department = ?, designation = ?, office_no = ? WHERE user_id = ?";
+        $update_lecturer_query = "UPDATE lecturers SET username =?, faculty = ?, department = ?, designation = ?, office_no = ? WHERE user_id = ?";
         $stmt2 = $con->prepare($update_lecturer_query);
-        $stmt2->bind_param('ssssi', $faculty, $department, $designation, $office_no, $user_id);
+        $stmt2->bind_param('sssssi', $username, $faculty, $department, $designation, $office_no, $user_id);
         if ($stmt2->execute()) {
             $_SESSION['success_message'] = "Lecturer updated successfully.";
         } else {

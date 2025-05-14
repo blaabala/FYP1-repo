@@ -322,7 +322,7 @@ if (isset($_GET['delete_id'])) {
                                         <div class="form-group col-md-6">
                                             <label for="contact_number">Contact Number</label>
                                             <input required type="text" class="form-control" id="contact_number"
-                                                name="contact_number" placeholder="i.e.: +60123456789">
+                                                name="contact_number" placeholder="i.e.: 60123456789">
                                         </div>
                                     </div>
                                     <div class="form-group row">
