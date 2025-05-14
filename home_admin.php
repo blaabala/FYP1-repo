@@ -72,105 +72,105 @@ $res_contact = $result['contact_number'];
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-    .main-box {
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-    }
+        .main-box {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
 
-    .container-tight {
-        padding-top: 0.75rem;
-        padding-bottom: 0.75rem;
-        padding-left: 1.5rem;
-        padding-right: 1.5rem;
-    }
+        .container-tight {
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+        }
 
-    /* Ensure header matches edit_profile_admin.php */
-    .navbar {
-        background-color: #3D5A80;
-        padding: 1rem 1.5rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
+        /* Ensure header matches edit_profile_admin.php */
+        .navbar {
+            background-color: #3D5A80;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-    .navdiv {
-        display: flex;
-        align-items: center;
-        width: 100%;
-        justify-content: space-between;
-    }
+        .navdiv {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            justify-content: space-between;
+        }
 
-    .image-container {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
+        .image-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
 
-    .logo-text {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: white;
-        text-decoration: none;
-    }
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
 
-    .navdiv ul {
-        list-style: none;
-        display: flex;
-        gap: 1.5rem;
-        margin: 0;
-        padding: 0;
-    }
+        .navdiv ul {
+            list-style: none;
+            display: flex;
+            gap: 1.5rem;
+            margin: 0;
+            padding: 0;
+        }
 
-    .navdiv ul li a {
-        color: white;
-        text-decoration: none;
-        font-size: 1rem;
-        transition: color 0.3s;
-    }
+        .navdiv ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: color 0.3s;
+        }
 
-    .navdiv ul li a:hover {
-        color: #ecf0f1;
-    }
+        .navdiv ul li a:hover {
+            color: #ecf0f1;
+        }
 
-    .logout-btn {
-        background-color: #e74c3c;
-        color: white;
-        padding: 0.5rem 1rem;
-        border: none;
-        border-radius: 0.5rem;
-        cursor: pointer;
-        transition: background-color 0.3s;
-    }
+        .logout-btn {
+            background-color: #e74c3c;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
 
-    .logout-btn:hover {
-        background-color: #c0392b;
-    }
+        .logout-btn:hover {
+            background-color: #c0392b;
+        }
 
-    /* Table styles for insights */
-    .insights-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 1rem;
-    }
+        /* Table styles for insights */
+        .insights-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
 
-    .insights-table th,
-    .insights-table td {
-        padding: 0.75rem;
-        text-align: left;
-        border-bottom: 1px solid #e5e7eb;
-    }
+        .insights-table th,
+        .insights-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
 
-    .insights-table th {
-        background-color: #f8f9fa;
-        font-weight: bold;
-        color: #374151;
-    }
+        .insights-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #374151;
+        }
 
-    .insights-table tr:hover {
-        background-color: #f9fafb;
-    }
+        .insights-table tr:hover {
+            background-color: #f9fafb;
+        }
     </style>
 </head>
 
@@ -188,6 +188,7 @@ $res_contact = $result['contact_number'];
                     <li><a href="lecturer_view_admin.php">Lecturers</a></li>
                     <li><a href="student_view_admin.php">Students</a></li>
                     <li><a href="appointment_view_admin.php">Appointments</a></li>
+                    <li><a href="set_operating_hours.php">Set Operating Hours</a></li>
                     <li><a href="edit_profile_admin.php?id=<?php echo $res_id; ?>">Edit Profile</a></li>
                     <li><button><a href="logout.php" class="logout-btn">Logout</a></button></li>
                 </ul>
@@ -342,6 +343,7 @@ $res_contact = $result['contact_number'];
                     <li><a href="lecturer_view_admin.php">Lecturers</a></li>
                     <li><a href="student_view_admin.php">Students</a></li>
                     <li><a href="appointment_view_admin.php">Appointments</a></li>
+                    <li><a href="set_operating_hours.php">Set Operating Hours</a></li>
                     <li><?php echo "<a href='edit_profile_admin.php?id=$res_id'>Edit Profile</a>"; ?></li>
                 </ul>
             </div>
@@ -365,179 +367,179 @@ $res_contact = $result['contact_number'];
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous">
     </script>
     <script>
-    let statusChart, trendChart;
+        let statusChart, trendChart;
 
-    function updateDashboard() {
-        fetch('dashboard_data.php')
-            .then(response => response.json())
-            .then(data => {
-                // Update Stats Cards
-                document.getElementById('total-appointments').textContent = data.total_appointments;
-                document.getElementById('total-lecturers').textContent = data.total_lecturers;
-                document.getElementById('total-students').textContent = data.total_students;
+        function updateDashboard() {
+            fetch('dashboard_data.php')
+                .then(response => response.json())
+                .then(data => {
+                    // Update Stats Cards
+                    document.getElementById('total-appointments').textContent = data.total_appointments;
+                    document.getElementById('total-lecturers').textContent = data.total_lecturers;
+                    document.getElementById('total-students').textContent = data.total_students;
 
-                // Update Pie Chart: Appointment Status Distribution
-                if (statusChart) statusChart.destroy();
-                const statusCtx = document.getElementById('statusChart').getContext('2d');
-                statusChart = new Chart(statusCtx, {
-                    type: 'pie',
-                    data: {
-                        labels: ['Confirmed', 'Rejected', 'Cancelled', 'Completed'],
-                        datasets: [{
-                            data: [
-                                data.status_data.Confirmed,
-                                data.status_data.Rejected,
-                                data.status_data.Cancelled,
-                                data.status_data.Completed,
-                            ],
-                            backgroundColor: [
-                                'rgba(54, 162, 235, 0.6)',
-                                'rgba(255, 99, 132, 0.6)',
-                                'rgba(255, 206, 86, 0.6)',
-                                'rgba(75, 192, 192, 0.6)',
-                                'rgba(153, 102, 255, 0.6)'
-                            ],
-                            borderColor: [
-                                'rgba(54, 162, 235, 1)',
-                                'rgba(255, 99, 132, 1)',
-                                'rgba(255, 206, 86, 1)',
-                                'rgba(75, 192, 192, 1)',
-                                'rgba(153, 102, 255, 1)'
-                            ],
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: {
-                                position: 'top'
-                            }
-                        }
-                    }
-                });
-
-                // Update Line Chart: Daily Appointment Trends
-                if (trendChart) trendChart.destroy();
-                const trendCtx = document.getElementById('trendChart').getContext('2d');
-                trendChart = new Chart(trendCtx, {
-                    type: 'line',
-                    data: {
-                        labels: data.trend_labels,
-                        datasets: [{
-                            label: 'Appointments',
-                            data: data.trend_values,
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                            fill: true,
-                            tension: 0.4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                title: {
-                                    display: true,
-                                    text: 'Number of Appointments'
-                                },
-                                ticks: {
-                                    stepSize: 1,
-                                    precision: 0
+                    // Update Pie Chart: Appointment Status Distribution
+                    if (statusChart) statusChart.destroy();
+                    const statusCtx = document.getElementById('statusChart').getContext('2d');
+                    statusChart = new Chart(statusCtx, {
+                        type: 'pie',
+                        data: {
+                            labels: ['Confirmed', 'Rejected', 'Cancelled', 'Completed'],
+                            datasets: [{
+                                data: [
+                                    data.status_data.Confirmed,
+                                    data.status_data.Rejected,
+                                    data.status_data.Cancelled,
+                                    data.status_data.Completed,
+                                ],
+                                backgroundColor: [
+                                    'rgba(54, 162, 235, 0.6)',
+                                    'rgba(255, 99, 132, 0.6)',
+                                    'rgba(255, 206, 86, 0.6)',
+                                    'rgba(75, 192, 192, 0.6)',
+                                    'rgba(153, 102, 255, 0.6)'
+                                ],
+                                borderColor: [
+                                    'rgba(54, 162, 235, 1)',
+                                    'rgba(255, 99, 132, 1)',
+                                    'rgba(255, 206, 86, 1)',
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(153, 102, 255, 1)'
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: 'top'
                                 }
                             }
                         }
-                    }
-                });
-            })
-            .catch(error => console.error('Error fetching dashboard data:', error));
+                    });
 
-        // Fetch Appointment Insights
-        fetch('appointment_insights_admin.php')
-            .then(response => response.json())
-            .then(data => {
-                // Top Lecturers by Cancellations
-                const topCancellationsTable = document.getElementById('top-cancellations-table');
-                topCancellationsTable.innerHTML = '';
-                if (data.top_cancellations.length === 0) {
-                    topCancellationsTable.innerHTML =
-                        '<tr><td colspan="3" class="text-center text-gray-500">No cancellations found.</td></tr>';
-                } else {
-                    data.top_cancellations.forEach(row => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
+                    // Update Line Chart: Daily Appointment Trends
+                    if (trendChart) trendChart.destroy();
+                    const trendCtx = document.getElementById('trendChart').getContext('2d');
+                    trendChart = new Chart(trendCtx, {
+                        type: 'line',
+                        data: {
+                            labels: data.trend_labels,
+                            datasets: [{
+                                label: 'Appointments',
+                                data: data.trend_values,
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                                fill: true,
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Number of Appointments'
+                                    },
+                                    ticks: {
+                                        stepSize: 1,
+                                        precision: 0
+                                    }
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(error => console.error('Error fetching dashboard data:', error));
+
+            // Fetch Appointment Insights
+            fetch('appointment_insights_admin.php')
+                .then(response => response.json())
+                .then(data => {
+                    // Top Lecturers by Cancellations
+                    const topCancellationsTable = document.getElementById('top-cancellations-table');
+                    topCancellationsTable.innerHTML = '';
+                    if (data.top_cancellations.length === 0) {
+                        topCancellationsTable.innerHTML =
+                            '<tr><td colspan="3" class="text-center text-gray-500">No cancellations found.</td></tr>';
+                    } else {
+                        data.top_cancellations.forEach(row => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
                             <td>${row.lecturer_name}</td>
                             <td>${row.cancellation_count}</td>
                             <td>${row.percentage}%</td>
                         `;
-                        topCancellationsTable.appendChild(tr);
-                    });
-                }
+                            topCancellationsTable.appendChild(tr);
+                        });
+                    }
 
-                // Most Active Lecturers
-                const mostActiveTable = document.getElementById('most-active-table');
-                mostActiveTable.innerHTML = '';
-                if (data.most_active.length === 0) {
-                    mostActiveTable.innerHTML =
-                        '<tr><td colspan="2" class="text-center text-gray-500">No active lecturers found.</td></tr>';
-                } else {
-                    data.most_active.forEach(row => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
+                    // Most Active Lecturers
+                    const mostActiveTable = document.getElementById('most-active-table');
+                    mostActiveTable.innerHTML = '';
+                    if (data.most_active.length === 0) {
+                        mostActiveTable.innerHTML =
+                            '<tr><td colspan="2" class="text-center text-gray-500">No active lecturers found.</td></tr>';
+                    } else {
+                        data.most_active.forEach(row => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
                             <td>${row.lecturer_name}</td>
                             <td>${row.appointment_count}</td>
                         `;
-                        mostActiveTable.appendChild(tr);
-                    });
-                }
+                            mostActiveTable.appendChild(tr);
+                        });
+                    }
 
-                // Top Students by Appointment Requests
-                const topStudentsRequestsTable = document.getElementById('top-students-requests-table');
-                topStudentsRequestsTable.innerHTML = '';
-                if (data.top_students_requests.length === 0) {
-                    topStudentsRequestsTable.innerHTML =
-                        '<tr><td colspan="3" class="text-center text-gray-500">No appointment requests found.</td></tr>';
-                } else {
-                    data.top_students_requests.forEach(row => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
+                    // Top Students by Appointment Requests
+                    const topStudentsRequestsTable = document.getElementById('top-students-requests-table');
+                    topStudentsRequestsTable.innerHTML = '';
+                    if (data.top_students_requests.length === 0) {
+                        topStudentsRequestsTable.innerHTML =
+                            '<tr><td colspan="3" class="text-center text-gray-500">No appointment requests found.</td></tr>';
+                    } else {
+                        data.top_students_requests.forEach(row => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
                             <td>${row.student_name}</td>
                             <td>${row.request_count}</td>
                             <td>${row.percentage}%</td>
                         `;
-                        topStudentsRequestsTable.appendChild(tr);
-                    });
-                }
+                            topStudentsRequestsTable.appendChild(tr);
+                        });
+                    }
 
-                // Students with Most Cancellations
-                const topStudentsCancellationsTable = document.getElementById('top-students-cancellations-table');
-                topStudentsCancellationsTable.innerHTML = '';
-                if (data.top_students_cancellations.length === 0) {
-                    topStudentsCancellationsTable.innerHTML =
-                        '<tr><td colspan="3" class="text-center text-gray-500">No cancellations found.</td></tr>';
-                } else {
-                    data.top_students_cancellations.forEach(row => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
+                    // Students with Most Cancellations
+                    const topStudentsCancellationsTable = document.getElementById('top-students-cancellations-table');
+                    topStudentsCancellationsTable.innerHTML = '';
+                    if (data.top_students_cancellations.length === 0) {
+                        topStudentsCancellationsTable.innerHTML =
+                            '<tr><td colspan="3" class="text-center text-gray-500">No cancellations found.</td></tr>';
+                    } else {
+                        data.top_students_cancellations.forEach(row => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
                             <td>${row.student_name}</td>
                             <td>${row.cancellation_count}</td>
                             <td>${row.percentage}%</td>
                         `;
-                        topStudentsCancellationsTable.appendChild(tr);
-                    });
-                }
+                            topStudentsCancellationsTable.appendChild(tr);
+                        });
+                    }
 
-                // Appointment Status Breakdown by Lecturer
-                const statusBreakdownTable = document.getElementById('status-breakdown-table');
-                statusBreakdownTable.innerHTML = '';
-                if (data.status_breakdown.length === 0) {
-                    statusBreakdownTable.innerHTML =
-                        '<tr><td colspan="6" class="text-center text-gray-500">No appointments found.</td></tr>';
-                } else {
-                    data.status_breakdown.forEach(row => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
+                    // Appointment Status Breakdown by Lecturer
+                    const statusBreakdownTable = document.getElementById('status-breakdown-table');
+                    statusBreakdownTable.innerHTML = '';
+                    if (data.status_breakdown.length === 0) {
+                        statusBreakdownTable.innerHTML =
+                            '<tr><td colspan="6" class="text-center text-gray-500">No appointments found.</td></tr>';
+                    } else {
+                        data.status_breakdown.forEach(row => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
                             <td>${row.lecturer_name}</td>
                             <td>${row.confirmed || 0}</td>
                             <td>${row.rejected || 0}</td>
@@ -545,18 +547,18 @@ $res_contact = $result['contact_number'];
                             <td>${row.completed || 0}</td>
                             <td>${row.total}</td>
                         `;
-                        statusBreakdownTable.appendChild(tr);
-                    });
-                }
-            })
-            .catch(error => console.error('Error fetching appointment insights:', error));
-    }
+                            statusBreakdownTable.appendChild(tr);
+                        });
+                    }
+                })
+                .catch(error => console.error('Error fetching appointment insights:', error));
+        }
 
-    // Initial load
-    updateDashboard();
+        // Initial load
+        updateDashboard();
 
-    // Poll for updates every 30 seconds
-    setInterval(updateDashboard, 30000);
+        // Poll for updates every 30 seconds
+        setInterval(updateDashboard, 30000);
     </script>
 </body>
 

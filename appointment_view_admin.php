@@ -211,6 +211,7 @@ if (!empty($from_date) && !empty($to_date)) {
                     <li><a href="lecturer_view_admin.php">Lecturers</a></li>
                     <li><a href="student_view_admin.php">Students</a></li>
                     <li><a href="appointment_view_admin.php">Appointments</a></li>
+                    <li><a href="set_operating_hours.php">Set Operating Hours</a></li>
                     <li><a href="edit_profile_admin.php?id=<?php echo $res_id; ?>">Edit Profile</a></li>
                     <li><button><a href="logout.php" class="logout-btn">Logout</a></button></li>
                 </ul>
@@ -593,6 +594,7 @@ if (!empty($from_date) && !empty($to_date)) {
                     <li><a href="lecturer_view_admin.php">Lecturers</a></li>
                     <li><a href="student_view_admin.php">Students</a></li>
                     <li><a href="appointment_view_admin.php">Appointments</a></li>
+                    <li><a href="set_operating_hours.php">Set Operating Hours</a></li>
                     <li><?php echo "<a href='edit_profile_admin.php?id=$res_id'>Edit Profile</a>"; ?></li>
                 </ul>
             </div>

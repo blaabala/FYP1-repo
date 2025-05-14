@@ -60,38 +60,53 @@ $end_time = $operating_hours['end_time'];
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $new_start_time = $_POST['start_time'] ?? '';
-    $new_end_time = $_POST['end_time'] ?? '';
+    $new_start_time = trim($_POST['start_time'] ?? '');
+    $new_end_time = trim($_POST['end_time'] ?? '');
 
-    // Validate time format (HH:MM)
+    // Validate and normalize time format to HH:MM:SS
+    $time_pattern = '/^([0-1]?[0-9]|2[0-3]):([0-5][0-9])(?::([0-5][0-9]))?$/';
     if (
-        preg_match("/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/", $new_start_time) &&
-        preg_match("/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/", $new_end_time)
+        preg_match($time_pattern, $new_start_time, $start_matches) &&
+        preg_match($time_pattern, $new_end_time, $end_matches)
     ) {
+        // Normalize to HH:MM:SS format
+        $normalized_start_time = sprintf(
+            '%02d:%02d:00',
+            $start_matches[1], // Hours
+            $start_matches[2]  // Minutes
+        );
+        $normalized_end_time = sprintf(
+            '%02d:%02d:00',
+            $end_matches[1],   // Hours
+            $end_matches[2]    // Minutes
+        );
 
-        // Convert to time objects for comparison
-        $start = DateTime::createFromFormat('H:i', $new_start_time);
-        $end = DateTime::createFromFormat('H:i', $new_end_time);
+        // Convert to DateTime objects for comparison
+        $start = DateTime::createFromFormat('H:i:s', $normalized_start_time);
+        $end = DateTime::createFromFormat('H:i:s', $normalized_end_time);
 
-        if ($start < $end) {
+        if ($start && $end && $start < $end) {
             $query = "UPDATE operating_hours SET start_time = ?, end_time = ? WHERE id = 1";
             $stmt = $con->prepare($query);
-            $stmt->bind_param("ss", $new_start_time, $new_end_time);
+            $stmt->bind_param("ss", $normalized_start_time, $normalized_end_time);
             if ($stmt->execute()) {
                 $_SESSION['success_message'] = "Operating hours updated successfully!";
                 // Update the displayed values
-                $start_time = $new_start_time;
-                $end_time = $new_end_time;
+                $start_time = $normalized_start_time;
+                $end_time = $normalized_end_time;
             } else {
-                $_SESSION['error_message'] = "Failed to update operating hours. Please try again.";
+                $_SESSION['error_message'] = "Failed to update operating hours. Please try again. Error: " . $stmt->error;
             }
             $stmt->close();
         } else {
             $_SESSION['error_message'] = "End time must be after start time.";
         }
     } else {
-        $_SESSION['error_message'] = "Invalid time format. Please use HH:MM (24-hour format).";
+        $_SESSION['error_message'] = "Invalid time format. Please use HH:MM or HH:MM:SS (24-hour format).";
     }
+
+    // Debug: Log the input values
+    error_log("Submitted start_time: $new_start_time, end_time: $new_end_time");
 }
 ?>
 
@@ -116,7 +131,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         .main-box {
@@ -210,6 +224,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <li><a href="lecturer_view_admin.php">Lecturers</a></li>
                     <li><a href="student_view_admin.php">Students</a></li>
                     <li><a href="appointment_view_admin.php">Appointments</a></li>
+                    <li><a href="set_operating_hours.php">Set Operating Hours</a></li>
                     <li><a href="edit_profile_admin.php?id=<?php echo $res_id; ?>">Edit Profile</a></li>
                     <li><button><a href="logout.php" class="logout-btn">Logout</a></button></li>
                 </ul>
@@ -218,6 +233,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </header>
 
     <main class="container-tight mx-auto">
+        <div id="current-datetime" class="font-semibold mt-2"></div>
         <div class="mb-6">
             <h1 class="text-3xl font-bold text-gray-800">Set Operating Hours</h1>
             <p class="text-gray-600">Adjust the operating hours for the Appointment Management System.</p>
@@ -237,17 +253,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="bg-white p-6 rounded-xl shadow-lg">
             <form method="post" action="">
                 <div class="mb-4">
-                    <label for="start_time" class="block text-gray-700 font-semibold mb-2">Start Time (HH:MM, 24-hour
-                        format):</label>
+                    <label for="start_time" class="block text-gray-700 font-semibold mb-2">Start Time (HH:MM or
+                        HH:MM:SS, 24-hour format):</label>
                     <input type="text" name="start_time" id="start_time"
                         value="<?php echo htmlspecialchars($start_time); ?>" class="w-full p-2 border rounded"
-                        placeholder="e.g., 08:00" required>
+                        placeholder="e.g., 08:00 or 08:00:00" required>
                 </div>
                 <div class="mb-4">
-                    <label for="end_time" class="block text-gray-700 font-semibold mb-2">End Time (HH:MM, 24-hour
-                        format):</label>
+                    <label for="end_time" class="block text-gray-700 font-semibold mb-2">End Time (HH:MM or HH:MM:SS,
+                        24-hour format):</label>
                     <input type="text" name="end_time" id="end_time" value="<?php echo htmlspecialchars($end_time); ?>"
-                        class="w-full p-2 border rounded" placeholder="e.g., 17:00" required>
+                        class="w-full p-2 border rounded" placeholder="e.g., 17:00 or 17:00:00" required>
                 </div>
                 <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">Update
                     Operating Hours</button>
@@ -268,6 +284,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <li><a href="lecturer_view_admin.php">Lecturers</a></li>
                     <li><a href="student_view_admin.php">Students</a></li>
                     <li><a href="appointment_view_admin.php">Appointments</a></li>
+                    <li><a href="set_operating_hours.php">Set Operating Hours</a></li>
                     <li><?php echo "<a href='edit_profile_admin.php?id=$res_id'>Edit Profile</a>"; ?></li>
                 </ul>
             </div>
@@ -289,200 +306,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="assets/js/script.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous">
-    </script>
-    <script>
-        let statusChart, trendChart;
-
-        function updateDashboard() {
-            fetch('dashboard_data.php')
-                .then(response => response.json())
-                .then(data => {
-                    // Update Stats Cards
-                    document.getElementById('total-appointments').textContent = data.total_appointments;
-                    document.getElementById('total-lecturers').textContent = data.total_lecturers;
-                    document.getElementById('total-students').textContent = data.total_students;
-
-                    // Update Pie Chart: Appointment Status Distribution
-                    if (statusChart) statusChart.destroy();
-                    const statusCtx = document.getElementById('statusChart').getContext('2d');
-                    statusChart = new Chart(statusCtx, {
-                        type: 'pie',
-                        data: {
-                            labels: ['Confirmed', 'Rejected', 'Cancelled', 'Completed'],
-                            datasets: [{
-                                data: [
-                                    data.status_data.Confirmed,
-                                    data.status_data.Rejected,
-                                    data.status_data.Cancelled,
-                                    data.status_data.Completed,
-                                ],
-                                backgroundColor: [
-                                    'rgba(54, 162, 235, 0.6)',
-                                    'rgba(255, 99, 132, 0.6)',
-                                    'rgba(255, 206, 86, 0.6)',
-                                    'rgba(75, 192, 192, 0.6)',
-                                    'rgba(153, 102, 255, 0.6)'
-                                ],
-                                borderColor: [
-                                    'rgba(54, 162, 235, 1)',
-                                    'rgba(255, 99, 132, 1)',
-                                    'rgba(255, 206, 86, 1)',
-                                    'rgba(75, 192, 192, 1)',
-                                    'rgba(153, 102, 255, 1)'
-                                ],
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: {
-                                legend: {
-                                    position: 'top'
-                                }
-                            }
-                        }
-                    });
-
-                    // Update Line Chart: Daily Appointment Trends
-                    if (trendChart) trendChart.destroy();
-                    const trendCtx = document.getElementById('trendChart').getContext('2d');
-                    trendChart = new Chart(trendCtx, {
-                        type: 'line',
-                        data: {
-                            labels: data.trend_labels,
-                            datasets: [{
-                                label: 'Appointments',
-                                data: data.trend_values,
-                                borderColor: 'rgba(54, 162, 235, 1)',
-                                backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                                fill: true,
-                                tension: 0.4
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    title: {
-                                        display: true,
-                                        text: 'Number of Appointments'
-                                    },
-                                    ticks: {
-                                        stepSize: 1,
-                                        precision: 0
-                                    }
-                                }
-                            }
-                        }
-                    });
-                })
-                .catch(error => console.error('Error fetching dashboard data:', error));
-
-            // Fetch Appointment Insights
-            fetch('appointment_insights_admin.php')
-                .then(response => response.json())
-                .then(data => {
-                    // Top Lecturers by Cancellations
-                    const topCancellationsTable = document.getElementById('top-cancellations-table');
-                    topCancellationsTable.innerHTML = '';
-                    if (data.top_cancellations.length === 0) {
-                        topCancellationsTable.innerHTML =
-                            '<tr><td colspan="3" class="text-center text-gray-500">No cancellations found.</td></tr>';
-                    } else {
-                        data.top_cancellations.forEach(row => {
-                            const tr = document.createElement('tr');
-                            tr.innerHTML = `
-                            <td>${row.lecturer_name}</td>
-                            <td>${row.cancellation_count}</td>
-                            <td>${row.percentage}%</td>
-                        `;
-                            topCancellationsTable.appendChild(tr);
-                        });
-                    }
-
-                    // Most Active Lecturers
-                    const mostActiveTable = document.getElementById('most-active-table');
-                    mostActiveTable.innerHTML = '';
-                    if (data.most_active.length === 0) {
-                        mostActiveTable.innerHTML =
-                            '<tr><td colspan="2" class="text-center text-gray-500">No active lecturers found.</td></tr>';
-                    } else {
-                        data.most_active.forEach(row => {
-                            const tr = document.createElement('tr');
-                            tr.innerHTML = `
-                            <td>${row.lecturer_name}</td>
-                            <td>${row.appointment_count}</td>
-                        `;
-                            mostActiveTable.appendChild(tr);
-                        });
-                    }
-
-                    // Top Students by Appointment Requests
-                    const topStudentsRequestsTable = document.getElementById('top-students-requests-table');
-                    topStudentsRequestsTable.innerHTML = '';
-                    if (data.top_students_requests.length === 0) {
-                        topStudentsRequestsTable.innerHTML =
-                            '<tr><td colspan="3" class="text-center text-gray-500">No appointment requests found.</td></tr>';
-                    } else {
-                        data.top_students_requests.forEach(row => {
-                            const tr = document.createElement('tr');
-                            tr.innerHTML = `
-                            <td>${row.student_name}</td>
-                            <td>${row.request_count}</td>
-                            <td>${row.percentage}%</td>
-                        `;
-                            topStudentsRequestsTable.appendChild(tr);
-                        });
-                    }
-
-                    // Students with Most Cancellations
-                    const topStudentsCancellationsTable = document.getElementById('top-students-cancellations-table');
-                    topStudentsCancellationsTable.innerHTML = '';
-                    if (data.top_students_cancellations.length === 0) {
-                        topStudentsCancellationsTable.innerHTML =
-                            '<tr><td colspan="3" class="text-center text-gray-500">No cancellations found.</td></tr>';
-                    } else {
-                        data.top_students_cancellations.forEach(row => {
-                            const tr = document.createElement('tr');
-                            tr.innerHTML = `
-                            <td>${row.student_name}</td>
-                            <td>${row.cancellation_count}</td>
-                            <td>${row.percentage}%</td>
-                        `;
-                            topStudentsCancellationsTable.appendChild(tr);
-                        });
-                    }
-
-                    // Appointment Status Breakdown by Lecturer
-                    const statusBreakdownTable = document.getElementById('status-breakdown-table');
-                    statusBreakdownTable.innerHTML = '';
-                    if (data.status_breakdown.length === 0) {
-                        statusBreakdownTable.innerHTML =
-                            '<tr><td colspan="6" class="text-center text-gray-500">No appointments found.</td></tr>';
-                    } else {
-                        data.status_breakdown.forEach(row => {
-                            const tr = document.createElement('tr');
-                            tr.innerHTML = `
-                            <td>${row.lecturer_name}</td>
-                            <td>${row.confirmed || 0}</td>
-                            <td>${row.rejected || 0}</td>
-                            <td>${row.cancelled || 0}</td>
-                            <td>${row.completed || 0}</td>
-                            <td>${row.total}</td>
-                        `;
-                            statusBreakdownTable.appendChild(tr);
-                        });
-                    }
-                })
-                .catch(error => console.error('Error fetching appointment insights:', error));
-        }
-
-        // Initial load
-        updateDashboard();
-
-        // Poll for updates every 30 seconds
-        setInterval(updateDashboard, 30000);
     </script>
 </body>
 

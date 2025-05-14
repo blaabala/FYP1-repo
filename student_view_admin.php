@@ -104,95 +104,95 @@ if (isset($_GET['delete_id'])) {
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-    body {
-        background: #98C1D9;
-    }
+        body {
+            background: #98C1D9;
+        }
 
-    .main-box {
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-    }
+        .main-box {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
 
-    .navbar {
-        background-color: #3D5A80;
-        padding: 1rem 1.5rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
+        .navbar {
+            background-color: #3D5A80;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-    .navdiv {
-        display: flex;
-        align-items: center;
-        width: 100%;
-        justify-content: space-between;
-    }
+        .navdiv {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            justify-content: space-between;
+        }
 
-    .image-container {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
+        .image-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
 
-    .logo-text {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: white;
-        text-decoration: none;
-    }
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
 
-    .navdiv ul {
-        list-style: none;
-        display: flex;
-        gap: 1.5rem;
-        margin: 0;
-        padding: 0;
-    }
+        .navdiv ul {
+            list-style: none;
+            display: flex;
+            gap: 1.5rem;
+            margin: 0;
+            padding: 0;
+        }
 
-    .navdiv ul li a {
-        color: white;
-        text-decoration: none;
-        font-size: 1rem;
-        transition: color 0.3s;
-    }
+        .navdiv ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: color 0.3s;
+        }
 
-    .navdiv ul li a:hover {
-        color: #ecf0f1;
-    }
+        .navdiv ul li a:hover {
+            color: #ecf0f1;
+        }
 
-    .logout-btn {
-        background-color: #e74c3c;
-        color: white;
-        padding: 0.5rem 1rem;
-        border: none;
-        border-radius: 0.5rem;
-        cursor: pointer;
-        transition: background-color 0.3s;
-    }
+        .logout-btn {
+            background-color: #e74c3c;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
 
-    .logout-btn:hover {
-        background-color: #c0392b;
-    }
+        .logout-btn:hover {
+            background-color: #c0392b;
+        }
 
-    .product-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 1rem;
-    }
+        .product-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
 
-    .product-table th,
-    .product-table td {
-        padding: 0.75rem;
-        text-align: left;
-        border-bottom: 1px solid #ddd;
-    }
+        .product-table th,
+        .product-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
 
-    .product-table th {
-        background-color: #f4f4f4;
-        font-weight: 600;
-    }
+        .product-table th {
+            background-color: #f4f4f4;
+            font-weight: 600;
+        }
     </style>
 </head>
 
@@ -210,6 +210,7 @@ if (isset($_GET['delete_id'])) {
                     <li><a href="lecturer_view_admin.php">Lecturers</a></li>
                     <li><a href="student_view_admin.php">Students</a></li>
                     <li><a href="appointment_view_admin.php">Appointments</a></li>
+                    <li><a href="set_operating_hours.php">Set Operating Hours</a></li>
                     <li><a href="edit_profile_admin.php?id=<?php echo $res_id; ?>">Edit Profile</a></li>
                     <li><button><a href="logout.php" class="logout-btn">Logout</a></button></li>
                 </ul>
@@ -268,20 +269,20 @@ if (isset($_GET['delete_id'])) {
                                     } else {
                                         foreach ($students as $student) {
                                     ?>
-                                    <tr>
-                                        <td><?php echo $count; ?></td>
-                                        <td><?php echo htmlspecialchars($student["username"]); ?></td>
-                                        <td><?php echo htmlspecialchars($student["faculty"] ?? 'N/A'); ?></td>
-                                        <td><?php echo htmlspecialchars($student["contact_number"] ?? 'N/A'); ?></td>
-                                        <td>
-                                            <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal"
-                                                data-bs-target="#updateModal"
-                                                data-id="<?php echo $student['id']; ?>">Update</button>
-                                            <a href="student_view_admin.php?delete_id=<?php echo $student['id']; ?>"
-                                                class="btn btn-outline-danger"
-                                                onclick="return confirm('Are you sure you want to delete this student?')">Delete</a>
-                                        </td>
-                                    </tr>
+                                            <tr>
+                                                <td><?php echo $count; ?></td>
+                                                <td><?php echo htmlspecialchars($student["username"]); ?></td>
+                                                <td><?php echo htmlspecialchars($student["faculty"] ?? 'N/A'); ?></td>
+                                                <td><?php echo htmlspecialchars($student["contact_number"] ?? 'N/A'); ?></td>
+                                                <td>
+                                                    <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal"
+                                                        data-bs-target="#updateModal"
+                                                        data-id="<?php echo $student['id']; ?>">Update</button>
+                                                    <a href="student_view_admin.php?delete_id=<?php echo $student['id']; ?>"
+                                                        class="btn btn-outline-danger"
+                                                        onclick="return confirm('Are you sure you want to delete this student?')">Delete</a>
+                                                </td>
+                                            </tr>
                                     <?php
                                             $count++;
                                         }
@@ -412,6 +413,7 @@ if (isset($_GET['delete_id'])) {
                     <li><a href="lecturer_view_admin.php">Lecturers</a></li>
                     <li><a href="student_view_admin.php">Students</a></li>
                     <li><a href="appointment_view_admin.php">Appointments</a></li>
+                    <li><a href="set_operating_hours.php">Set Operating Hours</a></li>
                     <li><a href="edit_profile_admin.php?id=<?php echo $res_id; ?>">Edit Profile</a></li>
                 </ul>
             </div>
@@ -423,50 +425,50 @@ if (isset($_GET['delete_id'])) {
 
     <script src="assets/js/script.js"></script>
     <script>
-    // Populate update modal with data
-    var updateModal = document.getElementById('updateModal');
-    updateModal.addEventListener('show.bs.modal', function(event) {
-        var button = event.relatedTarget;
-        var studentId = button.getAttribute('data-id');
-        var form = updateModal.querySelector('form');
-        form.querySelector('#update_student_id').value = studentId;
+        // Populate update modal with data
+        var updateModal = document.getElementById('updateModal');
+        updateModal.addEventListener('show.bs.modal', function(event) {
+            var button = event.relatedTarget;
+            var studentId = button.getAttribute('data-id');
+            var form = updateModal.querySelector('form');
+            form.querySelector('#update_student_id').value = studentId;
 
-        fetch(`student_fetch_admin.php?id=${studentId}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.error) {
-                    alert(data.error);
-                    return;
-                }
-                form.querySelector('#update_username').value = data.username || '';
-                form.querySelector('#update_email').value = data.email || '';
-                form.querySelector('#update_contact_number').value = data.contact_number || '';
-                form.querySelector('#update_faculty').value = data.faculty || '';
-            })
-            .catch(error => console.error('Error fetching student data:', error));
-    });
+            fetch(`student_fetch_admin.php?id=${studentId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                        return;
+                    }
+                    form.querySelector('#update_username').value = data.username || '';
+                    form.querySelector('#update_email').value = data.email || '';
+                    form.querySelector('#update_contact_number').value = data.contact_number || '';
+                    form.querySelector('#update_faculty').value = data.faculty || '';
+                })
+                .catch(error => console.error('Error fetching student data:', error));
+        });
 
-    // AJAX search functionality
-    document.getElementById('searchButton').addEventListener('click', function() {
-        var searchTerm = document.getElementById('searchInput').value;
-        fetch(`student_search_admin.php?term=${encodeURIComponent(searchTerm)}`)
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('studentTable').innerHTML = html;
-            })
-            .catch(error => console.error('Error searching students:', error));
-    });
+        // AJAX search functionality
+        document.getElementById('searchButton').addEventListener('click', function() {
+            var searchTerm = document.getElementById('searchInput').value;
+            fetch(`student_search_admin.php?term=${encodeURIComponent(searchTerm)}`)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('studentTable').innerHTML = html;
+                })
+                .catch(error => console.error('Error searching students:', error));
+        });
 
-    document.getElementById('searchInput').addEventListener('keypress', function(event) {
-        if (event.key === 'Enter') {
-            document.getElementById('searchButton').click();
-        }
-    });
+        document.getElementById('searchInput').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                document.getElementById('searchButton').click();
+            }
+        });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous">
