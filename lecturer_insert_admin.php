@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $designation = $_POST['designation'];
     $office_no = $_POST['office_no'];
     $reg_date = date("Y-m-d H:i:s");
-    $password = password_hash('default123', PASSWORD_DEFAULT); // Default password
+    $password = password_hash('User1234', PASSWORD_DEFAULT); // Default password
 
     // Insert into users table
     $insert_user_query = "INSERT INTO users (username, email, password, contact_number, role_id) VALUES (?, ?, ?, ?, 1)";
