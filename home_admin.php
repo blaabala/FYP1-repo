@@ -147,6 +147,30 @@ $res_contact = $result['contact_number'];
     .logout-btn:hover {
         background-color: #c0392b;
     }
+
+    /* Table styles for insights */
+    .insights-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+
+    .insights-table th,
+    .insights-table td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .insights-table th {
+        background-color: #f8f9fa;
+        font-weight: bold;
+        color: #374151;
+    }
+
+    .insights-table tr:hover {
+        background-color: #f9fafb;
+    }
     </style>
 </head>
 
@@ -194,7 +218,7 @@ $res_contact = $result['contact_number'];
         </div>
 
         <!-- Charts Section -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <!-- Pie Chart: Appointment Status -->
             <div class="bg-white p-6 rounded-xl shadow-lg">
                 <h3 class="text-lg font-semibold text-gray-700 mb-4">Appointment Status Distribution</h3>
@@ -205,6 +229,101 @@ $res_contact = $result['contact_number'];
             <div class="bg-white p-6 rounded-xl shadow-lg">
                 <h3 class="text-lg font-semibold text-gray-700 mb-4">Daily Appointment Trends (Last 7 Days)</h3>
                 <canvas id="trendChart" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- Appointment Insights Section -->
+        <div class="bg-white p-6 rounded-xl shadow-lg mt-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">Appointment Insights</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Top Lecturers by Cancellations -->
+                <div>
+                    <h4 class="text-md font-semibold text-gray-600 mb-2">Top Lecturers by Cancellations</h4>
+                    <table class="insights-table">
+                        <thead>
+                            <tr>
+                                <th>Lecturer Name</th>
+                                <th>Cancellations</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody id="top-cancellations-table">
+                            <!-- Data will be populated via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Most Active Lecturers -->
+                <div>
+                    <h4 class="text-md font-semibold text-gray-600 mb-2">Most Active Lecturers</h4>
+                    <table class="insights-table">
+                        <thead>
+                            <tr>
+                                <th>Lecturer Name</th>
+                                <th>Appointments</th>
+                            </tr>
+                        </thead>
+                        <tbody id="most-active-table">
+                            <!-- Data will be populated via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <!-- Top Students by Appointment Requests -->
+                <div>
+                    <h4 class="text-md font-semibold text-gray-600 mb-2">Top Students by Appointment Requests</h4>
+                    <table class="insights-table">
+                        <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Requests</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody id="top-students-requests-table">
+                            <!-- Data will be populated via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Students with Most Cancellations -->
+                <div>
+                    <h4 class="text-md font-semibold text-gray-600 mb-2">Students with Most Cancellations</h4>
+                    <table class="insights-table">
+                        <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Cancellations</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody id="top-students-cancellations-table">
+                            <!-- Data will be populated via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Appointment Status Breakdown by Lecturer -->
+            <div class="mt-6">
+                <h4 class="text-md font-semibold text-gray-600 mb-2">Appointment Status Breakdown by Lecturer</h4>
+                <table class="insights-table">
+                    <thead>
+                        <tr>
+                            <th>Lecturer Name</th>
+                            <th>Confirmed</th>
+                            <th>Rejected</th>
+                            <th>Cancelled</th>
+                            <th>Completed</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="status-breakdown-table">
+                        <!-- Data will be populated via JavaScript -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </main>
@@ -333,6 +452,104 @@ $res_contact = $result['contact_number'];
                 });
             })
             .catch(error => console.error('Error fetching dashboard data:', error));
+
+        // Fetch Appointment Insights
+        fetch('appointment_insights_admin.php')
+            .then(response => response.json())
+            .then(data => {
+                // Top Lecturers by Cancellations
+                const topCancellationsTable = document.getElementById('top-cancellations-table');
+                topCancellationsTable.innerHTML = '';
+                if (data.top_cancellations.length === 0) {
+                    topCancellationsTable.innerHTML =
+                        '<tr><td colspan="3" class="text-center text-gray-500">No cancellations found.</td></tr>';
+                } else {
+                    data.top_cancellations.forEach(row => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${row.lecturer_name}</td>
+                            <td>${row.cancellation_count}</td>
+                            <td>${row.percentage}%</td>
+                        `;
+                        topCancellationsTable.appendChild(tr);
+                    });
+                }
+
+                // Most Active Lecturers
+                const mostActiveTable = document.getElementById('most-active-table');
+                mostActiveTable.innerHTML = '';
+                if (data.most_active.length === 0) {
+                    mostActiveTable.innerHTML =
+                        '<tr><td colspan="2" class="text-center text-gray-500">No active lecturers found.</td></tr>';
+                } else {
+                    data.most_active.forEach(row => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${row.lecturer_name}</td>
+                            <td>${row.appointment_count}</td>
+                        `;
+                        mostActiveTable.appendChild(tr);
+                    });
+                }
+
+                // Top Students by Appointment Requests
+                const topStudentsRequestsTable = document.getElementById('top-students-requests-table');
+                topStudentsRequestsTable.innerHTML = '';
+                if (data.top_students_requests.length === 0) {
+                    topStudentsRequestsTable.innerHTML =
+                        '<tr><td colspan="3" class="text-center text-gray-500">No appointment requests found.</td></tr>';
+                } else {
+                    data.top_students_requests.forEach(row => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${row.student_name}</td>
+                            <td>${row.request_count}</td>
+                            <td>${row.percentage}%</td>
+                        `;
+                        topStudentsRequestsTable.appendChild(tr);
+                    });
+                }
+
+                // Students with Most Cancellations
+                const topStudentsCancellationsTable = document.getElementById('top-students-cancellations-table');
+                topStudentsCancellationsTable.innerHTML = '';
+                if (data.top_students_cancellations.length === 0) {
+                    topStudentsCancellationsTable.innerHTML =
+                        '<tr><td colspan="3" class="text-center text-gray-500">No cancellations found.</td></tr>';
+                } else {
+                    data.top_students_cancellations.forEach(row => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${row.student_name}</td>
+                            <td>${row.cancellation_count}</td>
+                            <td>${row.percentage}%</td>
+                        `;
+                        topStudentsCancellationsTable.appendChild(tr);
+                    });
+                }
+
+                // Appointment Status Breakdown by Lecturer
+                const statusBreakdownTable = document.getElementById('status-breakdown-table');
+                statusBreakdownTable.innerHTML = '';
+                if (data.status_breakdown.length === 0) {
+                    statusBreakdownTable.innerHTML =
+                        '<tr><td colspan="6" class="text-center text-gray-500">No appointments found.</td></tr>';
+                } else {
+                    data.status_breakdown.forEach(row => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${row.lecturer_name}</td>
+                            <td>${row.confirmed || 0}</td>
+                            <td>${row.rejected || 0}</td>
+                            <td>${row.cancelled || 0}</td>
+                            <td>${row.completed || 0}</td>
+                            <td>${row.total}</td>
+                        `;
+                        statusBreakdownTable.appendChild(tr);
+                    });
+                }
+            })
+            .catch(error => console.error('Error fetching appointment insights:', error));
     }
 
     // Initial load

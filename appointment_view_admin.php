@@ -590,16 +590,27 @@ if (!empty($from_date) && !empty($to_date)) {
             <div class="footer-nav">
                 <ul>
                     <li><a href="home_admin.php">Home</a></li>
-                    <li><a href="appointment_view_admin.php">View Appointments</a></li>
-                    <li><a href="user_view_admin.php">User Lists</a></li>
-                    <li><a href="edit_profile_admin.php">Edit Profile</a></li>
+                    <li><a href="lecturer_view_admin.php">Lecturers</a></li>
+                    <li><a href="student_view_admin.php">Students</a></li>
+                    <li><a href="appointment_view_admin.php">Appointments</a></li>
+                    <li><?php echo "<a href='edit_profile_admin.php?id=$res_id'>Edit Profile</a>"; ?></li>
                 </ul>
             </div>
             <div class="footer-bottom">
-                <p>© 2024 LEE JUN KHANG. All rights reserved. </p>
+                <div class="text-center">
+                    <p class="text-sm">Contact us: <a href="tel:+60123456789"
+                            class="underline hover:text-blue-200 transition-colors duration-300">+60123456789</a> | <a
+                            href="mailto:info@utarhospital.my"
+                            class="underline hover:text-blue-200 transition-colors duration-300">info@ams.1utar.my</a>
+                    </p>
+                </div>
+                <div class="text-center">
+                    <p class="text-sm">© <?php echo date('Y'); ?> LEE JUN KHANG. All rights reserved.</p>
+                </div>
             </div>
         </div>
     </footer>
+
     <script src="assets/js/script.js"></script>
     <script>
         // Validate datetime inputs to enforce 00/30-minute increments
