@@ -822,7 +822,7 @@ $bufferHours = 2; // Buffer period of 2 hours
                                 // Check if the selected slot is within a blocked date range
                                 if (isDateBlocked(selectedStart, blockedDates)) {
                                     alert(
-                                        'This time slot is unavailable due to the lecturer being unavailable.'
+                                        'This time slot is unavailable due to the lecturer is on leave.'
                                     );
                                     calendar.unselect();
                                     return;
