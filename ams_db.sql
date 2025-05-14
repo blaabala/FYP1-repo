@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 14, 2025 at 07:11 PM
+-- Generation Time: May 14, 2025 at 11:37 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -71,14 +71,16 @@ INSERT INTO `appointments` (`id`, `student_id`, `lecturer_id`, `title`, `start_d
 (5, 2, 1, 'n', '2025-09-08 11:30:00', '2025-09-08 12:00:00', 'Confirmed', 'n', 'n', '2025-04-28 15:04:35', '2025-04-28 15:04:35'),
 (7, 2, 2, 'Trying', '2025-05-02 13:30:00', '2025-05-02 14:00:00', 'Cancelled', '-', '-', '2025-05-01 05:14:55', '2025-05-02 02:25:20'),
 (8, 2, 2, 'Short Meeting', '2025-05-02 13:30:00', '2025-05-02 14:00:00', 'Cancelled', 'just a short meeting', 'NF-059', '2025-05-02 03:14:31', '2025-05-02 03:25:26'),
-(9, 10, 2, 'Short Meeting with Dr Soh', '2025-05-19 16:30:00', '2025-05-19 17:00:00', 'Confirmed', 'Short Meeting with Dr Soh', 'PG078', '2025-05-02 08:38:42', '2025-05-02 08:38:42'),
+(9, 10, 2, 'Short Meeting with Dr S', '2025-05-19 12:30:00', '2025-05-19 14:00:00', 'Confirmed', 'Short Meeting with Dr Soh', 'PG078', '2025-05-02 08:38:42', '2025-05-14 18:10:14'),
 (10, 2, 2, 'Testing123', '2025-05-12 15:00:00', '2025-05-12 15:30:00', 'Completed', 'Testing123 meeting', 'NG-007', '2025-05-08 09:18:11', '2025-05-13 02:55:52'),
 (11, 2, 2, 't', '2025-05-19 15:00:00', '2025-05-19 15:30:00', 'Confirmed', 't', 't', '2025-05-08 09:20:09', '2025-05-13 02:55:42'),
 (12, 2, 1, 'Meeting with Supervis', '2025-05-13 04:00:00', '2025-05-13 04:30:00', 'Cancelled', '20-min meeting', 'PG-078', '2025-05-13 01:24:50', '2025-05-13 01:55:06'),
 (13, 2, 2, 'testing', '2025-05-14 10:00:00', '2025-05-14 11:00:00', 'Cancelled', '-', '-', '2025-05-13 02:14:24', '2025-05-13 02:16:12'),
 (14, 2, 2, 'testing1', '2025-05-13 07:00:00', '2025-05-13 07:30:00', 'Rejected', 'testing123', 'PG078', '2025-05-13 03:40:36', '2025-05-13 04:06:12'),
 (15, 2, 1, 'test1', '2025-05-14 12:00:00', '2025-05-14 12:30:00', 'Cancelled', '---', 'n', '2025-05-13 04:01:24', '2025-05-13 04:02:34'),
-(16, 20, 1, 'FYP Consultation', '2025-05-19 09:00:00', '2025-05-19 09:30:00', 'Confirmed', '30mins of FYP consultation', 'NG-013', '2025-05-14 14:51:12', '2025-05-14 14:51:12');
+(16, 20, 1, 'FYP Consultation', '2025-05-19 09:00:00', '2025-05-19 09:30:00', 'Confirmed', '30mins of FYP consultation', 'NG-013', '2025-05-14 14:51:12', '2025-05-14 14:51:12'),
+(17, 6, 1, 'testin', '2025-05-16 13:00:00', '2025-05-16 13:30:00', 'Confirmed', '-', 'Nowhere', '2025-05-14 17:53:44', '2025-05-14 17:53:44'),
+(19, 6, 1, 'test2', '2025-05-15 14:00:00', '2025-05-15 14:30:00', 'Confirmed', '-', 'Nowhere', '2025-05-14 18:19:18', '2025-05-14 18:19:18');
 
 -- --------------------------------------------------------
 
@@ -157,8 +159,6 @@ CREATE TABLE `lecturer_availability` (
 --
 
 INSERT INTO `lecturer_availability` (`id`, `lecturer_id`, `is_recurring`, `day_of_week`, `start_time`, `end_time`, `start_date`, `end_date`, `start_datetime`, `end_datetime`, `created_at`, `updated_at`) VALUES
-(1, 1, 0, NULL, NULL, NULL, NULL, NULL, '2025-04-29 14:00:00', '2025-04-29 16:00:00', '2025-04-28 06:17:15', '2025-04-28 06:20:40'),
-(2, 1, 1, 3, '12:00:00', '13:00:00', '2025-04-30', '2025-05-28', NULL, NULL, '2025-04-28 06:23:57', '2025-04-28 06:23:57'),
 (3, 1, 1, 3, '14:00:00', '16:00:00', '2025-04-30', '2025-05-28', NULL, NULL, '2025-04-28 06:32:26', '2025-04-28 06:32:26'),
 (4, 1, 1, 1, '09:00:00', '12:00:00', '2025-04-01', '2025-12-31', '2025-04-28 09:00:00', '2025-12-31 12:00:00', '2025-04-28 12:30:08', '2025-04-28 15:58:26'),
 (7, 2, 0, NULL, NULL, NULL, NULL, NULL, '2025-05-02 11:30:00', '2025-05-02 12:00:00', '2025-05-01 15:33:38', '2025-05-01 15:34:30'),
@@ -169,6 +169,26 @@ INSERT INTO `lecturer_availability` (`id`, `lecturer_id`, `is_recurring`, `day_o
 (13, 1, 0, NULL, NULL, NULL, NULL, NULL, '2025-05-13 12:30:00', '2025-05-13 13:00:00', '2025-05-13 03:53:53', '2025-05-13 03:53:53'),
 (14, 1, 1, 5, '10:00:00', '12:00:00', '2025-05-13', '2025-05-31', NULL, NULL, '2025-05-13 03:58:25', '2025-05-13 03:58:25'),
 (15, 8, 0, NULL, NULL, NULL, NULL, NULL, '2025-05-15 11:00:00', '2025-05-15 13:00:00', '2025-05-14 15:04:56', '2025-05-14 15:04:56');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `operating_hours`
+--
+
+CREATE TABLE `operating_hours` (
+  `id` int(11) NOT NULL,
+  `start_time` time NOT NULL,
+  `end_time` time NOT NULL,
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `operating_hours`
+--
+
+INSERT INTO `operating_hours` (`id`, `start_time`, `end_time`, `updated_at`) VALUES
+(1, '08:00:00', '17:00:00', '2025-05-14 21:29:52');
 
 -- --------------------------------------------------------
 
@@ -287,6 +307,12 @@ ALTER TABLE `lecturer_availability`
   ADD KEY `fk_lecturer_id` (`lecturer_id`) USING BTREE;
 
 --
+-- Indexes for table `operating_hours`
+--
+ALTER TABLE `operating_hours`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `roles`
 --
 ALTER TABLE `roles`
@@ -320,7 +346,7 @@ ALTER TABLE `admins`
 -- AUTO_INCREMENT for table `appointments`
 --
 ALTER TABLE `appointments`
-  MODIFY `id` bigint(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` bigint(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `blocked_dates`
@@ -332,13 +358,19 @@ ALTER TABLE `blocked_dates`
 -- AUTO_INCREMENT for table `lecturers`
 --
 ALTER TABLE `lecturers`
-  MODIFY `id` bigint(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` bigint(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `lecturer_availability`
 --
 ALTER TABLE `lecturer_availability`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+
+--
+-- AUTO_INCREMENT for table `operating_hours`
+--
+ALTER TABLE `operating_hours`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `roles`
@@ -350,13 +382,13 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT for table `students`
 --
 ALTER TABLE `students`
-  MODIFY `id` bigint(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` bigint(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id` bigint(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- Constraints for dumped tables
