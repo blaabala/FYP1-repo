@@ -193,7 +193,7 @@ while ($result = mysqli_fetch_assoc($query)) {
             JOIN users u1 ON appointments.student_id = u1.id 
             JOIN lecturers l ON appointments.lecturer_id = l.id 
             JOIN users u2 ON l.user_id = u2.id 
-            WHERE appointments.student_id = ? OR appointments.lecturer_id = ? 
+            WHERE appointments.student_id = ? 
             ORDER BY appointments.id DESC";
 
             $stmt = $con->prepare($sel_query);
@@ -202,7 +202,7 @@ while ($result = mysqli_fetch_assoc($query)) {
                 exit();
             }
 
-            $stmt->bind_param('ii', $res_id, $res_id);
+            $stmt->bind_param('i', $res_id);
             $stmt->execute();
             $result = $stmt->get_result();
 
@@ -294,7 +294,8 @@ while ($result = mysqli_fetch_assoc($query)) {
                                 <div class="form-group col-md-6">
                                     <label for="requester_email">Your email</label>
                                     <input required type="email" class="form-control" id="requester_email"
-                                        name="requester_email">
+                                        name="requester_email" value="<?php echo htmlspecialchars($res_email); ?>"
+                                        readonly>
                                 </div>
                                 <div class="form-group col-md-6">
                                     <label for="accepter_email">Guest email</label>
@@ -639,179 +640,6 @@ while ($result = mysqli_fetch_assoc($query)) {
             attachUpdateButtonListeners();
         });
     </script>
-    <!-- <script>
-        $(document).ready(function() {
-            console.log('Document ready. Checking for #appointment-list...');
-            const appointmentListCheck = $('#appointment-list');
-            console.log('Initial #appointment-list check:', appointmentListCheck.length ? 'Found' : 'Not found');
-
-            const updateButtons = document.querySelectorAll('button[data-bs-target="#updateModal"]');
-
-            function attachUpdateButtonListeners() {
-                console.log('Attaching update button listeners...');
-                document.querySelectorAll('button[data-bs-target="#updateModal"]').forEach(button => {
-                    button.removeEventListener('click', handleUpdateButtonClick);
-                    button.addEventListener('click', handleUpdateButtonClick);
-                });
-            }
-
-            function handleUpdateButtonClick() {
-                const appointmentId = this.getAttribute('data-id');
-                console.log('Fetching appointment data for ID:', appointmentId);
-                fetch('appointment_fetch.php?id=' + appointmentId)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok: ' + response.statusText);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.error) {
-                            console.error('Server error:', data.error);
-                            alert('Error fetching appointment data: ' + data.error);
-                            return;
-                        }
-
-                        const formatDateTime = (dateTime) => {
-                            const date = new Date(dateTime);
-                            return date.toISOString().slice(0, 16);
-                        };
-
-                        document.getElementById('update_status').value = data.status || 'Pending';
-                        document.getElementById('update_title').value = data.title || '';
-                        document.getElementById('update_requester_email').value = data.requester_email || '';
-                        document.getElementById('update_accepter_email').value = data.accepter_email || '';
-                        document.getElementById('update_from_time').value = data.from_time ? formatDateTime(data
-                            .from_time) : '';
-                        document.getElementById('update_to_time').value = data.to_time ? formatDateTime(data
-                            .to_time) : '';
-                        document.getElementById('update_location').value = data.location || '';
-                        document.getElementById('update_description').value = data.description || '';
-                        document.getElementById('update_appointment_id').value = data.id || '';
-
-                        const isAccepter = (data.current_user_id == data.accepter_id);
-                        const isRequester = (data.current_user_id == data.requester_id);
-
-                        if (isAccepter && !isRequester) {
-                            document.querySelectorAll(
-                                    '#updateModal input:not(#update_status), #updateModal textarea')
-                                .forEach(el => {
-                                    el.disabled = true;
-                                });
-                            document.getElementById('update_status').disabled = false;
-                            document.querySelector('#updateModal .btn-primary').style.display = 'block';
-                            document.getElementById('accepterMessage').style.display = 'block';
-                            document.getElementById('viewOnlyMessage').style.display = 'none';
-                        } else if (!isRequester && data.current_user_role !== 3) {
-                            document.querySelectorAll(
-                                    '#updateModal input, #updateModal select, #updateModal textarea')
-                                .forEach(el => {
-                                    el.disabled = true;
-                                });
-                            document.querySelector('#updateModal .btn-primary').style.display = 'none';
-                            document.getElementById('viewOnlyMessage').style.display = 'block';
-                            document.getElementById('accepterMessage').style.display = 'none';
-                        } else {
-                            document.querySelectorAll(
-                                    '#updateModal input, #updateModal select, #updateModal textarea')
-                                .forEach(el => {
-                                    el.disabled = false;
-                                });
-                            document.querySelector('#updateModal .btn-primary').style.display = 'block';
-                            document.getElementById('viewOnlyMessage').style.display = 'none';
-                            document.getElementById('accepterMessage').style.display = 'none';
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching appointment data:', error);
-                        alert('Failed to fetch appointment data. Check the console for details.');
-                    });
-            }
-
-            function showConfirmationModal() {
-                const confirmationModal = new bootstrap.Modal(document.getElementById('confirmModalCenter'));
-                confirmationModal.show();
-            }
-
-            function submitForm() {
-                const confirmationModal = bootstrap.Modal.getInstance(document.getElementById(
-                    'confirmModalCenter'));
-                confirmationModal.hide();
-                document.querySelector('#updateModal form').submit();
-            }
-
-            // Simplified search without debounce to rule out timing issues
-            $('#search-title').on('input', function() {
-                var searchTerm = $(this).val().trim();
-                console.log('Search term:', searchTerm);
-
-                const appointmentList = $('#appointment-list');
-                console.log('Before AJAX - #appointment-list exists:', appointmentList.length ? 'Yes' :
-                    'No');
-                if (!appointmentList.length) {
-                    console.error('appointment-list element not found before AJAX');
-                    alert('Error: Appointment list container not found. Please refresh the page.');
-                    return;
-                }
-
-                appointmentList.prepend('<div class="loading">Loading...</div>');
-                $('.loading').show();
-
-                $.ajax({
-                    url: 'appointment_search.php',
-                    type: 'POST',
-                    data: {
-                        search: searchTerm
-                    },
-                    dataType: 'json',
-                    success: function(response) {
-                        $('.loading').remove();
-                        console.log('AJAX response:', response);
-
-                        const appointmentListAfter = $('#appointment-list');
-                        console.log('After AJAX - #appointment-list exists:',
-                            appointmentListAfter.length ? 'Yes' : 'No');
-                        if (!appointmentListAfter.length) {
-                            console.error('appointment-list element not found after AJAX');
-                            alert(
-                                'Error: Appointment list container not found after search. Please refresh the page.'
-                            );
-                            return;
-                        }
-
-                        if (response.error) {
-                            alert('Error: ' + response.error + '\nDebug: ' + JSON.stringify(
-                                response.debug));
-                            return;
-                        }
-                        appointmentListAfter.html(response.html);
-                        attachUpdateButtonListeners();
-                    },
-                    error: function(xhr, status, error) {
-                        $('.loading').remove();
-                        console.error('AJAX Error:', status, error);
-                        console.log('Raw response:', xhr.responseText);
-                        alert(
-                            'Failed to fetch search results. Raw response logged to console.'
-                        );
-                    }
-                });
-            });
-
-            $('#search-title').on('input', function() {
-                $('#clear-search').toggle(!!$(this).val());
-            });
-
-            $('#clear-search').on('click', function() {
-                $('#search-title').val('').trigger('input');
-            });
-
-            // Initial attachment of event listeners
-            attachUpdateButtonListeners();
-        });
-    </script> -->
-
-
     <!-- Ensure script.js is commented out to avoid conflicts -->
     <!-- <script src="assets/js/script.js"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
