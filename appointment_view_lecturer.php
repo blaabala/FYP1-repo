@@ -172,16 +172,56 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     exit();
 }
 
+// Handle sorting parameters
+$sort_by = isset($_GET['sort_by']) ? $_GET['sort_by'] : 'id';
+$sort_order = isset($_GET['sort_order']) ? $_GET['sort_order'] : 'DESC';
+$valid_sort_columns = ['start_datetime', 'end_datetime', 'id'];
+$sort_by = in_array($sort_by, $valid_sort_columns) ? $sort_by : 'id';
+$sort_order = strtoupper($sort_order) === 'ASC' ? 'ASC' : 'DESC';
+$new_sort_order = $sort_order === 'ASC' ? 'DESC' : 'ASC';
+
+// Handle date filter parameters
+$from_date = isset($_GET['from_date']) ? $_GET['from_date'] : '';
+$to_date = isset($_GET['to_date']) ? $_GET['to_date'] : '';
+$where_clause = "WHERE appointments.lecturer_id = ?";
+$params = [$lecturer_id];
+$types = 'i';
+
+if (!empty($from_date) && !empty($to_date)) {
+    $from_date = date('Y-m-d 00:00:00', strtotime($from_date));
+    $to_date = date('Y-m-d 23:59:59', strtotime($to_date));
+    $where_clause .= " AND appointments.start_datetime BETWEEN ? AND ?";
+    $params[] = $from_date;
+    $params[] = $to_date;
+    $types .= 'ss';
+} elseif (!empty($from_date)) {
+    $from_date = date('Y-m-d 00:00:00', strtotime($from_date));
+    $where_clause .= " AND appointments.start_datetime >= ?";
+    $params[] = $from_date;
+    $types .= 's';
+} elseif (!empty($to_date)) {
+    $to_date = date('Y-m-d 23:59:59', strtotime($to_date));
+    $where_clause .= " AND appointments.start_datetime <= ?";
+    $params[] = $to_date;
+    $types .= 's';
+}
+
 // Fetch appointments for display
-$sel_query = "SELECT appointments.*, u1.username AS requester_name, u1.email AS requester_email, u2.username AS accepter_name, u2.email AS accepter_email 
+$sel_query = "SELECT appointments.*, 
+              u1.username AS requester_name, 
+              u1.email AS requester_email, 
+              u2.username AS accepter_name, 
+              u2.email AS accepter_email,
+              DATE_FORMAT(appointments.start_datetime, '%Y-%m-%d %h:%i %p') AS formatted_start,
+              DATE_FORMAT(appointments.end_datetime, '%Y-%m-%d %h:%i %p') AS formatted_end
               FROM appointments 
               JOIN users u1 ON appointments.student_id = u1.id 
               JOIN lecturers l ON appointments.lecturer_id = l.id 
               JOIN users u2 ON l.user_id = u2.id 
-              WHERE appointments.lecturer_id = ? 
-              ORDER BY appointments.id DESC";
+              $where_clause 
+              ORDER BY appointments.$sort_by $sort_order";
 $stmt = $con->prepare($sel_query);
-$stmt->bind_param('i', $lecturer_id);
+$stmt->bind_param($types, ...$params);
 $stmt->execute();
 $result = $stmt->get_result();
 $appointments = $result->fetch_all(MYSQLI_ASSOC);
@@ -197,6 +237,8 @@ $stmt->close();
     <title>View Appointment Records</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"
         integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
     <style>
@@ -252,6 +294,56 @@ $stmt->close();
             cursor: pointer;
             font-size: 1.2rem;
         }
+
+        /* Sorting styles */
+        .sort-icon {
+            margin-left: 5px;
+            color: #007bff;
+        }
+
+        th a {
+            color: #000;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        th a:hover {
+            text-decoration: underline;
+        }
+
+        /* Date filter styles */
+        .date-filter {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .date-filter input[type="date"] {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .date-filter button {
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .date-filter button:hover {
+            background-color: #0056b3;
+        }
+
+        .search-container {
+            display: flex;
+            align-items: center;
+            position: relative;
+            max-width: 300px;
+        }
     </style>
 </head>
 
@@ -274,13 +366,20 @@ $stmt->close();
                         <div class="card-header">
                             <h2 style="text-align: center;">View Appointment Records</h2>
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                <div class="relative">
+                                <div class="search-container">
                                     <input type="text" id="search-filter" placeholder="Search appointments..."
                                         class="border p-2 rounded">
                                     <button id="clear-search"
                                         class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                                         style="display: none;">×</button>
                                 </div>
+                            </div>
+                            <div class="date-filter">
+                                <input type="date" id="from_date" name="from_date"
+                                    value="<?php echo htmlspecialchars($from_date ? substr($from_date, 0, 10) : ''); ?>">
+                                <input type="date" id="to_date" name="to_date"
+                                    value="<?php echo htmlspecialchars($to_date ? substr($to_date, 0, 10) : ''); ?>">
+                                <button type="button" id="filterButton">Filter</button>
                             </div>
                         </div>
                         <div class="card-body">
@@ -291,8 +390,30 @@ $stmt->close();
                                             <th>No.</th>
                                             <th>Requester Name</th>
                                             <th>Title</th>
-                                            <th>From</th>
-                                            <th>To</th>
+                                            <th>
+                                                <a
+                                                    href="?sort_by=start_datetime&sort_order=<?php echo ($sort_by === 'start_datetime') ? $new_sort_order : 'ASC'; ?>&from_date=<?php echo urlencode($from_date ? substr($from_date, 0, 10) : ''); ?>&to_date=<?php echo urlencode($to_date ? substr($to_date, 0, 10) : ''); ?>">
+                                                    From
+                                                    <?php if ($sort_by === 'start_datetime') { ?>
+                                                        <i
+                                                            class="fas fa-sort-<?php echo $sort_order === 'ASC' ? 'up' : 'down'; ?> sort-icon"></i>
+                                                    <?php } else { ?>
+                                                        <i class="fas fa-sort sort-icon"></i>
+                                                    <?php } ?>
+                                                </a>
+                                            </th>
+                                            <th>
+                                                <a
+                                                    href="?sort_by=end_datetime&sort_order=<?php echo ($sort_by === 'end_datetime') ? $new_sort_order : 'ASC'; ?>&from_date=<?php echo urlencode($from_date ? substr($from_date, 0, 10) : ''); ?>&to_date=<?php echo urlencode($to_date ? substr($to_date, 0, 10) : ''); ?>">
+                                                    To
+                                                    <?php if ($sort_by === 'end_datetime') { ?>
+                                                        <i
+                                                            class="fas fa-sort-<?php echo $sort_order === 'ASC' ? 'up' : 'down'; ?> sort-icon"></i>
+                                                    <?php } else { ?>
+                                                        <i class="fas fa-sort sort-icon"></i>
+                                                    <?php } ?>
+                                                </a>
+                                            </th>
                                             <th>Description</th>
                                             <th>Location</th>
                                             <th>Status</th>
@@ -321,8 +442,8 @@ $stmt->close();
                                                     <td><?php echo $count; ?></td>
                                                     <td><?php echo htmlspecialchars($row["requester_name"]); ?></td>
                                                     <td><?php echo htmlspecialchars($row["title"]); ?></td>
-                                                    <td><?php echo htmlspecialchars($row["start_datetime"]); ?></td>
-                                                    <td><?php echo htmlspecialchars($row["end_datetime"]); ?></td>
+                                                    <td><?php echo htmlspecialchars($row["formatted_start"]); ?></td>
+                                                    <td><?php echo htmlspecialchars($row["formatted_end"]); ?></td>
                                                     <td><?php echo htmlspecialchars($row["description"]); ?></td>
                                                     <td><?php echo htmlspecialchars($row["location"]); ?></td>
                                                     <td class="<?php echo $statusClass; ?>">
@@ -478,6 +599,8 @@ $stmt->close();
         $(document).ready(function() {
             $('#search-filter').on('input', function() {
                 var searchTerm = $(this).val().trim();
+                var fromDate = $('#from_date').val();
+                var toDate = $('#to_date').val();
                 const appointmentList = $('#appointment-list');
                 appointmentList.prepend('<div class="loading">Loading...</div>');
                 $('.loading').show();
@@ -487,7 +610,9 @@ $stmt->close();
                     type: 'POST',
                     data: {
                         search: searchTerm,
-                        lecturer_id: <?php echo $lecturer_id; ?>
+                        lecturer_id: <?php echo $lecturer_id; ?>,
+                        from_date: fromDate,
+                        to_date: toDate
                     },
                     dataType: 'json',
                     success: function(response) {
@@ -512,6 +637,16 @@ $stmt->close();
 
             $('#clear-search').on('click', function() {
                 $('#search-filter').val('').trigger('input');
+            });
+
+            // Date filter functionality
+            $('#filterButton').on('click', function() {
+                var fromDate = $('#from_date').val();
+                var toDate = $('#to_date').val();
+                var sortBy = '<?php echo $sort_by; ?>';
+                var sortOrder = '<?php echo $sort_order; ?>';
+                window.location.href =
+                    `appointment_view_lecturer.php?from_date=${fromDate}&to_date=${toDate}&sort_by=${sortBy}&sort_order=${sortOrder}`;
             });
 
             function attachUpdateButtonListeners() {
