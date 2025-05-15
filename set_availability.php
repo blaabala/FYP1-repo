@@ -586,7 +586,7 @@ function findRecurringOverlaps($avail, $blocked_dates)
             recurringFields.classList.toggle('hidden', !isRecurring);
         }
 
-        // Ensure time is in 24-hour format (HH:MM) before submission
+        // Ensure time is in 24-hour format (HH:MM)
         function ensure24HourFormat(inputId) {
             const input = document.getElementById(inputId);
             let timeValue = input.value;
@@ -594,14 +594,18 @@ function findRecurringOverlaps($avail, $blocked_dates)
             // If the input is empty, do nothing
             if (!timeValue) return;
 
-            // Remove any non-digit or non-colon characters
+            // Remove any non-digit, non-colon characters
             timeValue = timeValue.replace(/[^\d:]/g, '');
 
-            // Match HH:MM format
-            if (timeValue.match(/^\d{1,2}:\d{2}$/)) {
-                let [hours, minutes] = timeValue.split(':').map(Number);
+            // Match HH:MM or HH:MM:SS format
+            if (timeValue.match(/^\d{1,2}:\d{2}(:\d{2})?$/)) {
+                let parts = timeValue.split(':');
+                let hours = parseInt(parts[0], 10);
+                let minutes = parseInt(parts[1], 10);
+
                 // Validate hours and minutes
                 if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
+                    // Normalize to HH:MM format (ignore seconds if present)
                     input.value = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
                 } else {
                     alert('Invalid time. Hours must be 00-23 and minutes must be 00-59.');
@@ -615,8 +619,13 @@ function findRecurringOverlaps($avail, $blocked_dates)
 
         // Validate form on submission
         function validateForm(formId) {
-            // Ensure time fields are validated before submission
-            if (document.getElementById('is_recurring')?.checked || formId === 'edit-avail-form') {
+            // Determine if this is a recurring availability
+            const isRecurring = formId === 'edit-avail-form' ?
+                document.getElementById('edit-is-recurring').checked :
+                document.getElementById('is_recurring')?.checked;
+
+            // Validate time fields only for recurring availability
+            if (isRecurring) {
                 ensure24HourFormat(formId === 'edit-avail-form' ? 'edit-start-time' : 'start_time');
                 ensure24HourFormat(formId === 'edit-avail-form' ? 'edit-end-time' : 'end_time');
 
@@ -629,6 +638,17 @@ function findRecurringOverlaps($avail, $blocked_dates)
                     alert('Please ensure both start and end times are filled and valid.');
                     return false;
                 }
+            } else {
+                // For non-recurring availability, validate datetime fields
+                const startDatetime = document.getElementById(formId === 'edit-avail-form' ? 'edit-start-datetime' :
+                    'start_datetime').value;
+                const endDatetime = document.getElementById(formId === 'edit-avail-form' ? 'edit-end-datetime' :
+                    'end_datetime').value;
+
+                if (!startDatetime || !endDatetime) {
+                    alert('Please ensure both start and end datetimes are filled and valid.');
+                    return false;
+                }
             }
             return true;
         }
@@ -637,8 +657,7 @@ function findRecurringOverlaps($avail, $blocked_dates)
         function openEditBlockedModal(id, startDate, endDate, reason) {
             const modal = document.getElementById('edit-blocked-modal');
             document.getElementById('edit-blocked-id').value = id;
-            document.getElementById('edit-block-start-date').UT
-            value = formatDateForInput(startDate);
+            document.getElementById('edit-block-start-date').value = formatDateForInput(startDate);
             document.getElementById('edit-block-end-date').value = formatDateForInput(endDate);
             document.getElementById('edit-block-reason').value = reason || '';
             modal.style.display = 'block';
