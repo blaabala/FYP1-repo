@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 14, 2025 at 11:37 PM
+-- Generation Time: May 15, 2025 at 02:11 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -79,8 +79,10 @@ INSERT INTO `appointments` (`id`, `student_id`, `lecturer_id`, `title`, `start_d
 (14, 2, 2, 'testing1', '2025-05-13 07:00:00', '2025-05-13 07:30:00', 'Rejected', 'testing123', 'PG078', '2025-05-13 03:40:36', '2025-05-13 04:06:12'),
 (15, 2, 1, 'test1', '2025-05-14 12:00:00', '2025-05-14 12:30:00', 'Cancelled', '---', 'n', '2025-05-13 04:01:24', '2025-05-13 04:02:34'),
 (16, 20, 1, 'FYP Consultation', '2025-05-19 09:00:00', '2025-05-19 09:30:00', 'Confirmed', '30mins of FYP consultation', 'NG-013', '2025-05-14 14:51:12', '2025-05-14 14:51:12'),
-(17, 6, 1, 'testin', '2025-05-16 13:00:00', '2025-05-16 13:30:00', 'Confirmed', '-', 'Nowhere', '2025-05-14 17:53:44', '2025-05-14 17:53:44'),
-(19, 6, 1, 'test2', '2025-05-15 14:00:00', '2025-05-15 14:30:00', 'Confirmed', '-', 'Nowhere', '2025-05-14 18:19:18', '2025-05-14 18:19:18');
+(17, 6, 1, 'testin', '2025-05-16 13:00:00', '2025-05-16 13:30:00', 'Cancelled', '-', 'Nowhere', '2025-05-14 17:53:44', '2025-05-14 22:19:11'),
+(19, 6, 1, 'test2', '2025-05-15 14:00:00', '2025-05-15 14:30:00', 'Confirmed', '-', 'Nowhere', '2025-05-14 18:19:18', '2025-05-14 18:19:18'),
+(20, 10, 1, 'new meeting 123', '2025-05-19 01:30:00', '2025-05-19 02:00:00', 'Cancelled', 'nothing', 'NF-059', '2025-05-14 21:41:22', '2025-05-14 22:10:32'),
+(21, 10, 1, 'New meeting with Dr Lee', '2025-05-19 09:30:00', '2025-05-19 10:00:00', 'Confirmed', 'new 30min-meeting with Dr Lee', 'NF-059', '2025-05-14 22:11:25', '2025-05-14 22:11:25');
 
 -- --------------------------------------------------------
 
@@ -104,7 +106,6 @@ CREATE TABLE `blocked_dates` (
 INSERT INTO `blocked_dates` (`id`, `lecturer_id`, `start_date`, `end_date`, `reason`, `created_at`) VALUES
 (4, 2, '2025-05-05', '2025-05-09', NULL, '2025-05-01 15:20:24'),
 (7, 2, '2025-05-12', '2025-05-12', 'testing', '2025-05-13 02:48:13'),
-(8, 1, '2025-05-13', '2025-05-16', 'on leave', '2025-05-13 04:03:01'),
 (9, 8, '2025-05-16', '2025-05-19', 'On leave', '2025-05-14 15:05:26');
 
 -- --------------------------------------------------------
@@ -131,7 +132,8 @@ INSERT INTO `lecturers` (`id`, `user_id`, `username`, `faculty`, `department`, `
 (1, 4, 'LEE KOK LEONG', 'FICT', 'DCCT', 'Senior Lecturer', 'PG-078'),
 (2, 7, 'MUHAMMAD MATTHEW SOH', 'FICT', 'DCS', 'Lecturer', 'NG-011'),
 (3, 9, 'MR BEAN', 'FICT', 'DCCT', 'Senior Lecturer', 'NG-010'),
-(8, 19, 'DR NG HUI FANG', 'FICT', 'DCCT', 'Lecturer', 'NG-013');
+(8, 19, 'DR NG HUI FANG', 'FICT', 'DCCT', 'Lecturer', 'NG-013'),
+(11, 26, 'CIK NUR ATHIRAH NABILA BINTI MOHD IDROS', 'FICT', 'DIS', 'Lecturer', 'PG-078');
 
 -- --------------------------------------------------------
 
@@ -166,9 +168,9 @@ INSERT INTO `lecturer_availability` (`id`, `lecturer_id`, `is_recurring`, `day_o
 (9, 2, 1, 1, '15:00:00', '17:00:00', '2025-05-12', '2025-05-26', NULL, NULL, '2025-05-01 19:55:16', '2025-05-01 19:55:16'),
 (11, 2, 1, 2, '15:00:00', '17:00:00', '2025-05-12', '2025-05-30', NULL, NULL, '2025-05-08 10:28:28', '2025-05-08 10:28:28'),
 (12, 2, 0, NULL, NULL, NULL, NULL, NULL, '2025-05-13 12:30:00', '2025-05-13 13:00:00', '2025-05-13 03:51:23', '2025-05-13 03:51:23'),
-(13, 1, 0, NULL, NULL, NULL, NULL, NULL, '2025-05-13 12:30:00', '2025-05-13 13:00:00', '2025-05-13 03:53:53', '2025-05-13 03:53:53'),
 (14, 1, 1, 5, '10:00:00', '12:00:00', '2025-05-13', '2025-05-31', NULL, NULL, '2025-05-13 03:58:25', '2025-05-13 03:58:25'),
-(15, 8, 0, NULL, NULL, NULL, NULL, NULL, '2025-05-15 11:00:00', '2025-05-15 13:00:00', '2025-05-14 15:04:56', '2025-05-14 15:04:56');
+(15, 8, 0, NULL, NULL, NULL, NULL, NULL, '2025-05-15 10:00:00', '2025-05-15 13:00:00', '2025-05-14 15:04:56', '2025-05-14 21:56:53'),
+(17, 1, 0, NULL, NULL, NULL, NULL, NULL, '2025-05-15 08:30:00', '2025-05-15 10:30:00', '2025-05-14 22:18:30', '2025-05-14 22:18:30');
 
 -- --------------------------------------------------------
 
@@ -264,7 +266,8 @@ INSERT INTO `users` (`id`, `username`, `email`, `role_id`, `reg_date`, `password
 (10, 'JORDAN TAN JUN HAO', 'tanjunhao@gmail.com', 2, '2025-05-02 16:19:37', '$2y$10$r3PLwByltwyJzmZrn43hdOmWgX.ExH2ggjCpVWRRTgAY2xwhfgXrK', '60123456789'),
 (16, 'TAN ZHI JUIN', 'tzjuin@gmail.com', 2, '2025-05-03 02:08:08', '$2y$10$ZZqOwmWxSrmbngLRMYl12epj0PW0aUa8swzIFOZXWld1tRHGCc1GG', '60123456789'),
 (19, 'DR NG HUI FANG', 'nhfang@gmail.com', 1, '2025-05-14 22:46:50', '$2y$10$/kUT0yjfwr/AfyTDUEK4DOMU5d8DJz57XaRaKPs62MfqPKHH5l5Jm', '60123456789'),
-(20, 'NG JUN HAO', 'ngjunhao@gmail.com', 2, '2025-05-14 22:47:30', '$2y$10$NS/2Uv0WMHecOPgAa3uYk.6gxHGoUhpzwTpCl6aJKK53mduEwpZyu', '60123456789');
+(20, 'NG JUN HAO', 'ngjunhao@gmail.com', 2, '2025-05-14 22:47:30', '$2y$10$NS/2Uv0WMHecOPgAa3uYk.6gxHGoUhpzwTpCl6aJKK53mduEwpZyu', '60123456789'),
+(26, 'CIK NUR ATHIRAH NABILA BINTI MOHD IDROS', 'nurathirahn@utar.edu.my', 1, '2025-05-15 08:00:31', '$2y$10$j4r2xmP2lUu2woJX9u.b/.SsCiL1iGOrIjv0xNHVfSk7YjY8SPzma', '60123456789');
 
 --
 -- Indexes for dumped tables
@@ -346,7 +349,7 @@ ALTER TABLE `admins`
 -- AUTO_INCREMENT for table `appointments`
 --
 ALTER TABLE `appointments`
-  MODIFY `id` bigint(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` bigint(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `blocked_dates`
@@ -358,13 +361,13 @@ ALTER TABLE `blocked_dates`
 -- AUTO_INCREMENT for table `lecturers`
 --
 ALTER TABLE `lecturers`
-  MODIFY `id` bigint(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` bigint(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `lecturer_availability`
 --
 ALTER TABLE `lecturer_availability`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `operating_hours`
@@ -388,7 +391,7 @@ ALTER TABLE `students`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `id` bigint(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- Constraints for dumped tables
